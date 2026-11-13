@@ -189,7 +189,10 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
   right after the writes and 0.5 s later), and the Default category (checked only *during* our writes,
   since it also holds unrelated CVars). Forever: `ConsoleGetAllCommands` (no `C_Console`); 184 Graphics
   CVars; `groundEffectDensity` is in Default (5). Option "Keep custom console settings" (default on).
-- [ ] **In game:** set `/console groundEffectDensity 256`, fly, land; check `/dump GetCVar("groundEffectDensity")`
+- [x] **In game (2026-11-13):** Max saver's presets overwrote 31 lower-level CVars (ground effects, farclip/horizon,
+  LOD distances, shadows, water, particles, SSAO, volume fog), all detected. On landing, the presets restored
+  30 of them to the user's values by themselves; the custom `groundEffectDensity` (128; preset gives 48) was
+  put back by the addon.
 - [ ] Friendly labels for enum values (e.g. "Low/High" instead of 0-5); M4
 
 ### M4: Polish and release
