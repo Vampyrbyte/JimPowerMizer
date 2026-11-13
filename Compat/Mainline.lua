@@ -111,6 +111,37 @@ local KNOWN_DETAIL_CVARS = {
 }
 local detailNames, detailFromConsole
 
+local function getAllConsoleCommands()
+	local fn = (C_Console and C_Console.GetAllCommands) or ConsoleGetAllCommands
+	if not fn then return nil, "no GetAllCommands API" end
+	local ok, commands = pcall(fn)
+	if not ok then return nil, "GetAllCommands errored: " .. tostring(commands) end
+	if type(commands) ~= "table" then return nil, "GetAllCommands returned " .. type(commands) end
+	return commands
+end
+
+-- For /jpm probe: why the console list did or didn't work.
+function impl.DescribeConsoleList()
+	local commands, err = getAllConsoleCommands()
+	if not commands then return err end
+	local cvarType = Enum and Enum.ConsoleCommandType and Enum.ConsoleCommandType.Cvar
+	local graphics = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Graphics
+	local first = commands[1]
+	local fields = {}
+	if type(first) == "table" then
+		for k, v in pairs(first) do fields[#fields + 1] = ("%s=%s"):format(tostring(k), tostring(v)) end
+		table.sort(fields)
+	end
+	local sample
+	for _, c in ipairs(commands) do
+		if type(c) == "table" and c.command == "groundEffectDensity" then
+			sample = ("groundEffectDensity: type=%s category=%s"):format(tostring(c.commandType), tostring(c.category))
+		end
+	end
+	return ("%d commands; Enum Cvar=%s Graphics=%s; first entry {%s}; %s"):format(#commands,
+		tostring(cvarType), tostring(graphics), table.concat(fields, ", "), sample or "groundEffectDensity not listed")
+end
+
 function impl.GetDetailCVarNames()
 	if detailNames then return detailNames, detailFromConsole end
 	local names, seen = {}, {}
@@ -123,14 +154,12 @@ function impl.GetDetailCVarNames()
 	detailFromConsole = 0
 	local cvarType = Enum and Enum.ConsoleCommandType and Enum.ConsoleCommandType.Cvar
 	local graphics = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Graphics
-	if C_Console and C_Console.GetAllCommands and cvarType and graphics then
-		local ok, commands = pcall(C_Console.GetAllCommands)
-		if ok and type(commands) == "table" then
-			for _, c in ipairs(commands) do
-				if c.commandType == cvarType and c.category == graphics then
-					add(c.command)
-					detailFromConsole = detailFromConsole + 1
-				end
+	local commands = getAllConsoleCommands()
+	if commands and cvarType and graphics then
+		for _, c in ipairs(commands) do
+			if type(c) == "table" and c.commandType == cvarType and c.category == graphics then
+				add(c.command)
+				detailFromConsole = detailFromConsole + 1
 			end
 		end
 	end
