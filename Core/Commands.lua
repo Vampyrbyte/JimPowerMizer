@@ -7,6 +7,9 @@ local HELP = {
 	"|cffffd200/jpm status|r - show the current state",
 	"|cffffd200/jpm on|r / |cffffd200off|r - enable or disable automatic switching",
 	"|cffffd200/jpm restore|r - restore your graphics settings now",
+	"|cffffd200/jpm list|r - list situations, their settings and whether they're active",
+	"|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off",
+	"|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle",
 	"|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)",
 	"|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them",
 	"|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts",
@@ -77,6 +80,31 @@ function JPM:Probe()
 	end
 end
 
+function JPM:ListSituations()
+	local order, defs = ns.Engine:GetSituations()
+	local active = {}
+	for _, key in ipairs(ns.Engine:GetActiveSituations()) do active[key] = true end
+	local current = ns.Engine:GetCurrent()
+	local sorted = {}
+	for _, key in ipairs(order) do sorted[#sorted + 1] = key end
+	local sit = self.db.profile.situations
+	table.sort(sorted, function(a, b) return (sit[a].priority or 0) > (sit[b].priority or 0) end)
+	self:Msg("Situations (highest priority first):")
+	for _, key in ipairs(sorted) do
+		local cfg = sit[key]
+		local extra = ""
+		if key == "idle" then
+			extra = (", after %ds, idle for %ds"):format(cfg.timeout or 0, math.floor(ns.IdleSeconds and ns.IdleSeconds() or 0))
+		end
+		self:Msg("  %s|cffffd200%s|r (%s): %s, %s, priority %d, delay %ss%s%s",
+			key == current and "> " or "", key, defs[key].name,
+			cfg.enabled and "|cff00ff00on|r" or "|cff808080off|r",
+			cfg.profile and ("profile " .. cfg.profile) or "your settings",
+			cfg.priority or 0, tostring(cfg.enterDelay or 0), extra,
+			active[key] and " |cffffff00[active]|r" or "")
+	end
+end
+
 function JPM:HandleSlash(input)
 	local cmd, arg = self:GetArgs(input or "", 2)
 	cmd = cmd and cmd:lower() or "status"
@@ -93,6 +121,26 @@ function JPM:HandleSlash(input)
 		ns.Engine:Disable()
 		ns.Applier:RestoreAll("disabled")
 		self:Msg("Disabled.")
+	elseif cmd == "list" then
+		self:ListSituations()
+	elseif cmd == "enable" or cmd == "disable" then
+		local cfg = arg and db.situations[arg]
+		if not cfg then
+			self:Msg("Unknown situation '%s'. See /jpm list.", tostring(arg))
+		else
+			cfg.enabled = (cmd == "enable")
+			self:Msg("Situation %s %s.", arg, cfg.enabled and "enabled" or "disabled")
+			ns.Engine:Evaluate("settings")
+		end
+	elseif cmd == "idle" then
+		local seconds = tonumber(arg)
+		if not seconds or seconds < 10 then
+			self:Msg("Usage: /jpm idle <seconds> (at least 10). Currently %d.", db.situations.idle.timeout)
+		else
+			db.situations.idle.timeout = math.floor(seconds)
+			self:Msg("Idle after %d seconds without input.", db.situations.idle.timeout)
+			ns.Engine:Evaluate("settings")
+		end
 	elseif cmd == "restore" then
 		ns.Engine:Force(nil)
 		ns.Applier:RestoreAll("manual restore")

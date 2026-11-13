@@ -11,7 +11,14 @@ local REQUIRED = {
 	"SetCVar",        -- (name, value) -> boolean success
 	"GetCVarInfo",    -- (name) -> table|nil { value, default, isSecure, isReadOnly, isLocked }
 	"IsOnTaxi",       -- () -> boolean
-	"InCombat",       -- () -> boolean (combat lockdown)
+	"InCombat",       -- () -> boolean (combat lockdown: protected actions blocked)
+	"IsInCombat",     -- () -> boolean (player is in combat; true slightly before lockdown)
+	"IsAFK",          -- () -> boolean
+	"IsResting",      -- () -> boolean (inn / city)
+	"IsDeadOrGhost",  -- () -> boolean
+	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)
+	"IsServiceWindowOpen", -- () -> boolean (auction house, mail, bank, vendor, ...)
+	"GetActivitySnapshot", -- () -> moving, casting, cursorX, cursorY, facing (facing may be nil)
 }
 
 local candidates = {}
@@ -30,6 +37,13 @@ function Compat:Init()
 			end
 			self.name = impl.name
 			self.impl = impl
+			-- Optional: lets the implementation tell the Engine its state changed (event-driven
+			-- trackers such as the service-window one).
+			if impl.Init then
+				impl.Init(function(reason)
+					if ns.Engine and ns.Engine:IsEnabled() then ns.Engine:Evaluate(reason) end
+				end)
+			end
 			return
 		end
 	end

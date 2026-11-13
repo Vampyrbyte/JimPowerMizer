@@ -40,8 +40,22 @@ SlashCmdList, hash_SlashCmdList = {}, {}
 C_AddOns = { GetAddOnMetadata = function() return "@project-version@" end }
 
 local combat, taxi = false, false
+local afk, resting, dead, cine, moving = false, false, false, false, false
+local cx, cy = 500, 400
 InCombatLockdown = function() return combat end
 UnitOnTaxi = function() return taxi end
+UnitAffectingCombat = function() return combat end
+UnitIsAFK = function() return afk end
+IsResting = function() return resting end
+UnitIsDeadOrGhost = function() return dead end
+IsPlayerMoving = function() return moving end
+GetUnitSpeed = function() return moving and 7 or 0 end
+UnitCastingInfo = function() return nil end
+UnitChannelInfo = function() return nil end
+GetCursorPosition = function() return cx, cy end
+GetPlayerFacing = function() return 1.5 end
+InCinematic = function() return cine end
+Enum = { PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21 } }
 
 -- CVars
 local cvars = {
@@ -135,10 +149,19 @@ local function session(label)
 	IsLoggedIn = function() return true end
 	fire("PLAYER_LOGIN")
 	fire("PLAYER_ENTERING_WORLD", true, false)
+	ns.addon.db.profile.debug = true
 	advance(0.1)
 	return ns
 end
 
+local function noErrors(label)
+	for _, line in ipairs(printed) do
+		if line:find("errored") then
+			io.write("  FAIL ", label, ": ", line, "\n"); FAILED = true; return
+		end
+	end
+	io.write("  PASS ", label, ": no situation errors\n")
+end
 local function check(cond, msg) io.write(cond and "  PASS " or "  FAIL ", msg, "\n"); if not cond then FAILED = true end end
 local function slash(s) SlashCmdList["ACECONSOLE_JPM"](s) end
 
@@ -187,6 +210,8 @@ check(cvars.maxFPS == "144", "/jpm off: no switching")
 slash("on"); advance(2.5)
 check(cvars.maxFPS == "20", "/jpm on: switching again")
 
+noErrors("session 1")
+
 -- Crash while on taxi: no PLAYER_LOGOUT. Pretend the game kept the reduced values.
 SavedDB = JimPowerMizerDB
 taxi = false
@@ -215,6 +240,67 @@ check(cvars.maxFPS == "144" and cvars.renderScale == "1" and cvars.graphicsShado
 cvars.maxFPSBk = "10"; taxi = true; advance(2.5)
 check(cvars.maxFPSBk == "10", "lower user background cap left alone")
 taxi = false; advance(2.1)
+
+noErrors("session 3")
+
+-- Session 4: M2 situations ------------------------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+ns = session("session 4: idle, combat, cinematic, service windows, resting, dead")
+local function poke() cx = cx + 10 end -- user moves the mouse
+advance(ns.STARTUP_GRACE)
+slash("idle 30"); poke(); advance(1.1)
+advance(28)
+check(cvars.maxFPS == "144", "not idle before timeout")
+advance(3)
+check(cvars.maxFPS == "20", "idle after 30 s without input -> Max saver")
+poke(); advance(1.1)
+check(cvars.maxFPS == "144", "mouse movement ends idle within 1 s")
+moving = true; advance(20); moving = false; advance(15)
+check(cvars.maxFPS == "144", "movement counts as input")
+afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
+check(cvars.maxFPS == "20", "AFK flag -> idle after 5 s")
+combat = true; fire("PLAYER_REGEN_DISABLED"); advance(0.1)
+check(cvars.maxFPS == "144" and cvars.renderScale == "0.5", "combat restores at once (secure renderScale deferred)")
+combat = false; afk = false; poke(); fire("PLAYER_REGEN_ENABLED"); advance(1.1)
+check(cvars.maxFPS == "144" and cvars.renderScale == "1", "after combat, active again -> your settings")
+slash("idle 600")
+
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "20", "taxi -> Max saver")
+cine = true; fire("CINEMATIC_START"); advance(0.1)
+check(cvars.maxFPS == "144", "cinematic on a flight -> your settings")
+cine = false; fire("CINEMATIC_STOP"); advance(0.1)
+check(cvars.maxFPS == "20", "cinematic over -> back to Max saver")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
+check(cvars.maxFPS == "144", "landed")
+
+fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 21); advance(2)
+check(cvars.maxFPS == "144", "service window ignored while disabled (default)")
+fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 21)
+slash("enable serviceWindow")
+fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 21); advance(0.5)
+check(cvars.maxFPS == "144", "service window: waits for enter delay")
+advance(1)
+check(cvars.maxFPS == "30" and cvars.renderScale == "1", "auction house open -> Light saver")
+fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 21); advance(0.1)
+check(cvars.maxFPS == "144", "auction house closed -> your settings")
+
+slash("enable resting")
+resting = true; fire("PLAYER_UPDATE_RESTING"); advance(5.5)
+check(cvars.maxFPS == "30", "resting -> Light saver")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "20", "taxi outranks resting")
+taxi = false; advance(2.1)
+check(cvars.maxFPS == "30", "back to resting after taxi")
+resting = false; fire("PLAYER_UPDATE_RESTING"); advance(0.1)
+
+slash("enable dead")
+dead = true; fire("PLAYER_DEAD"); advance(3.5)
+check(cvars.maxFPS == "30", "dead -> Light saver")
+dead = false; fire("PLAYER_ALIVE"); advance(0.1)
+check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
+slash("list")
+noErrors("session 4")
 
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

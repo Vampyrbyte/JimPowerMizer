@@ -3,6 +3,8 @@ local _, ns = ...
 
 local C_CVar = C_CVar
 local UnitOnTaxi, InCombatLockdown = UnitOnTaxi, InCombatLockdown
+local UnitAffectingCombat, UnitIsAFK, IsResting, UnitIsDeadOrGhost =
+	UnitAffectingCombat, UnitIsAFK, IsResting, UnitIsDeadOrGhost
 
 local impl = { name = "Mainline" }
 
@@ -39,6 +41,66 @@ end
 
 function impl.InCombat()
 	return InCombatLockdown() and true or false
+end
+
+function impl.IsInCombat()
+	return (UnitAffectingCombat("player") or InCombatLockdown()) and true or false
+end
+
+function impl.IsAFK()
+	return UnitIsAFK("player") and true or false
+end
+
+function impl.IsResting()
+	return IsResting() and true or false
+end
+
+function impl.IsDeadOrGhost()
+	return UnitIsDeadOrGhost("player") and true or false
+end
+
+function impl.InCinematic()
+	if InCinematic and InCinematic() then return true end
+	if IsInCinematicScene and IsInCinematicScene() then return true end
+	local movie = _G.MovieFrame
+	return (movie and movie:IsShown()) and true or false
+end
+
+function impl.GetActivitySnapshot()
+	local moving = (IsPlayerMoving and IsPlayerMoving()) or (GetUnitSpeed("player") or 0) > 0
+	local casting = UnitCastingInfo("player") ~= nil or UnitChannelInfo("player") ~= nil
+	local x, y = GetCursorPosition()
+	local facing = GetPlayerFacing and GetPlayerFacing() -- nil in instances
+	return moving and true or false, casting, x, y, facing
+end
+
+-- Service windows (auction house, mail, bank, vendor...) via the interaction manager events.
+local SERVICE_TYPES = { "Auctioneer", "MailInfo", "Banker", "AccountBanker", "GuildBanker", "Merchant" }
+local serviceTypes, openWindows = {}, {}
+
+function impl.IsServiceWindowOpen()
+	return next(openWindows) ~= nil
+end
+
+function impl.Init(notify)
+	local types = Enum and Enum.PlayerInteractionType
+	if types then
+		for _, name in ipairs(SERVICE_TYPES) do
+			if types[name] then serviceTypes[types[name]] = name end
+		end
+	end
+	local frame = CreateFrame("Frame")
+	frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
+	frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
+	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	frame:SetScript("OnEvent", function(_, event, interactionType)
+		if event == "PLAYER_ENTERING_WORLD" then
+			wipe(openWindows)
+		elseif serviceTypes[interactionType] then
+			openWindows[interactionType] = (event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW") or nil
+			notify("service window " .. serviceTypes[interactionType])
+		end
+	end)
 end
 
 ns.Compat:Register(impl)

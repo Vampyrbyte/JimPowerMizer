@@ -6,6 +6,7 @@
 --     key = "taxi", name = "Flight path",
 --     events = { "PLAYER_CONTROL_LOST", ... },  -- re-evaluate when these fire
 --     poll = 2,                                  -- optional: also re-evaluate every N seconds
+--     OnEvent = function(event, ...) end,        -- optional: called for every engine event first
 --     Evaluate = function() return isActive end,
 --   })
 -- Per-situation settings (enabled, profile, priority, enterDelay) live in db.profile.situations.
@@ -57,11 +58,16 @@ local function resolve(now)
 	return best, nextCheck
 end
 
-function Engine:Evaluate(trigger)
+function Engine:Evaluate(trigger, ...)
 	if not enabled then return end
 	local now = GetTime()
 	for _, key in ipairs(order) do
-		local ok, isActive = pcall(situations[key].Evaluate)
+		local def = situations[key]
+		if def.OnEvent and trigger then
+			local ok, err = pcall(def.OnEvent, trigger, ...)
+			if not ok then ns.addon:Debug("Situation %s OnEvent errored: %s", key, tostring(err)) end
+		end
+		local ok, isActive = pcall(def.Evaluate)
 		if not ok then
 			ns.addon:Debug("Situation %s errored: %s", key, tostring(isActive))
 			isActive = false
@@ -81,7 +87,8 @@ function Engine:Evaluate(trigger)
 		current = winner
 		if winner then
 			local cfg = settings(winner) or {}
-			ns.Applier:Apply(cfg.profile, (situations[winner] and situations[winner].name) or winner)
+			-- profile false/nil = the user's own settings (e.g. combat, cinematics).
+			ns.Applier:Apply(cfg.profile or nil, (situations[winner] and situations[winner].name) or winner)
 		else
 			ns.Applier:RestoreAll("situation ended")
 		end
@@ -122,6 +129,9 @@ function Engine:Enable()
 	if enabled then return end
 	enabled = true
 	startupUntil = GetTime() + ns.STARTUP_GRACE
+	for _, key in ipairs(order) do
+		if situations[key].OnEnable then pcall(situations[key].OnEnable) end
+	end
 	local addon = ns.addon
 	local registered = {}
 	local minPoll
@@ -157,6 +167,10 @@ function Engine:Disable()
 		current = nil
 		ns.Applier:RestoreAll("disabled")
 	end
+end
+
+function Engine:GetSituations()
+	return order, situations
 end
 
 function Engine:IsEnabled()

@@ -162,9 +162,11 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Background FPS capped to the foreground cap; immediate re-apply after `/reload` on a flight path
 
 ### M2: Engine and situations
-- [ ] Situation plugin API + priority resolution + enter delays
-- [ ] Idle (AFK + custom inactivity timer), Combat, Resting, Dead, Cinematic, Vendor windows
-- [ ] `/jpm` commands: `status`, `on`, `off`, `restore`, `debug`
+- [x] Situation plugin API + priority resolution + enter delays (+ `OnEvent`/`OnEnable` hooks)
+- [x] Idle (AFK + inactivity timer), Combat, Cinematic, Resting, Dead, Service windows (AH/mail/bank/vendor)
+- [x] `/jpm` commands: `status`, `on`, `off`, `restore`, `debug`, `list`, `enable`/`disable <situation>`, `idle <seconds>`
+- [ ] **In game:** idle (wait out the timeout; `/afk`), combat restores at once, AH/mail with `/jpm enable serviceWindow`
+- [ ] **In game:** does the cursor position change while the game is in the background? If it does, alt-tabbing counts as activity and idle never triggers
 
 ### M3: UI
 - [ ] AceConfig options: per-situation enable/profile/priority/delay; profile editor (only CVars the client has, with sliders/dropdowns from CVarRegistry)

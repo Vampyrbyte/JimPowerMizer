@@ -36,9 +36,17 @@ local defaults = {
 		capBackground = true,        -- when a profile caps foreground FPS, cap background FPS no higher
 		graphicsProfiles = Database.BUILTIN_PROFILES,
 		situations = {
+			-- profile: graphics profile name, or false for "your own settings".
 			-- priority: higher wins when several situations are active at once.
 			-- enterDelay: seconds the situation must stay active before switching.
-			taxi = { enabled = true, profile = "Max saver", priority = 80, enterDelay = 2 },
+			combat        = { enabled = true,  profile = false,         priority = 100, enterDelay = 0 },
+			cinematic     = { enabled = true,  profile = false,         priority = 95,  enterDelay = 0 },
+			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0,
+			                  timeout = 180 }, -- seconds without input before counting as idle
+			taxi          = { enabled = true,  profile = "Max saver",   priority = 80,  enterDelay = 2 },
+			dead          = { enabled = false, profile = "Light saver", priority = 40,  enterDelay = 3 },
+			serviceWindow = { enabled = false, profile = "Light saver", priority = 35,  enterDelay = 1 },
+			resting       = { enabled = false, profile = "Light saver", priority = 30,  enterDelay = 5 },
 		},
 	},
 	global = {

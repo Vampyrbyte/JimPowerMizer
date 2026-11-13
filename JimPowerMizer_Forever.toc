@@ -18,6 +18,12 @@ Core\Database.lua
 Core\Applier.lua
 Core\Engine.lua
 
+Situations\Combat.lua
+Situations\Cinematic.lua
+Situations\Idle.lua
 Situations\Taxi.lua
+Situations\Dead.lua
+Situations\ServiceWindow.lua
+Situations\Resting.lua
 
 Core\Commands.lua
