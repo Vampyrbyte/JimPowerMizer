@@ -109,7 +109,8 @@ function JPM:HandleSlash(input)
 		if arg == "combat" then
 			self:RegisterEvent("PLAYER_REGEN_DISABLED", function()
 				self:UnregisterEvent("PLAYER_REGEN_DISABLED")
-				self:Probe()
+				-- Combat lockdown starts just after this event, so wait a moment.
+				self:ScheduleTimer("Probe", 1)
 			end)
 			self:Msg("Probe armed: it will run when you next enter combat (e.g. attack a target dummy).")
 		else
