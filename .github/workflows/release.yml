@@ -11,10 +11,11 @@ jobs:
     permissions:
       contents: write
     env:
-      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-      # Add these repo secrets later to also upload to the addon sites:
-      # CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      # WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Uploads to CurseForge / Wago happen only when these secrets are set and the TOC has
+      # ## X-Curse-Project-ID / ## X-Wago-ID. A missing secret just skips that site.
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
     steps:
       - uses: actions/checkout@v5
         with:
