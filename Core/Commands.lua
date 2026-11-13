@@ -16,7 +16,8 @@ function JPM:PrintStatus()
 	local db = self.db.profile
 	local active, pendingFor = ns.Applier:GetActive()
 	local current = ns.Engine:GetCurrent()
-	self:Msg("v%s, %s, compat %s, interface %s", self.version,
+	self:Msg("%s, %s, compat %s, interface %s",
+		self.version == "dev" and "development build" or ("version " .. self.version),
 		db.enabled and "|cff00ff00enabled|r" or "|cffff0000disabled|r",
 		ns.Compat.name, tostring(ns.client.interface))
 	self:Msg("Situation: %s; graphics profile: %s%s",

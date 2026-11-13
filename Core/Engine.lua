@@ -22,6 +22,7 @@ local forced                -- key forced active by /jpm force, or nil
 local enabled = false
 local evalTimer, pollTimer
 local current               -- key of the situation currently applied, or nil
+local startupUntil = 0      -- situations becoming active before this time skip their enterDelay
 
 function Engine:RegisterSituation(def)
 	assert(def.key and def.Evaluate, "situation needs key and Evaluate")
@@ -66,7 +67,8 @@ function Engine:Evaluate(trigger)
 			isActive = false
 		end
 		if isActive and not activeSince[key] then
-			activeSince[key] = now
+			-- Already active at login/reload: treat its enter delay as elapsed.
+			activeSince[key] = (now < startupUntil) and (now - 1e6) or now
 			ns.addon:Debug("Situation %s active (%s)", key, tostring(trigger))
 		elseif not isActive and activeSince[key] then
 			activeSince[key] = nil
@@ -119,6 +121,7 @@ end
 function Engine:Enable()
 	if enabled then return end
 	enabled = true
+	startupUntil = GetTime() + ns.STARTUP_GRACE
 	local addon = ns.addon
 	local registered = {}
 	local minPoll

@@ -29,6 +29,7 @@ local defaults = {
 		enabled = true,
 		debug = false,
 		notify = true,               -- chat message when the profile switches
+		capBackground = true,        -- when a profile caps foreground FPS, cap background FPS no higher
 		graphicsProfiles = Database.BUILTIN_PROFILES,
 		situations = {
 			-- priority: higher wins when several situations are active at once.

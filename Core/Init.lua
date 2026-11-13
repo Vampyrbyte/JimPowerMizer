@@ -19,6 +19,10 @@ do
 	}
 end
 
+-- Seconds after login/reload during which situations that are already active apply at once
+-- (no enter delay), and leftover settings from the last session wait before being restored.
+ns.STARTUP_GRACE = 5
+
 local CHAT_PREFIX = "|cff33ff99JimPowerMizer|r:"
 
 function JPM:Msg(fmt, ...)

@@ -146,13 +146,16 @@ local function slash(s) SlashCmdList["ACECONSOLE_JPM"](s) end
 IsLoggedIn = function() return false end
 local ns = session("session 1: normal flight")
 check(cvars.maxFPS == "144", "baseline untouched at login")
+advance(ns.STARTUP_GRACE)
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(1)
 check(cvars.maxFPS == "144", "no switch before enterDelay")
 advance(2.5)
 check(cvars.maxFPS == "20" and cvars.useMaxFPS == "1" and cvars.renderScale == "0.5", "Max saver applied on taxi")
+check(cvars.useMaxFPSBk == "1" and cvars.maxFPSBk == "20", "background FPS capped to foreground cap")
 check(cvars.graphicsQuality == "7", "graphicsQuality never touched")
 taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
 check(cvars.maxFPS == "144" and cvars.useMaxFPS == "0" and cvars.renderScale == "1" and cvars.graphicsShadowQuality == "4", "all restored after landing")
+check(cvars.maxFPSBk == "30", "background FPS cap restored")
 check(next(JimPowerMizerDB.global.state.baseline) == nil, "baseline cleared")
 
 -- User changes a managed CVar mid-flight
@@ -188,6 +191,8 @@ check(cvars.maxFPS == "20", "/jpm on: switching again")
 SavedDB = JimPowerMizerDB
 taxi = false
 ns = session("session 2: after crash")
+check(cvars.maxFPS == "20", "leftover values kept during startup grace")
+advance(ns.STARTUP_GRACE)
 check(cvars.maxFPS == "144" and cvars.renderScale == "1", "crash recovery restored settings at login")
 check(next(JimPowerMizerDB.global.state.baseline) == nil, "baseline cleared after recovery")
 
@@ -200,10 +205,16 @@ local function dump(t, ind) ind = ind or "" for k, v in pairs(t) do if type(v) =
 check(next(JimPowerMizerDB.global.state.baseline) ~= nil, "baseline kept through logout")
 SavedDB = JimPowerMizerDB
 ns = session("session 3: log in again, still on taxi")
-advance(2.5)
-check(cvars.maxFPS == "20", "reapplied on login while on taxi")
+check(cvars.maxFPS == "20", "reapplied immediately on login while on taxi")
+advance(ns.STARTUP_GRACE + 1)
+check(cvars.maxFPS == "20", "grace-period recovery didn't undo the taxi profile")
 taxi = false; advance(2.1)
-check(cvars.maxFPS == "144" and cvars.renderScale == "1" and cvars.graphicsShadowQuality == "2", "final restore matches user settings")
+check(cvars.maxFPS == "144" and cvars.renderScale == "1" and cvars.graphicsShadowQuality == "2" and cvars.maxFPSBk == "30", "final restore matches user settings")
+
+-- Background cap not raised: user's background cap already lower than the profile's foreground cap
+cvars.maxFPSBk = "10"; taxi = true; advance(2.5)
+check(cvars.maxFPSBk == "10", "lower user background cap left alone")
+taxi = false; advance(2.1)
 
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

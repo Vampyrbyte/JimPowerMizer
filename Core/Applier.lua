@@ -74,6 +74,27 @@ local function applyChanges(changes, label)
 	end
 end
 
+-- The profile's values plus derived ones. If the profile caps foreground FPS, the background cap
+-- must not be higher, or alt-tabbing out while idle would *raise* the frame rate.
+local function effectiveProfile(profile)
+	if not profile then return nil end
+	local p = {}
+	for k, v in pairs(profile) do p[k] = v end
+	local fg = tonumber(p.maxFPS)
+	if ns.addon.db.profile.capBackground and tonumber(p.useMaxFPS) == 1 and fg
+		and p.maxFPSBk == nil and p.useMaxFPSBk == nil then
+		local st = state()
+		-- Compare against the user's own background setting, not one we've already lowered.
+		local useBk = tonumber(st.baseline.useMaxFPSBk or ns.Compat:GetCVar("useMaxFPSBk")) == 1
+		local bk = tonumber(st.baseline.maxFPSBk or ns.Compat:GetCVar("maxFPSBk"))
+		if not useBk or not bk or bk > fg then
+			p.useMaxFPSBk = 1
+			p.maxFPSBk = fg
+		end
+	end
+	return p
+end
+
 -- Switch to graphics profile `profileName` (nil = restore the user's settings).
 function Applier:Apply(profileName, reason)
 	local st = state()
@@ -83,6 +104,7 @@ function Applier:Apply(profileName, reason)
 		profileName, profile = nil, nil
 	end
 	if st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
+	profile = effectiveProfile(profile)
 
 	local changes = {}
 	-- 1. CVars changed by the old profile that the new one doesn't set go back to the baseline.
@@ -172,11 +194,18 @@ function Applier:Enable()
 	self:RegisterEvent("PLAYER_REGEN_ENABLED", "OnCombatEnd")
 	self:RegisterEvent("PLAYER_LOGOUT", "OnLogout")
 
-	-- Crash recovery: a baseline left over from last session means our values may still be live.
+	-- A baseline left over from last session (logout mid-situation, or a crash) means our values
+	-- may still be live. Wait for the startup grace period: if a situation is still active (e.g.
+	-- /reload on a flight path) the Engine switches straight to its profile, keeping this baseline;
+	-- otherwise restore the user's settings.
 	local st = state()
 	if next(st.baseline) then
 		st.active = "recovered"
-		self:RestoreAll("left over from last session")
+		ns.addon:ScheduleTimer(function()
+			if state().active == "recovered" then
+				Applier:RestoreAll("left over from last session")
+			end
+		end, ns.STARTUP_GRACE)
 	else
 		st.active = nil
 		wipe(st.owned)
