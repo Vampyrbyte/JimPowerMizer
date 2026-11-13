@@ -292,6 +292,14 @@ local function build()
 						get = function() return db().capBackground end,
 						set = function(_, v) db().capBackground = v; ns.Applier:ReapplyIfActive(ns.Applier:GetActive()) end,
 					},
+					protectDetails = {
+						type = "toggle", name = "Keep custom console settings", order = 3.5, width = "full",
+						desc = "Changing a graphics preset (e.g. Ground Clutter) makes the game reset the settings under it "
+							.. "(e.g. groundEffectDensity), losing changes made with /console. With this on, those settings "
+							.. "are saved before switching and put back afterwards.",
+						get = function() return db().protectDetails end,
+						set = function(_, v) db().protectDetails = v end,
+					},
 					debug = {
 						type = "toggle", name = "Debug messages", order = 4, width = "full",
 						get = function() return db().debug end,

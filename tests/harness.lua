@@ -59,13 +59,25 @@ UnitChannelInfo = function() return nil end
 GetCursorPosition = function() return cx, cy end
 GetPlayerFacing = function() return 1.5 end
 InCinematic = function() return cine end
-Enum = { PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
+C_Console = { GetAllCommands = function()
+	return {
+		{ command = "groundEffectDensity", commandType = 0, category = 1 },
+		{ command = "groundEffectDist", commandType = 0, category = 1 },
+		{ command = "gxWindow", commandType = 0, category = 1 },
+		{ command = "graphicsGroundClutter", commandType = 0, category = 1 },
+		{ command = "someSoundThing", commandType = 0, category = 7 },
+	}
+end }
+Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, Sound = 7 }, PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
 
 -- CVars
 local cvars = {
 	useMaxFPS = "0", maxFPS = "144", useMaxFPSBk = "1", maxFPSBk = "30", renderScale = "1",
 	graphicsShadowQuality = "4", graphicsSSAO = "3", graphicsParticleDensity = "4",
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
+	graphicsGroundClutter = "9", graphicsViewDistance = "9",
+	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
+	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 }
 local secure = { renderScale = true }
 local function fire(event, ...)
@@ -73,12 +85,24 @@ local function fire(event, ...)
 		if f.events[event] and f.script then f.script(f, event, ...) end
 	end
 end
+local SetCVarRaw
+-- Presets overwrite the settings under them, like the real client: Ground Clutter at once,
+-- View Distance a moment later (to test the delayed second pass).
+local CASCADE = {
+	graphicsGroundClutter = function(level) SetCVarRaw("groundEffectDensity", level * 16); SetCVarRaw("groundEffectDist", level * 20) end,
+	graphicsViewDistance = function(level) C_Timer.After(0.1, function() SetCVarRaw("farclip", level * 500) end) end,
+}
+function SetCVarRaw(n, v)
+	cvars[n] = tostring(v); fire("CVAR_UPDATE", n, tostring(v))
+end
 C_CVar = {
 	GetCVar = function(n) return cvars[n] end,
 	SetCVar = function(n, v)
 		if cvars[n] == nil then return false end
 		if secure[n] and combat then error("blocked: secure cvar in combat") end
-		cvars[n] = tostring(v); fire("CVAR_UPDATE", n, tostring(v)); return true
+		SetCVarRaw(n, v)
+		if CASCADE[n] then CASCADE[n](tonumber(v)) end
+		return true
 	end,
 	GetCVarInfo = function(n)
 		if cvars[n] == nil then return nil end
@@ -328,6 +352,40 @@ dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
 slash("list")
 noErrors("session 4")
+
+-- Session 6: lower-level (/console) settings ------------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+taxi, afk, resting, dead, combat = false, false, false, false, false
+ns = session("session 6: /console tweaks under presets")
+advance(ns.STARTUP_GRACE); poke()
+check(cvars.groundEffectDensity == "256" and cvars.farclip == "5000", "start with custom console values")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.graphicsGroundClutter == "0" and cvars.groundEffectDensity == "0", "saver: clutter 0 cascades density down")
+check(cvars.farclip == "1000", "saver: view distance cascades farclip down (delayed)")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.01)
+check(cvars.graphicsGroundClutter == "9" and cvars.groundEffectDensity == "256" and cvars.groundEffectDist == "300", "restore: custom density/dist put back at once")
+advance(0.6)
+check(cvars.farclip == "5000", "restore: delayed cascade on farclip undone by 2nd pass")
+check(cvars.gxWindow == "1", "display settings untouched")
+check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after restore")
+-- User changes a console setting while nothing is active: next snapshot picks it up
+cvars.groundEffectDensity = "200"
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+check(cvars.groundEffectDensity == "200", "new console value captured at next switch")
+-- Crash mid-flight: details recovered on next login
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.groundEffectDensity == "0", "saver active before crash")
+SavedDB = JimPowerMizerDB; taxi = false
+ns = session("session 6b: after crash")
+advance(ns.STARTUP_GRACE + 0.6)
+check(cvars.groundEffectDensity == "200" and cvars.farclip == "5000" and cvars.graphicsGroundClutter == "9", "crash recovery restores console values too")
+-- Option off: old behaviour
+ns.addon.db.profile.protectDetails = false
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+check(cvars.groundEffectDensity == "144", "option off: preset values left as the game sets them")
+noErrors("session 6")
 
 -- Session 5: options UI (table logic only) ---------------------------------------
 JimPowerMizerDB = nil; SavedDB = nil

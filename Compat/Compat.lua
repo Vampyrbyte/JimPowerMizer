@@ -19,6 +19,7 @@ local REQUIRED = {
 	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)
 	"IsServiceWindowOpen", -- () -> boolean (auction house, mail, bank, vendor, ...)
 	"GetActivitySnapshot", -- () -> moving, casting, cursorX, cursorY, facing (facing may be nil)
+	"GetDetailCVarNames",  -- () -> list of lower-level graphics CVar names, count from console list
 }
 
 local candidates = {}

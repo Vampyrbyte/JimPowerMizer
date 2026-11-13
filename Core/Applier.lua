@@ -17,6 +17,8 @@ local Registry = ns.CVarRegistry
 local Equal = Registry.Equal
 
 local pending        -- queued { [name] = value } while in combat
+local detailTimer    -- scheduled second pass of restoreDetails
+local restoreDetailsSoon -- defined below
 local pendingProfile -- profile name for the pending change (for status display)
 
 local function state()
@@ -72,6 +74,76 @@ local function applyChanges(changes, label)
 		pendingProfile = label
 		ns.addon:Debug("Deferred %s changes until combat ends", label)
 	end
+	-- Everything is back to the user's values: put the lower-level settings back too.
+	if not next(st.baseline) and not pending then restoreDetailsSoon() end
+end
+
+-- ---------------------------------------------------------------------------------------------
+-- Lower-level ("detail") CVars, e.g. groundEffectDensity under graphicsGroundClutter. The client
+-- overwrites these when a preset changes, so /console tweaks would be lost on restore. They're
+-- snapshotted (state.detail) before the first change and written back once everything is restored.
+
+-- Never written back: display/device settings, the presets themselves (writing one would cascade
+-- again), and anything the CVarRegistry manages directly.
+local DETAIL_EXCLUDE_PREFIXES = { "gx", "msaa", "graphics", "raidgraphics", "raidsettings" }
+
+local function isDetailCandidate(name)
+	local lower = name:lower()
+	for _, prefix in ipairs(DETAIL_EXCLUDE_PREFIXES) do
+		if lower:sub(1, #prefix) == prefix then return false end
+	end
+	if Registry:Get(name) then return false end
+	local info = ns.Compat:GetCVarInfo(name)
+	return info ~= nil and not info.isReadOnly and not info.isLocked
+end
+
+local function snapshotDetails()
+	if not ns.addon.db.profile.protectDetails then return end
+	local st = state()
+	wipe(st.detail)
+	local n = 0
+	for _, name in ipairs((ns.Compat:GetDetailCVarNames())) do
+		if isDetailCandidate(name) then
+			local v = ns.Compat:GetCVar(name)
+			if v ~= nil then
+				st.detail[name] = v
+				n = n + 1
+			end
+		end
+	end
+	ns.addon:Debug("Saved %d detail settings", n)
+end
+
+-- Write back any detail CVar that differs from the snapshot. Returns the number written.
+local function restoreDetails(label)
+	local st = state()
+	local n = 0
+	for name, value in pairs(st.detail) do
+		local current = ns.Compat:GetCVar(name)
+		if current ~= nil and not Equal(current, value) and canWriteNow(name) then
+			if ns.Compat:SetCVar(name, value) then
+				n = n + 1
+				ns.addon:Debug("%s: restored %s = %s (was %s)", label, name, value, current)
+			end
+		end
+	end
+	return n
+end
+
+-- Called once all presets are back to the user's values: restore details now, and again shortly
+-- after in case the client applies the preset's values a frame later. Then drop the snapshot,
+-- unless a profile was applied again meanwhile.
+function restoreDetailsSoon()
+	if not next(state().detail) then return end
+	restoreDetails("restore")
+	if detailTimer then ns.addon:CancelTimer(detailTimer) end
+	detailTimer = ns.addon:ScheduleTimer(function()
+		detailTimer = nil
+		local st = state()
+		if next(st.baseline) then return end -- a profile is active again; keep the snapshot
+		restoreDetails("restore (2nd pass)")
+		wipe(st.detail)
+	end, 0.5)
 end
 
 -- The profile's values plus derived ones. If the profile caps foreground FPS, the background cap
@@ -105,6 +177,15 @@ function Applier:Apply(profileName, reason, force)
 	end
 	if not force and st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
 	profile = effectiveProfile(profile)
+
+	-- First change from the user's own settings: snapshot the lower-level settings.
+	if profile and not next(st.baseline) then
+		if detailTimer then ns.addon:CancelTimer(detailTimer); detailTimer = nil end
+		if next(st.detail) then
+			restoreDetails("restore (before new snapshot)")
+		end
+		snapshotDetails()
+	end
 
 	local changes = {}
 	-- 1. CVars changed by the old profile that the new one doesn't set go back to the baseline.
@@ -201,6 +282,15 @@ function Applier:OnLogout()
 		st.owned[name] = value -- mark as our write, so OnCVarUpdate doesn't drop the baseline
 		ns.Compat:SetCVar(name, value)
 	end
+	for name, value in pairs(st.detail) do
+		ns.Compat:SetCVar(name, value)
+	end
+end
+
+function Applier:GetDetailCount()
+	local n = 0
+	for _ in pairs(state().detail) do n = n + 1 end
+	return n
 end
 
 function Applier:Enable()
@@ -223,5 +313,7 @@ function Applier:Enable()
 	else
 		st.active = nil
 		wipe(st.owned)
+		-- Interrupted between the restore and the detail restore's second pass.
+		if next(st.detail) then restoreDetailsSoon() end
 	end
 end

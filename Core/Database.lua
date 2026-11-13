@@ -34,6 +34,7 @@ local defaults = {
 		debug = false,
 		notify = true,               -- chat message when the profile switches
 		capBackground = true,        -- when a profile caps foreground FPS, cap background FPS no higher
+		protectDetails = true,       -- save and put back lower-level settings (e.g. /console tweaks)
 		graphicsProfiles = {},       -- seeded from BUILTIN_PROFILES once (see EnsureProfiles)
 		profilesSeeded = false,
 		situations = {
@@ -55,7 +56,8 @@ local defaults = {
 		-- baseline: the user's own values for every CVar we have changed.
 		-- owned: the values we set, used to notice when the user changes one themselves.
 		-- active: name of the applied graphics profile, or nil.
-		state = { baseline = {}, owned = {}, active = nil },
+		-- detail: lower-level CVars (e.g. groundEffectDensity) saved before the first change.
+		state = { baseline = {}, owned = {}, detail = {}, active = nil },
 	},
 }
 

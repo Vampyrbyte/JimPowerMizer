@@ -89,6 +89,13 @@ function JPM:Probe()
 		end
 	end
 
+	local names, fromConsole = ns.Compat:GetDetailCVarNames()
+	self:Msg("Lower-level graphics settings watched: %d (%d from the console's Graphics list)", #names, fromConsole)
+	for _, name in ipairs({ "groundEffectDensity", "groundEffectDist", "farclip" }) do
+		local info = ns.Compat:GetCVarInfo(name)
+		if info then self:Msg("  %s = %s (default %s)", name, tostring(info.value), tostring(info.default)) end
+	end
+
 	-- Write test: change maxFPSBk by one and put it back.
 	local name = "maxFPSBk"
 	local before = ns.Compat:GetCVar(name)

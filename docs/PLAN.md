@@ -183,6 +183,11 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Chat notification on switch (toggle)
 - [x] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
 - [ ] **In game:** live edit of the active profile (drag Max saver's FPS slider during a flight)
+- [x] Keep `/console` tweaks: presets (e.g. `graphicsGroundClutter`) overwrite the CVars under them
+  (e.g. `groundEffectDensity`). All Graphics-category CVars (`C_Console.GetAllCommands`, plus a known list) are
+  snapshotted before the first change and written back after restore (immediately + 0.5 s later). Option
+  "Keep custom console settings" (default on). Display (`gx*`), MSAA and preset CVars are never written back.
+- [ ] **In game:** set `/console groundEffectDensity 256`, fly, land; check `/dump GetCVar("groundEffectDensity")`
 - [ ] Friendly labels for enum values (e.g. "Low/High" instead of 0-5); M4
 
 ### M4: Polish and release
@@ -197,6 +202,8 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - ~~**CVar write restrictions on Forever/Midnight.**~~ Verified 2026-11-13: writes work in and out of combat.
 - **Secret values (Midnight API).** Some unit data is secret, mostly in combat, and can't be compared. All reads go
   through the Compat layer, which turns secrets into "unknown"; the test harness simulates them.
+- **Preset cascades.** Graphics presets reset the lower-level CVars under them. Handled by the detail snapshot;
+  a `/console` change made *while* a saver profile is active is overwritten by the snapshot on restore.
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
 - **Taxi detection edge cases:** dragonriding / skyriding "flight paths" and boat/zeppelin rides aren't `UnitOnTaxi`.

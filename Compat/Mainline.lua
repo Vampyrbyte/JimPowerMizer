@@ -97,6 +97,48 @@ function impl.GetActivitySnapshot()
 	return moving and true or false, casting and true or false, x, y, facing
 end
 
+-- Lower-level graphics CVars. Setting a graphics preset CVar (graphicsGroundClutter, ...) makes the
+-- client overwrite the CVars it controls (groundEffectDensity, ...) with its own values, wiping
+-- tweaks made with /console. We snapshot these and put them back after restoring the presets.
+-- Source: every CVar in the client's Graphics console category, plus known ones as a fallback.
+local KNOWN_DETAIL_CVARS = {
+	"groundEffectDensity", "groundEffectDist", "groundEffectAnimation", "farclip", "horizonStart",
+	"terrainLodDist", "wmoLodDist", "entityLodDist", "doodadLodDist", "lodObjectCullSize",
+	"lodObjectMinSize", "particleDensity", "particleMTDensity", "weatherDensity", "shadowMode",
+	"shadowTextureSize", "shadowSoft", "shadowBlendCascades", "waterDetail", "rippleDetail",
+	"reflectionMode", "sunShafts", "ssao", "ssaoBlur", "spellClutter", "projectedTextures",
+	"textureFilteringMode", "componentTextureLevel", "worldBaseMip",
+}
+local detailNames, detailFromConsole
+
+function impl.GetDetailCVarNames()
+	if detailNames then return detailNames, detailFromConsole end
+	local names, seen = {}, {}
+	local function add(name)
+		if type(name) == "string" and not seen[name:lower()] then
+			seen[name:lower()] = true
+			names[#names + 1] = name
+		end
+	end
+	detailFromConsole = 0
+	local cvarType = Enum and Enum.ConsoleCommandType and Enum.ConsoleCommandType.Cvar
+	local graphics = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Graphics
+	if C_Console and C_Console.GetAllCommands and cvarType and graphics then
+		local ok, commands = pcall(C_Console.GetAllCommands)
+		if ok and type(commands) == "table" then
+			for _, c in ipairs(commands) do
+				if c.commandType == cvarType and c.category == graphics then
+					add(c.command)
+					detailFromConsole = detailFromConsole + 1
+				end
+			end
+		end
+	end
+	for _, name in ipairs(KNOWN_DETAIL_CVARS) do add(name) end
+	detailNames = names
+	return names, detailFromConsole
+end
+
 -- Service windows (auction house, mail, bank, vendor...).
 -- Tracked from two sources, because not every window reports through the interaction manager on
 -- every client (e.g. the bank on Forever): the PLAYER_INTERACTION_MANAGER_FRAME_SHOW/HIDE events
