@@ -169,7 +169,10 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Fixed: idle crashed in combat on secret values (`GetUnitSpeed`); Compat now treats secrets as unknown
 - [x] **In game:** cursor movement outside the game while alt-tabbed does NOT count as activity, so idle keeps working in the background
 - [x] **In game:** idle works; service window works at a mailbox
-- [ ] **In game:** bank (Ratchet) didn't trigger the service-window situation; added legacy-event fallback + debug logging of interaction types
+- [x] **In game:** bank works. Forever's bank is interaction type `CharacterBanker` (67); `BANKFRAME_OPENED/CLOSED` also fire
+- [x] **In game:** no errors in combat after the secret-value fix
+
+**M2 complete (2026-11-13).**
 
 ### M3: UI
 - [ ] AceConfig options: per-situation enable/profile/priority/delay; profile editor (only CVars the client has, with sliders/dropdowns from CVarRegistry)

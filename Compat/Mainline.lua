@@ -103,7 +103,8 @@ end
 -- and the older per-window events. Both map to the same window name, so a close from either
 -- source closes it.
 local SERVICE_TYPES = {
-	Auctioneer = "auction", MailInfo = "mail", Banker = "bank", AccountBanker = "bank",
+	-- Forever's bank reports as CharacterBanker (67), verified in Ratchet.
+	Auctioneer = "auction", MailInfo = "mail", Banker = "bank", CharacterBanker = "bank", AccountBanker = "bank",
 	GuildBanker = "guildbank", Merchant = "merchant",
 }
 local LEGACY_EVENTS = {

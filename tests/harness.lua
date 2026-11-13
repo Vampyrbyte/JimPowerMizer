@@ -59,7 +59,7 @@ UnitChannelInfo = function() return nil end
 GetCursorPosition = function() return cx, cy end
 GetPlayerFacing = function() return 1.5 end
 InCinematic = function() return cine end
-Enum = { PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21 } }
+Enum = { PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
 
 -- CVars
 local cvars = {
@@ -296,6 +296,10 @@ fire("MAIL_SHOW"); fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 17); advance(1.
 check(cvars.maxFPS == "30", "mail open (both sources)")
 fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 17); advance(0.1)
 check(cvars.maxFPS == "144", "mail closed by one source only -> not stuck open")
+fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 67); advance(1.1)
+check(cvars.maxFPS == "30", "Forever bank (CharacterBanker 67) -> Light saver")
+fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 67); advance(0.1)
+check(cvars.maxFPS == "144", "Forever bank closed")
 
 slash("enable resting")
 resting = true; fire("PLAYER_UPDATE_RESTING"); advance(5.5)
