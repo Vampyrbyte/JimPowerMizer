@@ -11,5 +11,10 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
 ## Development
 
-Libraries (Ace3, LibDataBroker, LibDBIcon) are not committed. They're pulled in from `.pkgmeta`
+Libraries (LibStub, Ace3) are not committed. They're pulled in from `.pkgmeta`
 by the [BigWigs packager](https://github.com/BigWigsMods/packager) when building a release.
+
+## Licence
+
+BSD 3-Clause, see [LICENSE](LICENSE). Embedded libraries keep their own licences, see
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

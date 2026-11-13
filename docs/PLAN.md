@@ -43,7 +43,7 @@ JimPowerMizer/
 ├── Profiles/Presets.lua           # built-in graphics presets ("Max saver", "Light saver", ...)
 └── Options/
     ├── Options.lua                # AceConfig options table → Blizzard Settings panel
-    └── Broker.lua                 # LibDataBroker launcher + LibDBIcon minimap button
+    └── Compartment.lua            # Blizzard addon-compartment (minimap menu) entry
 ```
 
 ### Key design rules
@@ -109,7 +109,7 @@ Engine behaviour:
 The CVarRegistry flags CVars that need `RestartGx()` / a client restart. **We never change those automatically.**
 Exact CVar names must be confirmed on Forever with `/dump C_CVar.GetCVarInfo("name")`.
 
-## 5. Libraries (all open source, fetched as externals, not committed)
+## 5. Libraries (fetched as externals, not committed; licences in `THIRD-PARTY-NOTICES.md`)
 
 | Library | Purpose |
 |---|---|
@@ -118,7 +118,11 @@ Exact CVar names must be confirmed on Forever with `/dump C_CVar.GetCVarInfo("na
 | AceDB-3.0, AceDBOptions-3.0 | SavedVariables with profiles, plus a profile-management UI |
 | AceConfig-3.0, AceConfigDialog-3.0, AceGUI-3.0 | Options UI registered into Blizzard's Settings panel |
 | AceLocale-3.0 | Localization |
-| LibDataBroker-1.1, LibDBIcon-1.0 | Minimap / broker button showing current state (click = toggle, right-click = options) |
+| *(none)* Blizzard Addon Compartment | Minimap menu entry (`## AddonCompartmentFunc`), built into Mainline/Forever |
+
+LibDataBroker-1.1 is listed as "All Rights Reserved" (no licence in its repo), so it isn't used, and neither is
+LibDBIcon-1.0, which depends on it. Mainline/Forever have the Blizzard Addon Compartment instead. For Classic
+flavors without it, write our own small minimap button.
 
 Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the Midnight restrictions (it should, since it doesn't touch secret values).
 
@@ -134,7 +138,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 
 ### M0: Repo and skeleton
 - [x] `git init`, README, .gitignore, `.pkgmeta`, Forever TOC
-- [ ] Choose a license (MIT / GPLv3?) and add `LICENSE`
+- [x] License: BSD 3-Clause (`LICENSE`), third-party licences in `THIRD-PARTY-NOTICES.md`
 - [ ] Create GitHub repo and push (`gh repo create` or via web), add the packager workflow
 - [ ] `scripts/fetch-libs.sh`, `scripts/link.sh`, `.luacheckrc`
 
@@ -152,7 +156,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 ### M3: UI
 - [ ] AceConfig options: per-situation enable/profile/priority/delay; profile editor (only CVars the client has, with sliders/dropdowns from CVarRegistry)
 - [ ] "Capture current settings as profile" button
-- [ ] LDB/minimap icon with tooltip: active situation, active profile, current FPS cap
+- [ ] Addon compartment entry with tooltip: active situation, active profile, current FPS cap
 - [ ] Optional chat/screen notification on switch
 
 ### M4: Polish and release

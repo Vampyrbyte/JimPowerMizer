@@ -5,6 +5,7 @@
 ## Version: @project-version@
 ## SavedVariables: JimPowerMizerDB
 ## IconTexture: Interface\Icons\Spell_Nature_Sleep
+## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
 
 # Planned load order (see docs/PLAN.md). Files are added as they're implemented.
 #embeds.xml
