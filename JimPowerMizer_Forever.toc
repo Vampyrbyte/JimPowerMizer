@@ -1,0 +1,20 @@
+## Interface: 16001
+## Title: JimPowerMizer
+## Notes: Switches graphics settings by situation (idle, flight path, ...) to save power.
+## Author: Jim Walters
+## Version: @project-version@
+## SavedVariables: JimPowerMizerDB
+## IconTexture: Interface\Icons\Spell_Nature_Sleep
+
+# Planned load order (see docs/PLAN.md). Files are added as they're implemented.
+#embeds.xml
+#Locales\enUS.lua
+#Core\Init.lua
+#Compat\Compat.lua
+#Compat\Mainline.lua
+#Core\Database.lua
+#Core\CVarRegistry.lua
+#Core\Applier.lua
+#Core\Engine.lua
+#Situations\Taxi.lua
+#Options\Options.lua

@@ -1,0 +1,10 @@
+# Libraries are fetched by the packager / scripts/fetch-libs.sh
+/Libs/
+# Packager output
+/.release/
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
