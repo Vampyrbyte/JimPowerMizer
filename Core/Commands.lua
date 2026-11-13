@@ -9,6 +9,7 @@ local HELP = {
 	"|cffffd200/jpm restore|r - restore your graphics settings now",
 	"|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)",
 	"|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them",
+	"|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts",
 	"|cffffd200/jpm debug|r - toggle debug messages",
 }
 
@@ -105,7 +106,15 @@ function JPM:HandleSlash(input)
 			self:Msg("Unknown situation '%s'.", arg)
 		end
 	elseif cmd == "probe" then
-		self:Probe()
+		if arg == "combat" then
+			self:RegisterEvent("PLAYER_REGEN_DISABLED", function()
+				self:UnregisterEvent("PLAYER_REGEN_DISABLED")
+				self:Probe()
+			end)
+			self:Msg("Probe armed: it will run when you next enter combat (e.g. attack a target dummy).")
+		else
+			self:Probe()
+		end
 	elseif cmd == "debug" then
 		db.debug = not db.debug
 		self:Msg("Debug %s.", db.debug and "on" or "off")
