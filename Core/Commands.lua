@@ -89,8 +89,9 @@ function JPM:Probe()
 		end
 	end
 
-	local names, fromConsole = ns.Compat:GetDetailCVarNames()
-	self:Msg("Lower-level graphics settings watched: %d (%d from the console's Graphics list)", #names, fromConsole)
+	local delayedNames, syncNames, fromConsole = ns.Compat:GetCascadeCandidates()
+	self:Msg("Lower-level settings watched: %d graphics (%d from the console's Graphics list), %d more checked only during preset changes",
+		#delayedNames, fromConsole, #syncNames)
 	if ns.Compat.impl.DescribeConsoleList then
 		self:Msg("  Console list: %s", ns.Compat.impl.DescribeConsoleList())
 	end

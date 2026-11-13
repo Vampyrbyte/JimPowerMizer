@@ -126,6 +126,7 @@ function impl.DescribeConsoleList()
 	if not commands then return err end
 	local cvarType = Enum and Enum.ConsoleCommandType and Enum.ConsoleCommandType.Cvar
 	local graphics = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Graphics
+	local default = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Default
 	local first = commands[1]
 	local fields = {}
 	if type(first) == "table" then
@@ -138,34 +139,47 @@ function impl.DescribeConsoleList()
 			sample = ("groundEffectDensity: type=%s category=%s"):format(tostring(c.commandType), tostring(c.category))
 		end
 	end
-	return ("%d commands; Enum Cvar=%s Graphics=%s; first entry {%s}; %s"):format(#commands,
-		tostring(cvarType), tostring(graphics), table.concat(fields, ", "), sample or "groundEffectDensity not listed")
+	return ("%d commands; Enum Cvar=%s Graphics=%s Default=%s; %s"):format(#commands,
+		tostring(cvarType), tostring(graphics), tostring(default), sample or "groundEffectDensity not listed")
 end
 
-function impl.GetDetailCVarNames()
-	if detailNames then return detailNames, detailFromConsole end
-	local names, seen = {}, {}
-	local function add(name)
+-- delayed: Graphics console category + known list. sync: Default console category (it holds
+-- graphics CVars such as groundEffectDensity on Forever, among many unrelated ones).
+local syncNames
+
+function impl.GetCascadeCandidates()
+	if detailNames then return detailNames, syncNames, detailFromConsole end
+	local names, sync, seen = {}, {}, {}
+	local function add(list, name)
 		if type(name) == "string" and not seen[name:lower()] then
 			seen[name:lower()] = true
-			names[#names + 1] = name
+			list[#list + 1] = name
 		end
 	end
 	detailFromConsole = 0
 	local cvarType = Enum and Enum.ConsoleCommandType and Enum.ConsoleCommandType.Cvar
-	local graphics = Enum and Enum.ConsoleCategory and Enum.ConsoleCategory.Graphics
+	local categories = Enum and Enum.ConsoleCategory
+	local graphics = categories and categories.Graphics
+	local default = categories and categories.Default
 	local commands = getAllConsoleCommands()
 	if commands and cvarType and graphics then
 		for _, c in ipairs(commands) do
 			if type(c) == "table" and c.commandType == cvarType and c.category == graphics then
-				add(c.command)
+				add(names, c.command)
 				detailFromConsole = detailFromConsole + 1
 			end
 		end
 	end
-	for _, name in ipairs(KNOWN_DETAIL_CVARS) do add(name) end
-	detailNames = names
-	return names, detailFromConsole
+	for _, name in ipairs(KNOWN_DETAIL_CVARS) do add(names, name) end
+	if commands and cvarType and default then
+		for _, c in ipairs(commands) do
+			if type(c) == "table" and c.commandType == cvarType and c.category == default then
+				add(sync, c.command)
+			end
+		end
+	end
+	detailNames, syncNames = names, sync
+	return names, sync, detailFromConsole
 end
 
 -- Service windows (auction house, mail, bank, vendor...).

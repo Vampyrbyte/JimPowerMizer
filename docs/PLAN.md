@@ -184,9 +184,11 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
 - [ ] **In game:** live edit of the active profile (drag Max saver's FPS slider during a flight)
 - [x] Keep `/console` tweaks: presets (e.g. `graphicsGroundClutter`) overwrite the CVars under them
-  (e.g. `groundEffectDensity`). All Graphics-category CVars (`C_Console.GetAllCommands`, plus a known list) are
-  snapshotted before the first change and written back after restore (immediately + 0.5 s later). Option
-  "Keep custom console settings" (default on). Display (`gx*`), MSAA and preset CVars are never written back.
+  (e.g. `groundEffectDensity`). The Applier detects which CVars each batch of preset writes changed and
+  restores their pre-saver values afterwards. Candidates: Graphics console category + known list (checked
+  right after the writes and 0.5 s later), and the Default category (checked only *during* our writes,
+  since it also holds unrelated CVars). Forever: `ConsoleGetAllCommands` (no `C_Console`); 184 Graphics
+  CVars; `groundEffectDensity` is in Default (5). Option "Keep custom console settings" (default on).
 - [ ] **In game:** set `/console groundEffectDensity 256`, fly, land; check `/dump GetCVar("groundEffectDensity")`
 - [ ] Friendly labels for enum values (e.g. "Low/High" instead of 0-5); M4
 

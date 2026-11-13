@@ -56,8 +56,9 @@ local defaults = {
 		-- baseline: the user's own values for every CVar we have changed.
 		-- owned: the values we set, used to notice when the user changes one themselves.
 		-- active: name of the applied graphics profile, or nil.
-		-- detail: lower-level CVars (e.g. groundEffectDensity) saved before the first change.
-		state = { baseline = {}, owned = {}, detail = {}, active = nil },
+		-- detail: original values of lower-level CVars (e.g. groundEffectDensity) that a preset
+		-- change overwrote. initial: graphics CVar values at the start of the saver period.
+		state = { baseline = {}, owned = {}, detail = {}, initial = {}, active = nil },
 	},
 }
 

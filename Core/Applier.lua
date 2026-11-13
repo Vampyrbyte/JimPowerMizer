@@ -17,8 +17,6 @@ local Registry = ns.CVarRegistry
 local Equal = Registry.Equal
 
 local pending        -- queued { [name] = value } while in combat
-local detailTimer    -- scheduled second pass of restoreDetails
-local restoreDetailsSoon -- defined below
 local pendingProfile -- profile name for the pending change (for status display)
 
 local function state()
@@ -44,9 +42,124 @@ local function canWriteNow(name)
 	return info and not info.isSecure
 end
 
--- Apply a full set of changes { [name] = value or false } (false = restore baseline).
-local function applyChanges(changes, label)
+-- ---------------------------------------------------------------------------------------------
+-- Lower-level ("detail") CVars. Setting a preset (graphicsGroundClutter, ...) makes the client
+-- overwrite the CVars under it (groundEffectDensity, ...), so restoring the preset would lose
+-- /console tweaks. We detect which CVars each batch of preset writes actually changed, remember
+-- their original values in state.detail (SavedVariables), and write them back once everything is
+-- restored.
+--
+-- Candidates come from the Compat layer in two groups:
+--  * delayed: Graphics console category + a known list. Checked right after our writes and again
+--    0.5 s later (the client may apply a preset a frame later).
+--  * sync: e.g. the Default console category, which mixes in many non-graphics CVars. Only counted
+--    if they change *during* our writes, which nothing else can cause.
+
+-- Never written back: display/device settings, the presets themselves (writing one would cascade
+-- again), and anything the CVarRegistry manages directly.
+local DETAIL_EXCLUDE_PREFIXES = { "gx", "msaa", "graphics", "raidgraphics", "raidsettings" }
+local DELAYED_CHECK = 0.5
+
+local candidates   -- { all = {...}, delayed = {...} }, built once per session
+local initial      -- all candidate values before the first change (this session; the delayed
+                   -- ones are also saved in state.initial, to survive a crash)
+local batchSeq = 0 -- latest write batch; only its delayed check finishes a restore
+
+local function isDetailCandidate(name)
+	local lower = name:lower()
+	for _, prefix in ipairs(DETAIL_EXCLUDE_PREFIXES) do
+		if lower:sub(1, #prefix) == prefix then return false end
+	end
+	if Registry:Get(name) then return false end
+	local info = ns.Compat:GetCVarInfo(name)
+	return info ~= nil and not info.isReadOnly and not info.isLocked
+end
+
+local function getCandidates()
+	if candidates then return candidates end
+	local delayedNames, syncNames = ns.Compat:GetCascadeCandidates()
+	candidates = { all = {}, delayed = {} }
+	local seen = {}
+	local function add(name, delayed)
+		local key = name:lower()
+		if seen[key] or not isDetailCandidate(name) then return end
+		seen[key] = true
+		candidates.all[#candidates.all + 1] = name
+		if delayed then candidates.delayed[#candidates.delayed + 1] = name end
+	end
+	for _, name in ipairs(delayedNames) do add(name, true) end
+	for _, name in ipairs(syncNames) do add(name, false) end
+	return candidates
+end
+
+local function snapshot(list)
+	local values = {}
+	for _, name in ipairs(list) do values[name] = ns.Compat:GetCVar(name) end
+	return values
+end
+
+-- Remember the original value of every CVar in `list` that changed since `before`. The original
+-- is the value from before the saver period; if that isn't known (e.g. after a crash), the CVar
+-- is left alone rather than "restored" to a lowered value.
+local function record(before, list, label)
 	local st = state()
+	for _, name in ipairs(list) do
+		local was = before[name]
+		if was ~= nil and st.detail[name] == nil then
+			local now = ns.Compat:GetCVar(name)
+			if now ~= nil and not Equal(was, now) then
+				local original = (initial and initial[name]) or st.initial[name]
+				if original ~= nil then
+					st.detail[name] = original
+					ns.addon:Debug("%s also changed %s: %s -> %s", label, name, tostring(was), tostring(now))
+				else
+					ns.addon:Debug("%s also changed %s (original unknown, left alone)", label, name)
+				end
+			end
+		end
+	end
+end
+
+local function clearDetails()
+	local st = state()
+	wipe(st.detail)
+	wipe(st.initial)
+end
+
+-- Write back every remembered detail CVar that differs from its original value.
+local function restoreDetails(label)
+	local n = 0
+	for name, value in pairs(state().detail) do
+		local current = ns.Compat:GetCVar(name)
+		if current ~= nil and not Equal(current, value) and canWriteNow(name) then
+			if ns.Compat:SetCVar(name, value) then
+				n = n + 1
+				ns.addon:Debug("%s: put back %s = %s (was %s)", label, name, value, current)
+			end
+		end
+	end
+	return n
+end
+
+local function fullyRestored()
+	return not next(state().baseline) and not pending
+end
+
+-- Apply a full set of changes { [name] = value or false } (false = restore baseline).
+-- `fresh` = the user's own settings are live right now (first change of a saver period).
+local function applyChanges(changes, label, fresh)
+	local st = state()
+	local protect = ns.addon.db.profile.protectDetails
+	local before
+	if protect then
+		before = snapshot(getCandidates().all)
+		if fresh then
+			initial = before
+			wipe(st.initial)
+			for _, name in ipairs(candidates.delayed) do st.initial[name] = before[name] end
+		end
+	end
+
 	local deferred
 	for name, value in pairs(changes) do
 		if canWriteNow(name) then
@@ -74,76 +187,23 @@ local function applyChanges(changes, label)
 		pendingProfile = label
 		ns.addon:Debug("Deferred %s changes until combat ends", label)
 	end
-	-- Everything is back to the user's values: put the lower-level settings back too.
-	if not next(st.baseline) and not pending then restoreDetailsSoon() end
-end
 
--- ---------------------------------------------------------------------------------------------
--- Lower-level ("detail") CVars, e.g. groundEffectDensity under graphicsGroundClutter. The client
--- overwrites these when a preset changes, so /console tweaks would be lost on restore. They're
--- snapshotted (state.detail) before the first change and written back once everything is restored.
-
--- Never written back: display/device settings, the presets themselves (writing one would cascade
--- again), and anything the CVarRegistry manages directly.
-local DETAIL_EXCLUDE_PREFIXES = { "gx", "msaa", "graphics", "raidgraphics", "raidsettings" }
-
-local function isDetailCandidate(name)
-	local lower = name:lower()
-	for _, prefix in ipairs(DETAIL_EXCLUDE_PREFIXES) do
-		if lower:sub(1, #prefix) == prefix then return false end
+	if not protect then
+		if fullyRestored() then clearDetails() end
+		return
 	end
-	if Registry:Get(name) then return false end
-	local info = ns.Compat:GetCVarInfo(name)
-	return info ~= nil and not info.isReadOnly and not info.isLocked
-end
+	record(before, candidates.all, label)
+	if fullyRestored() then restoreDetails("restore") end
 
-local function snapshotDetails()
-	if not ns.addon.db.profile.protectDetails then return end
-	local st = state()
-	wipe(st.detail)
-	local n = 0
-	for _, name in ipairs((ns.Compat:GetDetailCVarNames())) do
-		if isDetailCandidate(name) then
-			local v = ns.Compat:GetCVar(name)
-			if v ~= nil then
-				st.detail[name] = v
-				n = n + 1
-			end
+	batchSeq = batchSeq + 1
+	local seq = batchSeq
+	ns.addon:ScheduleTimer(function()
+		record(before, candidates.delayed, label .. " (delayed)")
+		if seq == batchSeq and fullyRestored() then
+			restoreDetails("restore (2nd pass)")
+			clearDetails()
 		end
-	end
-	ns.addon:Debug("Saved %d detail settings", n)
-end
-
--- Write back any detail CVar that differs from the snapshot. Returns the number written.
-local function restoreDetails(label)
-	local st = state()
-	local n = 0
-	for name, value in pairs(st.detail) do
-		local current = ns.Compat:GetCVar(name)
-		if current ~= nil and not Equal(current, value) and canWriteNow(name) then
-			if ns.Compat:SetCVar(name, value) then
-				n = n + 1
-				ns.addon:Debug("%s: restored %s = %s (was %s)", label, name, value, current)
-			end
-		end
-	end
-	return n
-end
-
--- Called once all presets are back to the user's values: restore details now, and again shortly
--- after in case the client applies the preset's values a frame later. Then drop the snapshot,
--- unless a profile was applied again meanwhile.
-function restoreDetailsSoon()
-	if not next(state().detail) then return end
-	restoreDetails("restore")
-	if detailTimer then ns.addon:CancelTimer(detailTimer) end
-	detailTimer = ns.addon:ScheduleTimer(function()
-		detailTimer = nil
-		local st = state()
-		if next(st.baseline) then return end -- a profile is active again; keep the snapshot
-		restoreDetails("restore (2nd pass)")
-		wipe(st.detail)
-	end, 0.5)
+	end, DELAYED_CHECK)
 end
 
 -- The profile's values plus derived ones. If the profile caps foreground FPS, the background cap
@@ -178,13 +238,12 @@ function Applier:Apply(profileName, reason, force)
 	if not force and st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
 	profile = effectiveProfile(profile)
 
-	-- First change from the user's own settings: snapshot the lower-level settings.
-	if profile and not next(st.baseline) then
-		if detailTimer then ns.addon:CancelTimer(detailTimer); detailTimer = nil end
-		if next(st.detail) then
-			restoreDetails("restore (before new snapshot)")
-		end
-		snapshotDetails()
+	-- First change away from the user's own settings. Details left from a restore less than 0.5 s
+	-- ago are put back first, so the new period starts from the user's values.
+	local fresh = profile ~= nil and not next(st.baseline)
+	if fresh and next(st.detail) then
+		restoreDetails("restore (before new period)")
+		clearDetails()
 	end
 
 	local changes = {}
@@ -210,7 +269,7 @@ function Applier:Apply(profileName, reason, force)
 	end
 
 	st.active = profileName
-	applyChanges(changes, profileName or "restore")
+	applyChanges(changes, profileName or "restore", fresh)
 
 	if ns.addon.db.profile.notify then
 		if profileName then
@@ -314,6 +373,9 @@ function Applier:Enable()
 		st.active = nil
 		wipe(st.owned)
 		-- Interrupted between the restore and the detail restore's second pass.
-		if next(st.detail) then restoreDetailsSoon() end
+		if next(st.detail) then
+			restoreDetails("left over from last session")
+			clearDetails()
+		end
 	end
 end

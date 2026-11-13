@@ -59,16 +59,20 @@ UnitChannelInfo = function() return nil end
 GetCursorPosition = function() return cx, cy end
 GetPlayerFacing = function() return 1.5 end
 InCinematic = function() return cine end
-C_Console = { GetAllCommands = function()
+-- Like Forever: the global ConsoleGetAllCommands (no C_Console), and groundEffectDensity filed
+-- under Default (5) rather than Graphics (1), alongside unrelated CVars.
+ConsoleGetAllCommands = function()
 	return {
-		{ command = "groundEffectDensity", commandType = 0, category = 1 },
-		{ command = "groundEffectDist", commandType = 0, category = 1 },
+		{ command = "groundEffectDensity", commandType = 0, category = 5 },
+		{ command = "groundEffectDist", commandType = 0, category = 5 },
+		{ command = "lastSeenThing", commandType = 0, category = 5 },
+		{ command = "chatStyleThing", commandType = 0, category = 5 },
 		{ command = "gxWindow", commandType = 0, category = 1 },
 		{ command = "graphicsGroundClutter", commandType = 0, category = 1 },
 		{ command = "someSoundThing", commandType = 0, category = 7 },
 	}
-end }
-Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, Sound = 7 }, PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
+end
+Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, Default = 5, Sound = 7 }, PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
 
 -- CVars
 local cvars = {
@@ -78,6 +82,7 @@ local cvars = {
 	graphicsGroundClutter = "9", graphicsViewDistance = "9",
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
+	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
 }
 local secure = { renderScale = true }
 local function fire(event, ...)
@@ -362,11 +367,15 @@ check(cvars.groundEffectDensity == "256" and cvars.farclip == "5000", "start wit
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.graphicsGroundClutter == "0" and cvars.groundEffectDensity == "0", "saver: clutter 0 cascades density down")
 check(cvars.farclip == "1000", "saver: view distance cascades farclip down (delayed)")
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.01)
+cvars.chatStyleThing = "y" -- changed by something else mid-flight
+taxi = false; fire("PLAYER_CONTROL_GAINED")
+C_Timer.After(0.2, function() SetCVarRaw("lastSeenThing", "b") end) -- unrelated change just after landing
+advance(0.01)
 check(cvars.graphicsGroundClutter == "9" and cvars.groundEffectDensity == "256" and cvars.groundEffectDist == "300", "restore: custom density/dist put back at once")
 advance(0.6)
 check(cvars.farclip == "5000", "restore: delayed cascade on farclip undone by 2nd pass")
 check(cvars.gxWindow == "1", "display settings untouched")
+check(cvars.chatStyleThing == "y" and cvars.lastSeenThing == "b", "unrelated Default-category changes not reverted")
 check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after restore")
 -- User changes a console setting while nothing is active: next snapshot picks it up
 cvars.groundEffectDensity = "200"
