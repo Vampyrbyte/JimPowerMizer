@@ -175,10 +175,14 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 **M2 complete (2026-11-13).**
 
 ### M3: UI
-- [ ] AceConfig options: per-situation enable/profile/priority/delay; profile editor (only CVars the client has, with sliders/dropdowns from CVarRegistry)
-- [ ] "Capture current settings as profile" button
-- [ ] Addon compartment entry with tooltip: active situation, active profile, current FPS cap
-- [ ] Optional chat/screen notification on switch
+- [x] AceConfig options (standalone window via `/jpm` + Settings > AddOns page): General, Situations, Graphics profiles, Settings profiles (AceDBOptions)
+- [x] Per-situation enable/profile/priority/delay (+ idle timeout); profile editor with "Change" + value per CVar the client has
+- [x] New profile (from your settings), rename, copy, delete, "Capture current" (uses your own values, not lowered ones)
+- [x] Built-in profiles seeded once, so they can be edited/deleted for good; editing the active profile applies at once
+- [x] Addon compartment: tooltip with situation + profile; left-click options, right-click on/off
+- [x] Chat notification on switch (toggle)
+- [ ] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
+- [ ] Friendly labels for enum values (e.g. "Low/High" instead of 0-5); M4
 
 ### M4: Polish and release
 - [ ] Localization scaffolding, luacheck clean, CI

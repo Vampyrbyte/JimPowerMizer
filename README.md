@@ -17,7 +17,8 @@ scripts/link.sh [game_dir]     # symlink into <game_dir>/Interface/AddOns (defau
 luajit tests/harness.lua .     # run the mock-API tests
 ```
 
-In game: `/jpm` for commands, `/jpm probe` to check what graphics settings the client exposes.
+In game: `/jpm` opens the options (also in Settings > AddOns and the minimap addon menu); `/jpm help` lists commands;
+`/jpm probe` checks which graphics settings the client exposes.
 
 Libraries (LibStub, Ace3) are not committed. They're pulled in from `.pkgmeta`
 by the [BigWigs packager](https://github.com/BigWigsMods/packager) when building a release.

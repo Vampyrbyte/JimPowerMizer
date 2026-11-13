@@ -38,6 +38,7 @@ end
 function JPM:OnInitialize()
 	ns.Database:Init(self)
 	ns.Compat:Init()
+	ns.Options:Init()
 	self:RegisterChatCommand("jpm", "HandleSlash")
 	self:RegisterChatCommand("jimpowermizer", "HandleSlash")
 end
@@ -56,6 +57,27 @@ function JPM:OnDisable()
 end
 
 -- Blizzard addon compartment (minimap addon menu). Referenced from the TOC.
-function JimPowerMizer_OnAddonCompartmentClick()
-	JPM:PrintStatus()
+-- Left-click: options window. Right-click: turn automatic switching on/off.
+function JimPowerMizer_OnAddonCompartmentClick(_, mouseButton)
+	if mouseButton == "RightButton" then
+		JPM:SetEnabled(not JPM.db.profile.enabled)
+		JPM:Msg(JPM.db.profile.enabled and "Enabled." or "Disabled.")
+	else
+		ns.Options:Toggle()
+	end
+end
+
+function JimPowerMizer_OnAddonCompartmentEnter(_, menuButton)
+	local tip = GameTooltip
+	tip:SetOwner(menuButton, "ANCHOR_LEFT")
+	tip:SetText("JimPowerMizer")
+	for _, line in ipairs(JPM:GetStatusLines()) do tip:AddLine(line, 1, 1, 1) end
+	tip:AddLine(" ")
+	tip:AddLine("Left-click: options", 0.6, 0.6, 0.6)
+	tip:AddLine("Right-click: turn automatic switching on/off", 0.6, 0.6, 0.6)
+	tip:Show()
+end
+
+function JimPowerMizer_OnAddonCompartmentLeave()
+	GameTooltip:Hide()
 end

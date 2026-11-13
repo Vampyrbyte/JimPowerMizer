@@ -6,6 +6,8 @@
 ## SavedVariables: JimPowerMizerDB
 ## IconTexture: Interface\Icons\Spell_Nature_Sleep
 ## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: JimPowerMizer_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: JimPowerMizer_OnAddonCompartmentLeave
 ## Category: Miscellaneous
 
 embeds.xml
@@ -25,5 +27,7 @@ Situations\Taxi.lua
 Situations\Dead.lua
 Situations\ServiceWindow.lua
 Situations\Resting.lua
+
+Options\Options.lua
 
 Core\Commands.lua

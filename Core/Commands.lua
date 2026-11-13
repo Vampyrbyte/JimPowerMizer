@@ -4,6 +4,7 @@ local _, ns = ...
 local JPM = ns.addon
 
 local HELP = {
+	"|cffffd200/jpm|r - open the options window",
 	"|cffffd200/jpm status|r - show the current state",
 	"|cffffd200/jpm on|r / |cffffd200off|r - enable or disable automatic switching",
 	"|cffffd200/jpm restore|r - restore your graphics settings now",
@@ -15,6 +16,33 @@ local HELP = {
 	"|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts",
 	"|cffffd200/jpm debug|r - toggle debug messages",
 }
+
+-- Short status for the options window and the minimap menu tooltip.
+function JPM:GetStatusLines()
+	local db = self.db.profile
+	local active, pendingFor = ns.Applier:GetActive()
+	local current, def = ns.Engine:GetCurrent()
+	local lines = {}
+	if not db.enabled then
+		lines[1] = "|cffff0000Automatic switching is off.|r"
+	else
+		lines[1] = "Situation: |cffffd200" .. ((current and def and def.name) or "none") .. "|r"
+	end
+	lines[2] = "Graphics: |cffffd200" .. ((active and active ~= "recovered") and active or "your settings") .. "|r"
+		.. (pendingFor and " (pending until combat ends)" or "")
+	return lines
+end
+
+function JPM:SetEnabled(on)
+	self.db.profile.enabled = on and true or false
+	if on then
+		ns.Engine:Enable()
+	else
+		ns.Engine:Disable()
+		ns.Applier:RestoreAll("disabled")
+	end
+	if ns.Options then ns.Options:Update() end
+end
 
 function JPM:PrintStatus()
 	local db = self.db.profile
@@ -107,19 +135,18 @@ end
 
 function JPM:HandleSlash(input)
 	local cmd, arg = self:GetArgs(input or "", 2)
-	cmd = cmd and cmd:lower() or "status"
+	cmd = cmd and cmd:lower() or "options"
 	local db = self.db.profile
 
-	if cmd == "status" then
+	if cmd == "options" or cmd == "config" then
+		ns.Options:Toggle()
+	elseif cmd == "status" then
 		self:PrintStatus()
 	elseif cmd == "on" then
-		db.enabled = true
-		ns.Engine:Enable()
+		self:SetEnabled(true)
 		self:Msg("Enabled.")
 	elseif cmd == "off" then
-		db.enabled = false
-		ns.Engine:Disable()
-		ns.Applier:RestoreAll("disabled")
+		self:SetEnabled(false)
 		self:Msg("Disabled.")
 	elseif cmd == "list" then
 		self:ListSituations()
@@ -130,7 +157,7 @@ function JPM:HandleSlash(input)
 		else
 			cfg.enabled = (cmd == "enable")
 			self:Msg("Situation %s %s.", arg, cfg.enabled and "enabled" or "disabled")
-			ns.Engine:Evaluate("settings")
+			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "idle" then
 		local seconds = tonumber(arg)
@@ -139,7 +166,7 @@ function JPM:HandleSlash(input)
 		else
 			db.situations.idle.timeout = math.floor(seconds)
 			self:Msg("Idle after %d seconds without input.", db.situations.idle.timeout)
-			ns.Engine:Evaluate("settings")
+			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "restore" then
 		ns.Engine:Force(nil)

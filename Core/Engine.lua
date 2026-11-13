@@ -101,6 +101,7 @@ function Engine:Evaluate(trigger, ...)
 		else
 			ns.Applier:RestoreAll("situation ended")
 		end
+		if ns.Options then ns.Options:Update() end
 	end
 
 	-- A situation is active but still inside its enterDelay: check again when it expires.
@@ -176,6 +177,13 @@ function Engine:Disable()
 		current = nil
 		ns.Applier:RestoreAll("disabled")
 	end
+end
+
+-- Re-resolve after settings changed (e.g. the current situation now uses another profile).
+function Engine:Refresh(reason)
+	if not enabled then return end
+	current = false -- never equals a winner or nil, so Evaluate always applies or restores
+	self:Evaluate(reason or "settings")
 end
 
 function Engine:GetSituations()

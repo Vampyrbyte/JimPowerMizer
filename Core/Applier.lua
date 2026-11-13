@@ -96,14 +96,14 @@ local function effectiveProfile(profile)
 end
 
 -- Switch to graphics profile `profileName` (nil = restore the user's settings).
-function Applier:Apply(profileName, reason)
+function Applier:Apply(profileName, reason, force)
 	local st = state()
 	local profile = profileName and ns.addon.db.profile.graphicsProfiles[profileName]
 	if profileName and not profile then
 		ns.addon:Msg("Unknown graphics profile '%s'", profileName)
 		profileName, profile = nil, nil
 	end
-	if st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
+	if not force and st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
 	profile = effectiveProfile(profile)
 
 	local changes = {}
@@ -138,6 +138,20 @@ function Applier:Apply(profileName, reason)
 			ns.addon:Msg("Restored your graphics settings (%s)", reason or "?")
 		end
 	end
+end
+
+-- Re-apply the active profile after it was edited.
+function Applier:ReapplyIfActive(profileName)
+	if profileName and state().active == profileName and ns.addon.db.profile.graphicsProfiles[profileName] then
+		self:Apply(profileName, "profile edited", true)
+	end
+end
+
+-- The user's own value for a CVar: the saved original if we've changed it, else the live value.
+function Applier:GetUserValue(name)
+	local base = state().baseline[name]
+	if base ~= nil then return base end
+	return ns.Compat:GetCVar(name)
 end
 
 function Applier:RestoreAll(reason)

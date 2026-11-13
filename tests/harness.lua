@@ -130,10 +130,21 @@ end
 local function loadXml(path)
 	local dir = path:match("^(.*)[/\\]") or ""
 	local f = assert(io.open(ROOT .. "/" .. path:gsub("\\", "/")))
-	local text = f:read("*a"); f:close()
+	local text = f:read("*a"):gsub("<!%-%-.-%-%->", ""); f:close()
 	for tag, file in text:gmatch('<(%a+) file="([^"]+)"') do
 		local full = (dir ~= "" and dir .. "\\" or "") .. file
-		if tag == "Script" then loadFile(full) elseif tag == "Include" then loadXml(full) end
+		-- The GUI libraries need a real UI; the dialog is replaced by a stub below.
+		if full:find("AceGUI") or full:find("AceConfigDialog") then
+			if full:find("AceConfigDialog") and not LibStub("AceConfigDialog-3.0", true) then
+				local dlg = LibStub:NewLibrary("AceConfigDialog-3.0", 1)
+				dlg.OpenFrames = {}
+				function dlg:AddToBlizOptions() end
+				function dlg:SetDefaultSize() end
+				function dlg:SelectGroup(_, ...) self.selected = { ... } end
+				function dlg:Open(app) self.OpenFrames[app] = true end
+				function dlg:Close(app) self.OpenFrames[app] = nil end
+			end
+		elseif tag == "Script" then loadFile(full) elseif tag == "Include" then loadXml(full) end
 	end
 end
 
@@ -317,6 +328,82 @@ dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
 slash("list")
 noErrors("session 4")
+
+-- Session 5: options UI (table logic only) ---------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+taxi, afk, resting, dead, combat = false, false, false, false, false
+ns = session("session 5: options")
+advance(ns.STARTUP_GRACE); poke()
+local reg = LibStub("AceConfigRegistry-3.0")
+local function tbl() return ns.Options:GetTable() end
+local function node(...)
+	local n = tbl()
+	for i = 1, select("#", ...) do n = n.args[select(i, ...)]; if not n then return nil end end
+	return n
+end
+local function call(fn, ...) if type(fn) == "function" then return fn(...) end return fn end
+local function set(value, ...) local n = node(...); call(n.set, {}, value) end
+local function get(...) local n = node(...); return call(n.get, {}) end
+local function run(...) local n = node(...); call(n.func, {}) end
+local ok, err = pcall(reg.ValidateOptionsTable, reg, tbl(), "JimPowerMizer")
+check(ok, "options table passes AceConfig validation" .. (ok and "" or (": " .. tostring(err))))
+check(node("graphics", "p_Max saver") and node("graphics", "p_Light saver"), "built-in profiles listed")
+check(node("situations", "idle", "args") == nil and node("situations", "idle", "timeout") ~= nil, "idle has a timeout setting")
+check(node("situations", "taxi", "timeout") == nil, "only idle has a timeout")
+
+-- Edit the active profile -> applied live
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "20", "taxi -> Max saver")
+set(15, "graphics", "p_Max saver", "maxFPS", "value")
+check(cvars.maxFPS == "15", "editing active profile applies at once")
+set(false, "graphics", "p_Max saver", "renderScale", "change")
+check(cvars.renderScale == "1", "unticking a setting restores it at once")
+-- Switch the active situation's profile
+set("Light saver", "situations", "taxi", "profile")
+check(cvars.maxFPS == "30" and cvars.graphicsViewDistance == nil or cvars.maxFPS == "30", "changing taxi's profile applies at once")
+set("__user", "situations", "taxi", "profile")
+check(cvars.maxFPS == "144" and JimPowerMizerDB.profiles.Default.situations.taxi.profile == false, "'Your settings' stored as false and restores")
+set("Max saver", "situations", "taxi", "profile")
+check(cvars.maxFPS == "15", "back to Max saver")
+-- Disable active situation
+set(false, "situations", "taxi", "enabled")
+check(cvars.maxFPS == "144", "disabling the active situation restores")
+set(true, "situations", "taxi", "enabled")
+check(cvars.maxFPS == "15", "re-enabling applies again")
+
+-- Capture uses the user's values, not the lowered live ones
+set("My profile", "graphics", "new")
+check(node("graphics", "p_My profile") ~= nil, "new profile created")
+check(ns.addon.db.profile.graphicsProfiles["My profile"].maxFPS == 144, "new profile captured YOUR maxFPS (144), not the live 15")
+check(call(node("graphics", "new").validate, {}, "My profile") ~= true, "duplicate name rejected")
+-- Rename updates references
+set("My profile", "situations", "taxi", "profile")
+set("Flying", "graphics", "p_My profile", "rename")
+check(ns.addon.db.profile.situations.taxi.profile == "Flying" and node("graphics", "p_Flying") and not node("graphics", "p_My profile"), "rename updates situations")
+-- Delete -> situations fall back to your settings
+run("graphics", "p_Flying", "delete")
+check(ns.addon.db.profile.situations.taxi.profile == false and not node("graphics", "p_Flying"), "delete falls back to your settings")
+check(cvars.maxFPS == "144", "taxi now uses your settings")
+set("Max saver", "situations", "taxi", "profile")
+-- Copy
+run("graphics", "p_Max saver", "copy")
+check(node("graphics", "p_Max saver copy") ~= nil, "copy created")
+-- General toggles
+set(false, "general", "enabled")
+check(cvars.maxFPS == "144" and not ns.Engine:IsEnabled(), "General: disable restores")
+set(true, "general", "enabled")
+check(cvars.maxFPS == "15", "General: enable applies again")
+check(type(call(node("general", "status").name)) == "string", "status text renders")
+JimPowerMizer_OnAddonCompartmentClick("JimPowerMizer", "LeftButton")
+check(LibStub("AceConfigDialog-3.0").OpenFrames.JimPowerMizer, "compartment left-click opens options")
+taxi = false; advance(2.1)
+-- Deleted built-ins stay deleted after reload
+run("graphics", "p_Light saver", "delete")
+SavedDB = JimPowerMizerDB
+ns = session("session 5b: reload after deleting Light saver")
+check(ns.addon.db.profile.graphicsProfiles["Light saver"] == nil, "deleted built-in profile stays deleted")
+check(ns.addon.db.profile.graphicsProfiles["Max saver"].maxFPS == 15, "edited built-in profile keeps edits")
+noErrors("session 5")
 
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

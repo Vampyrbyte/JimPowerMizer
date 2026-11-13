@@ -34,7 +34,8 @@ local defaults = {
 		debug = false,
 		notify = true,               -- chat message when the profile switches
 		capBackground = true,        -- when a profile caps foreground FPS, cap background FPS no higher
-		graphicsProfiles = Database.BUILTIN_PROFILES,
+		graphicsProfiles = {},       -- seeded from BUILTIN_PROFILES once (see EnsureProfiles)
+		profilesSeeded = false,
 		situations = {
 			-- profile: graphics profile name, or false for "your own settings".
 			-- priority: higher wins when several situations are active at once.
@@ -58,6 +59,34 @@ local defaults = {
 	},
 }
 
+local function copy(t)
+	local c = {}
+	for k, v in pairs(t) do c[k] = type(v) == "table" and copy(v) or v end
+	return c
+end
+Database.Copy = copy
+
+-- Built-in graphics profiles are copied into the user's settings once, rather than living in
+-- AceDB defaults, so they can be edited, renamed and deleted for good.
+function Database:EnsureProfiles(addon)
+	local p = addon.db.profile
+	if not p.profilesSeeded then
+		for name, values in pairs(self.BUILTIN_PROFILES) do
+			if p.graphicsProfiles[name] == nil then p.graphicsProfiles[name] = copy(values) end
+		end
+		p.profilesSeeded = true
+	end
+end
+
 function Database:Init(addon)
 	addon.db = LibStub("AceDB-3.0"):New("JimPowerMizerDB", defaults, true)
+	self:EnsureProfiles(addon)
+	local function changed()
+		self:EnsureProfiles(addon)
+		if ns.Engine and ns.Engine:IsEnabled() then ns.Engine:Refresh("settings profile changed") end
+		if ns.Options then ns.Options:Refresh() end
+	end
+	addon.db.RegisterCallback(self, "OnProfileChanged", changed)
+	addon.db.RegisterCallback(self, "OnProfileCopied", changed)
+	addon.db.RegisterCallback(self, "OnProfileReset", changed)
 end

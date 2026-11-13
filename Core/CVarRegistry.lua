@@ -9,10 +9,10 @@ ns.CVarRegistry = Registry
 -- restart = true: needs RestartGx()/client restart; never changed automatically.
 local CVARS = {
 	{ name = "useMaxFPS",               kind = "bool",   label = "Limit foreground FPS" },
-	{ name = "maxFPS",                  kind = "number", label = "Max foreground FPS", min = 8, max = 300 },
+	{ name = "maxFPS",                  kind = "number", label = "Max foreground FPS", min = 8, max = 300, bigStep = 5 },
 	{ name = "useMaxFPSBk",             kind = "bool",   label = "Limit background FPS" },
-	{ name = "maxFPSBk",                kind = "number", label = "Max background FPS", min = 8, max = 300 },
-	{ name = "renderScale",             kind = "number", label = "Render scale", min = 0.33, max = 2.0 },
+	{ name = "maxFPSBk",                kind = "number", label = "Max background FPS", min = 8, max = 300, bigStep = 5 },
+	{ name = "renderScale",             kind = "number", label = "Render scale", min = 0.33, max = 2.0, step = 0.01, bigStep = 0.05, percent = true },
 	{ name = "graphicsShadowQuality",   kind = "enum",   label = "Shadow quality",      min = 0, max = 5 },
 	{ name = "graphicsSSAO",            kind = "enum",   label = "SSAO",                min = 0, max = 4 },
 	{ name = "graphicsParticleDensity", kind = "enum",   label = "Particle density",    min = 0, max = 5 },
