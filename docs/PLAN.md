@@ -12,6 +12,12 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 | Midnight (Standard) | `120105` | `JimPowerMizer_Mainline.toc` | Mainline | Future (easy, same API) |
 | Mists / Cata / Wrath / TBC / Vanilla | `50504` / … / `11509` | `JimPowerMizer_Classic.toc` or per-flavor | Classic | Future |
 
+**Verified on Forever build 1.60.1 (70938), 2026-11-13 (`/jpm probe`, out of combat):**
+- Interface `16001`; `WOW_PROJECT_ID` = `WOW_PROJECT_CAMELOT` = `18`.
+- All CVars in `Core/CVarRegistry.lua` exist under those names. None is secure, read-only or locked.
+- Addon writes via `C_CVar.SetCVar` work (write test on `maxFPSBk` passed).
+- Still to do: run the probe write test **in combat**.
+
 Notes / things to verify in the live client (sources are beta-era fan sites + Warcraft Wiki):
 - `/dump select(4, GetBuildInfo())` → expect `16001`.
 - `/dump WOW_PROJECT_ID, WOW_PROJECT_CAMELOT` → `WOW_PROJECT_ID` was reported as `1` on one beta build and `18` (`WOW_PROJECT_CAMELOT`) on a later one. **Don't branch on project ID alone**; check for the specific APIs we use.

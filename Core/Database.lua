@@ -15,6 +15,10 @@ Database.BUILTIN_PROFILES = {
 		graphicsParticleDensity = 1,
 		graphicsLiquidDetail = 0,
 		graphicsSpellDensity = 0,
+		graphicsViewDistance = 2,
+		graphicsEnvironmentDetail = 2,
+		graphicsGroundClutter = 0,
+		graphicsComputeEffects = 0,
 	},
 	["Light saver"] = {
 		useMaxFPS = 1,
