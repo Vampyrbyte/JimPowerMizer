@@ -100,9 +100,9 @@ Engine behaviour:
 
 ## 4. Graphics levers (CVars), ranked by power savings
 
-1. `targetFPS` / `useTargetFPS`, `maxFPS` / `useMaxFPS`: **the biggest power saving by far.** A 15–20 FPS cap on a flight path cuts GPU load dramatically.
+1. `maxFPS` / `useMaxFPS` (foreground FPS cap): **the biggest power saving by far.** A 15–20 FPS cap on a flight path cuts GPU load dramatically. (`targetFPS` is a different setting, a minimum-FPS target, so we don't use it as a cap.)
 2. `renderScale`: render resolution scale (e.g. 0.5).
-3. `graphicsQuality` (overall preset 1–10) or individual settings: `graphicsShadowQuality`, `graphicsSSAO`, `graphicsLiquidDetail`, `graphicsParticleDensity`, `graphicsSpellDensity`, `graphicsViewDistance`, `graphicsEnvironmentDetail`, `graphicsGroundClutter`, `graphicsComputeEffects`, `graphicsDepthEffects`, `graphicsOutlineMode`.
+3. Individual settings (**not** `graphicsQuality`: changing the preset overwrites the user's custom settings): `graphicsShadowQuality`, `graphicsSSAO`, `graphicsLiquidDetail`, `graphicsParticleDensity`, `graphicsSpellDensity`, `graphicsViewDistance`, `graphicsEnvironmentDetail`, `graphicsGroundClutter`, `graphicsComputeEffects`, `graphicsDepthEffects`, `graphicsOutlineMode`.
 4. `ResampleQuality`, `ffxAntiAliasingMode`/`MSAAQuality`: avoid changing MSAA, since it can need a graphics restart.
 5. `maxFPSBk`: background FPS cap (already built in; we'll expose it).
 
@@ -139,14 +139,18 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 ### M0: Repo and skeleton
 - [x] `git init`, README, .gitignore, `.pkgmeta`, Forever TOC
 - [x] License: BSD 3-Clause (`LICENSE`), third-party licences in `THIRD-PARTY-NOTICES.md`
-- [ ] Create GitHub repo and push (`gh repo create` or via web), add the packager workflow
-- [ ] `scripts/fetch-libs.sh`, `scripts/link.sh`, `.luacheckrc`
+- [x] Create GitHub repo and push, add the packager workflow
+- [x] `scripts/fetch-libs.sh`, `scripts/link.sh`, `.luacheckrc`
 
 ### M1: Proof of concept (Forever only)
-- [ ] `Core/Init.lua` + `Compat/Mainline.lua`; print flavor/build on login
-- [ ] In-game investigation: dump the available graphics CVars, and test that `SetCVar("targetFPS", 15)` works from addon code, in and out of combat
-- [ ] `Applier` with baseline snapshot + restore + crash recovery
-- [ ] Taxi situation only, with a hard-coded "Max saver" profile → prove it end to end
+- [x] `Core/Init.lua` + `Compat/Mainline.lua`; flavor/build in `/jpm status` and `/jpm probe`
+- [x] `Applier` with baseline snapshot + restore + crash recovery + combat deferral + respecting user edits
+- [x] Engine (priority, enter delay, polling fallback) + Taxi situation + built-in "Max saver"/"Light saver" profiles
+- [x] `/jpm status|on|off|restore|force|probe|debug`, addon-compartment click = status
+- [x] Mock-API test harness (`tests/harness.lua`)
+- [ ] **In game:** `/jpm probe` out of combat and in combat (target dummy); paste output. Check CVar names, which are `secure`, and that the write test passes
+- [ ] **In game:** take a flight path; check FPS drops (`Ctrl+R` FPS display) and settings restore on landing
+- [ ] **In game:** `/reload` and log out mid-flight; check settings are right afterwards
 
 ### M2: Engine and situations
 - [ ] Situation plugin API + priority resolution + enter delays

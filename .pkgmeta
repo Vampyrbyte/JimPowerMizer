@@ -18,3 +18,5 @@ ignore:
   - scripts
   - README.md
   - .github
+  - .luacheckrc
+  - tests

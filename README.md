@@ -11,6 +11,14 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
 ## Development
 
+```sh
+scripts/fetch-libs.sh          # fetch LibStub + Ace3 into Libs/ (git-ignored)
+scripts/link.sh [game_dir]     # symlink into <game_dir>/Interface/AddOns (defaults to the _forever_ folder)
+luajit tests/harness.lua .     # run the mock-API tests
+```
+
+In game: `/jpm` for commands, `/jpm probe` to check what graphics settings the client exposes.
+
 Libraries (LibStub, Ace3) are not committed. They're pulled in from `.pkgmeta`
 by the [BigWigs packager](https://github.com/BigWigsMods/packager) when building a release.
 

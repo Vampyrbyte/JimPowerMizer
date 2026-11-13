@@ -6,16 +6,18 @@
 ## SavedVariables: JimPowerMizerDB
 ## IconTexture: Interface\Icons\Spell_Nature_Sleep
 ## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
+## Category: Miscellaneous
 
-# Planned load order (see docs/PLAN.md). Files are added as they're implemented.
-#embeds.xml
-#Locales\enUS.lua
-#Core\Init.lua
-#Compat\Compat.lua
-#Compat\Mainline.lua
-#Core\Database.lua
-#Core\CVarRegistry.lua
-#Core\Applier.lua
-#Core\Engine.lua
-#Situations\Taxi.lua
-#Options\Options.lua
+embeds.xml
+
+Core\Init.lua
+Compat\Compat.lua
+Compat\Mainline.lua
+Core\CVarRegistry.lua
+Core\Database.lua
+Core\Applier.lua
+Core\Engine.lua
+
+Situations\Taxi.lua
+
+Core\Commands.lua
