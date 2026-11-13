@@ -3,6 +3,7 @@
 ## Notes: Switches graphics settings by situation (idle, flight path, ...) to save power.
 ## Author: Jim Walters
 ## Version: @project-version@
+## X-Curse-Project-ID: 1803739
 ## SavedVariables: JimPowerMizerDB
 ## IconTexture: Interface\Icons\Spell_Nature_Sleep
 ## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
