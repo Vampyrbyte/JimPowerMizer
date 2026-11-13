@@ -181,7 +181,8 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Built-in profiles seeded once, so they can be edited/deleted for good; editing the active profile applies at once
 - [x] Addon compartment: tooltip with situation + profile; left-click options, right-click on/off
 - [x] Chat notification on switch (toggle)
-- [ ] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
+- [x] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
+- [ ] **In game:** live edit of the active profile (drag Max saver's FPS slider during a flight)
 - [ ] Friendly labels for enum values (e.g. "Low/High" instead of 0-5); M4
 
 ### M4: Polish and release
