@@ -166,7 +166,9 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Idle (AFK + inactivity timer), Combat, Cinematic, Resting, Dead, Service windows (AH/mail/bank/vendor)
 - [x] `/jpm` commands: `status`, `on`, `off`, `restore`, `debug`, `list`, `enable`/`disable <situation>`, `idle <seconds>`
 - [ ] **In game:** idle (wait out the timeout; `/afk`), combat restores at once, AH/mail with `/jpm enable serviceWindow`
-- [ ] **In game:** does the cursor position change while the game is in the background? If it does, alt-tabbing counts as activity and idle never triggers
+- [x] **In game:** cursor movement outside the game while alt-tabbed does NOT count as activity, so idle keeps working in the background
+- [x] **In game:** idle works; service window works at a mailbox
+- [ ] **In game:** bank (Ratchet) didn't trigger the service-window situation; added legacy-event fallback + debug logging of interaction types
 
 ### M3: UI
 - [ ] AceConfig options: per-situation enable/profile/priority/delay; profile editor (only CVars the client has, with sliders/dropdowns from CVarRegistry)
