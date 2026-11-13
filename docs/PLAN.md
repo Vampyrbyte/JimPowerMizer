@@ -16,7 +16,9 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 - Interface `16001`; `WOW_PROJECT_ID` = `WOW_PROJECT_CAMELOT` = `18`.
 - All CVars in `Core/CVarRegistry.lua` exist under those names. None is secure, read-only or locked.
 - Addon writes via `C_CVar.SetCVar` work (write test on `maxFPSBk` passed).
-- Still to do: run the probe write test **in combat**.
+- In combat (`/jpm probe combat`, `InCombatLockdown()` true): the same flags, and the `maxFPSBk` write test
+  also passes. So CVar writes aren't blocked by combat lockdown. Only `maxFPSBk` was write-tested; the
+  combat deferral in the Applier stays as a safety net for any CVar the client marks secure.
 
 Notes / things to verify in the live client (sources are beta-era fan sites + Warcraft Wiki):
 - `/dump select(4, GetBuildInfo())` → expect `16001`.
@@ -179,7 +181,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
 
 ## 8. Risks / open questions
-- **CVar write restrictions on Forever/Midnight.** If graphics CVars are protected, the fallback is limited to the FPS caps. This must be verified first in M1.
+- ~~**CVar write restrictions on Forever/Midnight.**~~ Verified 2026-11-13: writes work in and out of combat.
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
 - **Taxi detection edge cases:** dragonriding / skyriding "flight paths" and boat/zeppelin rides aren't `UnitOnTaxi`.
