@@ -12,6 +12,8 @@
 
 embeds.xml
 
+Locales\enUS.lua
+
 Core\Init.lua
 Compat\Compat.lua
 Compat\Mainline.lua

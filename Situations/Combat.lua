@@ -2,12 +2,13 @@
 -- PLAYER_REGEN_DISABLED fires slightly before combat lockdown starts, so track it from the
 -- events rather than InCombatLockdown().
 local _, ns = ...
+local L = ns.L
 
 local inCombat = false
 
 ns.Engine:RegisterSituation({
 	key = "combat",
-	name = "Combat",
+	name = L["Combat"],
 	events = { "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "PLAYER_ENTERING_WORLD" },
 	OnEnable = function()
 		inCombat = ns.Compat:IsInCombat()

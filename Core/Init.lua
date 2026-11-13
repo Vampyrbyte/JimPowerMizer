@@ -1,5 +1,6 @@
 -- JimPowerMizer: core addon object and namespace.
 local ADDON_NAME, ns = ...
+local L = ns.L
 
 local JPM = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0")
 ns.addon = JPM
@@ -53,7 +54,7 @@ end
 
 function JPM:OnDisable()
 	ns.Engine:Disable()
-	ns.Applier:RestoreAll("addon disabled")
+	ns.Applier:RestoreAll(L["disabled"])
 end
 
 -- Blizzard addon compartment (minimap addon menu). Referenced from the TOC.
@@ -61,7 +62,7 @@ end
 function JimPowerMizer_OnAddonCompartmentClick(_, mouseButton)
 	if mouseButton == "RightButton" then
 		JPM:SetEnabled(not JPM.db.profile.enabled)
-		JPM:Msg(JPM.db.profile.enabled and "Enabled." or "Disabled.")
+		JPM:Msg(JPM.db.profile.enabled and L["Enabled."] or L["Disabled."])
 	else
 		ns.Options:Toggle()
 	end
@@ -73,8 +74,8 @@ function JimPowerMizer_OnAddonCompartmentEnter(_, menuButton)
 	tip:SetText("JimPowerMizer")
 	for _, line in ipairs(JPM:GetStatusLines()) do tip:AddLine(line, 1, 1, 1) end
 	tip:AddLine(" ")
-	tip:AddLine("Left-click: options", 0.6, 0.6, 0.6)
-	tip:AddLine("Right-click: turn automatic switching on/off", 0.6, 0.6, 0.6)
+	tip:AddLine(L["Left-click: options"], 0.6, 0.6, 0.6)
+	tip:AddLine(L["Right-click: turn automatic switching on/off"], 0.6, 0.6, 0.6)
 	tip:Show()
 end
 

@@ -43,8 +43,8 @@ local defaults = {
 			-- enterDelay: seconds the situation must stay active before switching.
 			combat        = { enabled = true,  profile = false,         priority = 100, enterDelay = 0 },
 			cinematic     = { enabled = true,  profile = false,         priority = 95,  enterDelay = 0 },
-			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0,
-			                  timeout = 180 }, -- seconds without input before counting as idle
+			-- idle.timeout: seconds without input before counting as idle.
+			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0, timeout = 180 },
 			taxi          = { enabled = true,  profile = "Max saver",   priority = 80,  enterDelay = 2 },
 			dead          = { enabled = false, profile = "Light saver", priority = 40,  enterDelay = 3 },
 			serviceWindow = { enabled = false, profile = "Light saver", priority = 35,  enterDelay = 1 },

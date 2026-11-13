@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint (luacheck)
+        uses: lunarmodules/luacheck@v1
+
+      - name: Install LuaJIT
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq luajit
+
+      - name: Locale file up to date
+        run: python3 scripts/gen-locale.py --check
+
+      - name: Fetch libraries
+        run: scripts/fetch-libs.sh
+
+      - name: Mock-API tests
+        run: luajit tests/harness.lua .

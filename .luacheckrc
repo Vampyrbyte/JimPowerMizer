@@ -1,6 +1,6 @@
 std = "lua51"
 max_line_length = false
-exclude_files = { "Libs/", ".release/" }
+exclude_files = { "Libs/", ".release/", "tests/" }
 ignore = {
 	"212/self", -- unused self
 	"212/_.*",  -- unused args starting with _
@@ -11,5 +11,5 @@ read_globals = {
 	"LibStub", "C_AddOns", "C_CVar", "GetBuildInfo", "GetTime", "UnitOnTaxi", "InCombatLockdown",
 	"WOW_PROJECT_ID", "wipe", "UnitAffectingCombat", "UnitIsAFK", "IsResting", "UnitIsDeadOrGhost",
 	"InCinematic", "IsInCinematicScene", "IsPlayerMoving", "GetUnitSpeed", "UnitCastingInfo",
-	"UnitChannelInfo", "GetCursorPosition", "GetPlayerFacing", "Enum", "CreateFrame", "GameTooltip", "strtrim", "C_Console", "ConsoleGetAllCommands",
+	"UnitChannelInfo", "GetCursorPosition", "GetPlayerFacing", "Enum", "CreateFrame", "GameTooltip", "strtrim", "C_Console", "ConsoleGetAllCommands", "issecretvalue",
 }

@@ -2,6 +2,7 @@
 -- "Input" = moving, casting, the cursor moving, turning, or one of the activity events below.
 -- Ends as soon as any input is seen (within the 1 s poll).
 local _, ns = ...
+local L = ns.L
 
 local AFK_GRACE = 5 -- with the AFK flag set, wait this long after the last input
 local lastActivity = 0
@@ -29,7 +30,7 @@ end
 
 ns.Engine:RegisterSituation({
 	key = "idle",
-	name = "Idle",
+	name = L["Idle"],
 	events = events(),
 	poll = 1,
 	OnEnable = function()

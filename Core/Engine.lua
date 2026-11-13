@@ -11,6 +11,7 @@
 --   })
 -- Per-situation settings (enabled, profile, priority, enterDelay) live in db.profile.situations.
 local _, ns = ...
+local L = ns.L
 
 local Engine = {}
 ns.Engine = Engine
@@ -99,7 +100,7 @@ function Engine:Evaluate(trigger, ...)
 			-- profile false/nil = the user's own settings (e.g. combat, cinematics).
 			ns.Applier:Apply(cfg.profile or nil, (situations[winner] and situations[winner].name) or winner)
 		else
-			ns.Applier:RestoreAll("situation ended")
+			ns.Applier:RestoreAll(L["situation ended"])
 		end
 		if ns.Options then ns.Options:Update() end
 	end
@@ -175,7 +176,7 @@ function Engine:Disable()
 	enabled = false
 	if current then
 		current = nil
-		ns.Applier:RestoreAll("disabled")
+		ns.Applier:RestoreAll(L["disabled"])
 	end
 end
 

@@ -1,20 +1,21 @@
 -- Slash commands: /jpm
 local _, ns = ...
+local L = ns.L
 
 local JPM = ns.addon
 
 local HELP = {
-	"|cffffd200/jpm|r - open the options window",
-	"|cffffd200/jpm status|r - show the current state",
-	"|cffffd200/jpm on|r / |cffffd200off|r - enable or disable automatic switching",
-	"|cffffd200/jpm restore|r - restore your graphics settings now",
-	"|cffffd200/jpm list|r - list situations, their settings and whether they're active",
-	"|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off",
-	"|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle",
-	"|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)",
-	"|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them",
-	"|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts",
-	"|cffffd200/jpm debug|r - toggle debug messages",
+	L["|cffffd200/jpm|r - open the options window"],
+	L["|cffffd200/jpm status|r - show the current state"],
+	L["|cffffd200/jpm on|r / |cffffd200off|r - enable or disable automatic switching"],
+	L["|cffffd200/jpm restore|r - restore your graphics settings now"],
+	L["|cffffd200/jpm list|r - list situations, their settings and whether they're active"],
+	L["|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off"],
+	L["|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle"],
+	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"],
+	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"],
+	L["|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts"],
+	L["|cffffd200/jpm debug|r - toggle debug messages"],
 }
 
 -- Short status for the options window and the minimap menu tooltip.
@@ -24,12 +25,12 @@ function JPM:GetStatusLines()
 	local current, def = ns.Engine:GetCurrent()
 	local lines = {}
 	if not db.enabled then
-		lines[1] = "|cffff0000Automatic switching is off.|r"
+		lines[1] = "|cffff0000" .. L["Automatic switching is off."] .. "|r"
 	else
-		lines[1] = "Situation: |cffffd200" .. ((current and def and def.name) or "none") .. "|r"
+		lines[1] = L["Situation: %s"]:format("|cffffd200" .. ((current and def and def.name) or L["none"]) .. "|r")
 	end
-	lines[2] = "Graphics: |cffffd200" .. ((active and active ~= "recovered") and active or "your settings") .. "|r"
-		.. (pendingFor and " (pending until combat ends)" or "")
+	lines[2] = L["Graphics: %s"]:format("|cffffd200" .. ((active and active ~= "recovered") and active or L["your settings"]) .. "|r")
+		.. (pendingFor and (" " .. L["(pending until combat ends)"]) or "")
 	return lines
 end
 
@@ -39,7 +40,7 @@ function JPM:SetEnabled(on)
 		ns.Engine:Enable()
 	else
 		ns.Engine:Disable()
-		ns.Applier:RestoreAll("disabled")
+		ns.Applier:RestoreAll(L["disabled"])
 	end
 	if ns.Options then ns.Options:Update() end
 end
@@ -128,7 +129,7 @@ function JPM:ListSituations()
 	for _, key in ipairs(order) do sorted[#sorted + 1] = key end
 	local sit = self.db.profile.situations
 	table.sort(sorted, function(a, b) return (sit[a].priority or 0) > (sit[b].priority or 0) end)
-	self:Msg("Situations (highest priority first):")
+	self:Msg(L["Situations (highest priority first):"])
 	for _, key in ipairs(sorted) do
 		local cfg = sit[key]
 		local extra = ""
@@ -155,41 +156,41 @@ function JPM:HandleSlash(input)
 		self:PrintStatus()
 	elseif cmd == "on" then
 		self:SetEnabled(true)
-		self:Msg("Enabled.")
+		self:Msg(L["Enabled."])
 	elseif cmd == "off" then
 		self:SetEnabled(false)
-		self:Msg("Disabled.")
+		self:Msg(L["Disabled."])
 	elseif cmd == "list" then
 		self:ListSituations()
 	elseif cmd == "enable" or cmd == "disable" then
 		local cfg = arg and db.situations[arg]
 		if not cfg then
-			self:Msg("Unknown situation '%s'. See /jpm list.", tostring(arg))
+			self:Msg(L["Unknown situation '%s'. See /jpm list."], tostring(arg))
 		else
 			cfg.enabled = (cmd == "enable")
-			self:Msg("Situation %s %s.", arg, cfg.enabled and "enabled" or "disabled")
+			self:Msg(cfg.enabled and L["Situation %s enabled."] or L["Situation %s disabled."], arg)
 			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "idle" then
 		local seconds = tonumber(arg)
 		if not seconds or seconds < 10 then
-			self:Msg("Usage: /jpm idle <seconds> (at least 10). Currently %d.", db.situations.idle.timeout)
+			self:Msg(L["Usage: /jpm idle <seconds> (at least 10). Currently %d."], db.situations.idle.timeout)
 		else
 			db.situations.idle.timeout = math.floor(seconds)
-			self:Msg("Idle after %d seconds without input.", db.situations.idle.timeout)
+			self:Msg(L["Idle after %d seconds without input."], db.situations.idle.timeout)
 			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "restore" then
 		ns.Engine:Force(nil)
-		ns.Applier:RestoreAll("manual restore")
+		ns.Applier:RestoreAll(L["manual restore"])
 	elseif cmd == "force" then
 		if not arg or arg == "off" then
 			ns.Engine:Force(nil)
-			self:Msg("No longer forcing a situation.")
+			self:Msg(L["No longer forcing a situation."])
 		elseif ns.Engine:GetSituation(arg) then
 			ns.Engine:Force(arg)
 		else
-			self:Msg("Unknown situation '%s'.", arg)
+			self:Msg(L["Unknown situation '%s'. See /jpm list."], arg)
 		end
 	elseif cmd == "probe" then
 		if arg == "combat" then

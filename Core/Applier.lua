@@ -8,6 +8,7 @@
 --  * On login, any leftover baseline (from a crash or disconnect) is restored first.
 --  * Secure CVars can't be set in combat; those changes are queued until combat ends.
 local _, ns = ...
+local L = ns.L
 
 local Applier = {}
 ns.Applier = Applier
@@ -232,7 +233,7 @@ function Applier:Apply(profileName, reason, force)
 	local st = state()
 	local profile = profileName and ns.addon.db.profile.graphicsProfiles[profileName]
 	if profileName and not profile then
-		ns.addon:Msg("Unknown graphics profile '%s'", profileName)
+		ns.addon:Msg(L["Unknown graphics profile '%s'"], profileName)
 		profileName, profile = nil, nil
 	end
 	if not force and st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
@@ -273,9 +274,9 @@ function Applier:Apply(profileName, reason, force)
 
 	if ns.addon.db.profile.notify then
 		if profileName then
-			ns.addon:Msg("Graphics profile |cffffd200%s|r (%s)", profileName, reason or "?")
+			ns.addon:Msg(L["Graphics profile %s (%s)"], "|cffffd200" .. profileName .. "|r", reason or "?")
 		else
-			ns.addon:Msg("Restored your graphics settings (%s)", reason or "?")
+			ns.addon:Msg(L["Restored your graphics settings (%s)"], reason or "?")
 		end
 	end
 end
@@ -283,7 +284,7 @@ end
 -- Re-apply the active profile after it was edited.
 function Applier:ReapplyIfActive(profileName)
 	if profileName and state().active == profileName and ns.addon.db.profile.graphicsProfiles[profileName] then
-		self:Apply(profileName, "profile edited", true)
+		self:Apply(profileName, L["profile edited"], true)
 	end
 end
 
@@ -366,7 +367,7 @@ function Applier:Enable()
 		st.active = "recovered"
 		ns.addon:ScheduleTimer(function()
 			if state().active == "recovered" then
-				Applier:RestoreAll("left over from last session")
+				Applier:RestoreAll(L["left over from last session"])
 			end
 		end, ns.STARTUP_GRACE)
 	else
