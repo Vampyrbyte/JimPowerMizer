@@ -182,7 +182,7 @@ local function session(label)
 	frames, timers, printed = {}, {}, {}
 	LibStub, JimPowerMizer, JimPowerMizerDB = nil, nil, SavedDB
 	local ns = {}
-	local f = assert(io.open(ROOT .. "/JimPowerMizer_Forever.toc"))
+	local f = assert(io.open(ROOT .. "/JimPowerMizer_Mainline.toc"))
 	for line in f:lines() do
 		if line ~= "" and not line:match("^#") then
 			if line:match("%.xml$") then loadXml(line) else loadFile(line, "JimPowerMizer", ns) end

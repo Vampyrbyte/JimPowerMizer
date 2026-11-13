@@ -8,7 +8,7 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 
 | Flavor | Interface | TOC file | API family | Status |
 |---|---|---|---|---|
-| **Forever** | `16001` | `JimPowerMizer_Forever.toc` | Mainline (Midnight 12.x API) | **Primary target** |
+| **Forever** | `16001` | `JimPowerMizer_Mainline.toc` | Mainline (Midnight 12.x API) | **Primary target** |
 | Midnight (Standard) | `120105` | `JimPowerMizer_Mainline.toc` | Mainline | Future (easy, same API) |
 | Mists / Cata / Wrath / TBC / Vanilla | `50504` / … / `11509` | `JimPowerMizer_Classic.toc` or per-flavor | Classic | Future |
 
@@ -20,6 +20,9 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
   also passes. So CVar writes aren't blocked by combat lockdown. Only `maxFPSBk` was write-tested; the
   combat deferral in the Applier stays as a safety net for any CVar the client marks secure.
 
+TOC naming: the BigWigs packager (v2.7.0) recognizes `_Mainline` and `_Camelot` but not `_Forever`, so the
+TOC is `JimPowerMizer_Mainline.toc`. Mainline is the client family that includes Forever and Standard.
+
 Notes / things to verify in the live client (sources are beta-era fan sites + Warcraft Wiki):
 - `/dump select(4, GetBuildInfo())` → expect `16001`.
 - `/dump WOW_PROJECT_ID, WOW_PROJECT_CAMELOT` → `WOW_PROJECT_ID` was reported as `1` on one beta build and `18` (`WOW_PROJECT_CAMELOT`) on a later one. **Don't branch on project ID alone**; check for the specific APIs we use.
@@ -29,8 +32,8 @@ Notes / things to verify in the live client (sources are beta-era fan sites + Wa
 
 ```
 JimPowerMizer/
-├── JimPowerMizer_Forever.toc      # per-flavor TOCs, each lists the shared files + its Compat file
-├── JimPowerMizer_Mainline.toc     # (later)
+├── JimPowerMizer_Mainline.toc     # Mainline family (Forever now; Midnight later via a second Interface value)
+├── JimPowerMizer_Classic.toc      # (later) Classic family
 ├── .pkgmeta                       # BigWigs packager: pulls Libs/ as externals
 ├── embeds.xml                     # loads Libs/
 ├── Libs/                          # NOT committed; fetched by packager / scripts/fetch-libs.sh
@@ -203,7 +206,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [ ] **In game:** check the level-name dropdowns match the game's own menu names
 
 ### M5: More flavors
-- [ ] `JimPowerMizer_Mainline.toc` (Midnight), which should be nearly free
+- [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
 
 ## 8. Risks / open questions
