@@ -8,6 +8,20 @@ local UnitAffectingCombat, UnitIsAFK, IsResting, UnitIsDeadOrGhost =
 
 local impl = { name = "Mainline" }
 
+-- Midnight-era clients (including Forever) return "secret values" for some unit data, mostly in
+-- combat. Secrets can't be compared or tested, so anything we read goes through clean():
+-- a secret becomes nil ("unknown").
+local issecretvalue = issecretvalue
+local function clean(v)
+	if issecretvalue and issecretvalue(v) then return nil end
+	return v
+end
+-- Boolean API result -> true/false, or `unknown` (default false) if the value is secret.
+local function flag(v, unknown)
+	if issecretvalue and issecretvalue(v) then return unknown or false end
+	return v and true or false
+end
+
 function impl.IsSupported()
 	-- Feature check rather than WOW_PROJECT_ID: Forever reported different project IDs across builds.
 	return C_CVar ~= nil and C_CVar.GetCVarInfo ~= nil and C_CVar.SetCVar ~= nil
@@ -36,7 +50,7 @@ function impl.GetCVarInfo(name)
 end
 
 function impl.IsOnTaxi()
-	return UnitOnTaxi("player") and true or false
+	return flag(UnitOnTaxi("player"))
 end
 
 function impl.InCombat()
@@ -44,19 +58,20 @@ function impl.InCombat()
 end
 
 function impl.IsInCombat()
-	return (UnitAffectingCombat("player") or InCombatLockdown()) and true or false
+	if InCombatLockdown() then return true end
+	return flag(UnitAffectingCombat("player"), true) -- secret almost certainly means in combat
 end
 
 function impl.IsAFK()
-	return UnitIsAFK("player") and true or false
+	return flag(UnitIsAFK("player"))
 end
 
 function impl.IsResting()
-	return IsResting() and true or false
+	return flag(IsResting())
 end
 
 function impl.IsDeadOrGhost()
-	return UnitIsDeadOrGhost("player") and true or false
+	return flag(UnitIsDeadOrGhost("player"))
 end
 
 function impl.InCinematic()
@@ -66,12 +81,20 @@ function impl.InCinematic()
 	return (movie and movie:IsShown()) and true or false
 end
 
+-- Each value may be nil when unknown (secret, or unavailable such as facing in instances).
 function impl.GetActivitySnapshot()
-	local moving = (IsPlayerMoving and IsPlayerMoving()) or (GetUnitSpeed("player") or 0) > 0
-	local casting = UnitCastingInfo("player") ~= nil or UnitChannelInfo("player") ~= nil
+	local moving
+	if IsPlayerMoving then moving = clean(IsPlayerMoving()) end
+	if moving == nil then
+		local speed = clean(GetUnitSpeed("player"))
+		if speed ~= nil then moving = speed > 0 end
+	end
+	-- A secret cast name counts as "not casting" (unknown); combat is handled by the Idle situation.
+	local casting = clean(UnitCastingInfo("player")) ~= nil or clean(UnitChannelInfo("player")) ~= nil
 	local x, y = GetCursorPosition()
-	local facing = GetPlayerFacing and GetPlayerFacing() -- nil in instances
-	return moving and true or false, casting, x, y, facing
+	x, y = clean(x), clean(y)
+	local facing = GetPlayerFacing and clean(GetPlayerFacing())
+	return moving and true or false, casting and true or false, x, y, facing
 end
 
 -- Service windows (auction house, mail, bank, vendor...).

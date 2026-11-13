@@ -11,7 +11,10 @@ local ACTIVITY_EVENTS = {
 	PLAYER_STARTED_MOVING = true, PLAYER_STARTED_TURNING = true, PLAYER_STARTED_LOOKING = true,
 	PLAYER_TARGET_CHANGED = true, UNIT_SPELLCAST_SENT = true, LOOT_OPENED = true,
 	GOSSIP_SHOW = true, QUEST_DETAIL = true,
+	-- Combat counts as activity (and combat outranks idle anyway).
+	PLAYER_REGEN_DISABLED = true, PLAYER_REGEN_ENABLED = true,
 }
+local inCombat = false
 
 local function events()
 	local list = {}
@@ -35,11 +38,17 @@ ns.Engine:RegisterSituation({
 	end,
 	OnEvent = function(event)
 		if ACTIVITY_EVENTS[event] then lastActivity = GetTime() end
+		if event == "PLAYER_REGEN_DISABLED" then inCombat = true
+		elseif event == "PLAYER_REGEN_ENABLED" then inCombat = false end
 	end,
 	Evaluate = function()
 		local now = GetTime()
+		if inCombat then
+			lastActivity = now
+			return false
+		end
 		local moving, casting, x, y, facing = ns.Compat:GetActivitySnapshot()
-		local cursorMoved = lastX ~= nil and (math.abs(x - lastX) > 1 or math.abs(y - lastY) > 1)
+		local cursorMoved = x ~= nil and lastX ~= nil and (math.abs(x - lastX) > 1 or math.abs(y - lastY) > 1)
 		local turned = facing ~= nil and lastFacing ~= nil and math.abs(facing - lastFacing) > 0.01
 		lastX, lastY, lastFacing = x, y, facing
 		if moving or casting or cursorMoved or turned then lastActivity = now end

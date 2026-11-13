@@ -49,8 +49,12 @@ UnitIsAFK = function() return afk end
 IsResting = function() return resting end
 UnitIsDeadOrGhost = function() return dead end
 IsPlayerMoving = function() return moving end
-GetUnitSpeed = function() return moving and 7 or 0 end
-UnitCastingInfo = function() return nil end
+-- Secret values: in combat, these return a userdata that errors when compared.
+local SECRET = setmetatable({}, { __lt = function() error("attempt to compare a secret number value") end,
+	__le = function() error("attempt to compare a secret number value") end })
+issecretvalue = function(v) return v == SECRET end
+GetUnitSpeed = function() if combat then return SECRET end return moving and 7 or 0 end
+UnitCastingInfo = function() if combat then return SECRET end return nil end
 UnitChannelInfo = function() return nil end
 GetCursorPosition = function() return cx, cy end
 GetPlayerFacing = function() return 1.5 end

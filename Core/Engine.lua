@@ -24,6 +24,15 @@ local enabled = false
 local evalTimer, pollTimer
 local current               -- key of the situation currently applied, or nil
 local startupUntil = 0      -- situations becoming active before this time skip their enterDelay
+local lastError = {}        -- key -> { msg, time }: rate-limit repeated situation errors in debug
+
+local function reportError(key, what, err)
+	err = tostring(err)
+	local last, now = lastError[key], GetTime()
+	if last and last.msg == err and now - last.time < 60 then return end
+	lastError[key] = { msg = err, time = now }
+	ns.addon:Debug("Situation %s %s errored: %s", key, what, err)
+end
 
 function Engine:RegisterSituation(def)
 	assert(def.key and def.Evaluate, "situation needs key and Evaluate")
@@ -65,11 +74,11 @@ function Engine:Evaluate(trigger, ...)
 		local def = situations[key]
 		if def.OnEvent and trigger then
 			local ok, err = pcall(def.OnEvent, trigger, ...)
-			if not ok then ns.addon:Debug("Situation %s OnEvent errored: %s", key, tostring(err)) end
+			if not ok then reportError(key, "OnEvent", err) end
 		end
 		local ok, isActive = pcall(def.Evaluate)
 		if not ok then
-			ns.addon:Debug("Situation %s errored: %s", key, tostring(isActive))
+			reportError(key, "Evaluate", isActive)
 			isActive = false
 		end
 		if isActive and not activeSince[key] then

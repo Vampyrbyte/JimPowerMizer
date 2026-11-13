@@ -165,7 +165,8 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Situation plugin API + priority resolution + enter delays (+ `OnEvent`/`OnEnable` hooks)
 - [x] Idle (AFK + inactivity timer), Combat, Cinematic, Resting, Dead, Service windows (AH/mail/bank/vendor)
 - [x] `/jpm` commands: `status`, `on`, `off`, `restore`, `debug`, `list`, `enable`/`disable <situation>`, `idle <seconds>`
-- [ ] **In game:** idle (wait out the timeout; `/afk`), combat restores at once, AH/mail with `/jpm enable serviceWindow`
+- [x] **In game:** idle (timeout and `/afk`), combat restores at once
+- [x] Fixed: idle crashed in combat on secret values (`GetUnitSpeed`); Compat now treats secrets as unknown
 - [x] **In game:** cursor movement outside the game while alt-tabbed does NOT count as activity, so idle keeps working in the background
 - [x] **In game:** idle works; service window works at a mailbox
 - [ ] **In game:** bank (Ratchet) didn't trigger the service-window situation; added legacy-event fallback + debug logging of interaction types
@@ -186,6 +187,8 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 
 ## 8. Risks / open questions
 - ~~**CVar write restrictions on Forever/Midnight.**~~ Verified 2026-11-13: writes work in and out of combat.
+- **Secret values (Midnight API).** Some unit data is secret, mostly in combat, and can't be compared. All reads go
+  through the Compat layer, which turns secrets into "unknown"; the test harness simulates them.
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
 - **Taxi detection edge cases:** dragonriding / skyriding "flight paths" and boat/zeppelin rides aren't `UnitOnTaxi`.
