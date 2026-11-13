@@ -148,9 +148,10 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Engine (priority, enter delay, polling fallback) + Taxi situation + built-in "Max saver"/"Light saver" profiles
 - [x] `/jpm status|on|off|restore|force|probe|debug`, addon-compartment click = status
 - [x] Mock-API test harness (`tests/harness.lua`)
-- [ ] **In game:** `/jpm probe` out of combat and in combat (target dummy); paste output. Check CVar names, which are `secure`, and that the write test passes
-- [ ] **In game:** take a flight path; check FPS drops (`Ctrl+R` FPS display) and settings restore on landing
-- [ ] **In game:** `/reload` and log out mid-flight; check settings are right afterwards
+- [x] **In game:** `/jpm probe` write test passes (still to do: record CVar names/secure flags, out of and in combat)
+- [x] **In game:** take a flight path; check FPS drops (`Ctrl+R` FPS display) and settings restore on landing
+- [x] **In game:** `/reload` and log out mid-flight; check settings are right afterwards
+- [x] Background FPS capped to the foreground cap; immediate re-apply after `/reload` on a flight path
 
 ### M2: Engine and situations
 - [ ] Situation plugin API + priority resolution + enter delays
