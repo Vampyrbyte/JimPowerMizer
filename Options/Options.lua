@@ -18,7 +18,7 @@ local Registry = ns.CVarRegistry
 local SITUATION_HELP = {
 	combat = L["In combat. Use your own settings so fights look and play as normal."],
 	cinematic = L["In-game cinematics and movies."],
-	idle = L["You're AFK, or haven't moved, cast, turned or moved the mouse for the idle timeout. Mouse movement while the game is in the background doesn't count, so idle keeps saving while you're alt-tabbed."],
+	idle = L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."],
 	taxi = L["On a flight path."],
 	dead = L["Dead or a ghost."],
 	serviceWindow = L["An auction house, mailbox, bank, guild bank or vendor window is open."],
@@ -258,6 +258,12 @@ local function situationGroup(key, def, order)
 			desc = L["Seconds without input before you count as idle. With the AFK flag set, idle starts after 5 seconds."],
 			get = function() return cfg().timeout or 180 end,
 			set = function(_, v) cfg().timeout = v; refreshEngine() end,
+		}
+		args.mouseActivity = {
+			type = "toggle", name = L["Mouse and camera movement count as activity"], order = 6, width = "full",
+			desc = L["Moving the mouse, panning the camera or turning ends idle. Off: only moving your character, casting, targeting, looting, talking to NPCs and combat do."],
+			get = function() return cfg().mouseActivity end,
+			set = function(_, v) cfg().mouseActivity = v end,
 		}
 	end
 	return {

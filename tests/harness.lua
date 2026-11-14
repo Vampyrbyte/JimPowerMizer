@@ -57,7 +57,8 @@ GetUnitSpeed = function() if combat then return SECRET end return moving and 7 o
 UnitCastingInfo = function() if combat then return SECRET end return nil end
 UnitChannelInfo = function() return nil end
 GetCursorPosition = function() return cx, cy end
-GetPlayerFacing = function() return 1.5 end
+local facing = 1.5
+GetPlayerFacing = function() return facing end
 InCinematic = function() return cine end
 -- Like Forever: the global ConsoleGetAllCommands (no C_Console), and groundEffectDensity filed
 -- under Default (5) rather than Graphics (1), alongside unrelated CVars.
@@ -290,17 +291,34 @@ noErrors("session 3")
 -- Session 4: M2 situations ------------------------------------------------------
 JimPowerMizerDB = nil; SavedDB = nil
 ns = session("session 4: idle, combat, cinematic, service windows, resting, dead")
-local function poke() cx = cx + 10 end -- user moves the mouse
+local function poke() fire("PLAYER_TARGET_CHANGED") end -- user does something
 advance(ns.STARTUP_GRACE)
 slash("idle 30"); poke(); advance(1.1)
 advance(28)
 check(cvars.maxFPS == "144", "not idle before timeout")
 advance(3)
 check(cvars.maxFPS == "20", "idle after 30 s without input -> Max saver")
+cx = cx + 50; facing = facing + 1; fire("PLAYER_STARTED_LOOKING"); advance(1.1)
+check(cvars.maxFPS == "20", "mouse/camera movement doesn't end idle (default)")
+moving = true; facing = facing + 1; advance(5) -- carried by a ship: poll says moving, facing changes
+check(cvars.maxFPS == "20", "being carried by a ship/zeppelin doesn't end idle")
+moving = false
+poke(); advance(0.1)
+check(cvars.maxFPS == "144", "changing target ends idle at once")
+moving = true; fire("PLAYER_STARTED_MOVING"); advance(40)
+check(cvars.maxFPS == "144", "running continuously for longer than the timeout keeps you active")
+moving = false; fire("PLAYER_STOPPED_MOVING"); advance(31)
+check(cvars.maxFPS == "20", "idle again 30 s after stopping")
+moving = true; fire("PLAYER_STARTED_MOVING"); advance(0.1)
+check(cvars.maxFPS == "144", "moving your character ends idle at once")
+moving = false; advance(1.1) -- STOPPED_MOVING missed: the poll clears it
+advance(31)
+check(cvars.maxFPS == "20", "missed STOPPED_MOVING doesn't block idle")
+ns.addon.db.profile.situations.idle.mouseActivity = true
+cx = cx + 50; advance(1.1)
+check(cvars.maxFPS == "144", "with the mouse option on, mouse movement ends idle")
+ns.addon.db.profile.situations.idle.mouseActivity = false
 poke(); advance(1.1)
-check(cvars.maxFPS == "144", "mouse movement ends idle within 1 s")
-moving = true; advance(20); moving = false; advance(15)
-check(cvars.maxFPS == "144", "movement counts as input")
 afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
 check(cvars.maxFPS == "20", "AFK flag -> idle after 5 s")
 combat = true; fire("PLAYER_REGEN_DISABLED"); advance(0.1)
@@ -417,6 +435,7 @@ check(ok, "options table passes AceConfig validation" .. (ok and "" or (": " .. 
 check(node("graphics", "p_Max saver") and node("graphics", "p_Light saver"), "built-in profiles listed")
 check(node("situations", "idle", "args") == nil and node("situations", "idle", "timeout") ~= nil, "idle has a timeout setting")
 check(node("situations", "taxi", "timeout") == nil, "only idle has a timeout")
+check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)

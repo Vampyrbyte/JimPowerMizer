@@ -79,7 +79,7 @@ if L then
 	L["Flight path"] = true
 	L["In combat. Use your own settings so fights look and play as normal."] = true
 	L["In-game cinematics and movies."] = true
-	L["You're AFK, or haven't moved, cast, turned or moved the mouse for the idle timeout. Mouse movement while the game is in the background doesn't count, so idle keeps saving while you're alt-tabbed."] = true
+	L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["On a flight path."] = true
 	L["Dead or a ghost."] = true
 	L["An auction house, mailbox, bank, guild bank or vendor window is open."] = true
@@ -112,6 +112,8 @@ if L then
 	L["How long the situation must last before switching, to avoid switching for brief moments."] = true
 	L["Idle after (seconds)"] = true
 	L["Seconds without input before you count as idle. With the AFK flag set, idle starts after 5 seconds."] = true
+	L["Mouse and camera movement count as activity"] = true
+	L["Moving the mouse, panning the camera or turning ends idle. Off: only moving your character, casting, targeting, looting, talking to NPCs and combat do."] = true
 	L["General"] = true
 	L["Enable automatic switching"] = true
 	L["Chat message when switching"] = true

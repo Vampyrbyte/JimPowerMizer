@@ -44,7 +44,10 @@ local defaults = {
 			combat        = { enabled = true,  profile = false,         priority = 100, enterDelay = 0 },
 			cinematic     = { enabled = true,  profile = false,         priority = 95,  enterDelay = 0 },
 			-- idle.timeout: seconds without input before counting as idle.
-			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0, timeout = 180 },
+			-- idle.mouseActivity: mouse/camera movement counts as input (off: only moving your
+			-- character, casting, targeting, looting, NPCs and combat do).
+			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0, timeout = 180,
+			                  mouseActivity = false },
 			taxi          = { enabled = true,  profile = "Max saver",   priority = 80,  enterDelay = 2 },
 			dead          = { enabled = false, profile = "Light saver", priority = 40,  enterDelay = 3 },
 			serviceWindow = { enabled = false, profile = "Light saver", priority = 35,  enterDelay = 1 },
