@@ -4,6 +4,7 @@
 ## Author: Jim Walters
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1803739
+## X-Wago-ID: aND9V26o
 ## SavedVariables: JimPowerMizerDB
 ## IconTexture: Interface\Icons\Spell_Nature_Sleep
 ## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
