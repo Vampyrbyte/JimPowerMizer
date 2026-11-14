@@ -572,13 +572,27 @@ check(gp["Max saver"].graphicsParticleDensity == 0 and gp["Max saver"].maxFPS ==
 check(gp["Mine"].graphicsParticleDensity == 1, "user's own profiles untouched")
 check(gp["Max saver"].graphicsLightMode == 0 and gp["Max saver"].graphicsPBRLiquidDetail == 0, "secondary lighting and PBR liquid added to old Max saver")
 check(gp["Mine"].graphicsLightMode == nil, "not added to the user's own profiles")
+check(gp["Cinematic"] and gp["Cinematic"].hideUI and gp["Cinematic"].hideNames and gp["Cinematic"].maxFPS == 30, "Cinematic profile added to existing settings")
+check(gp["Cinematic"].graphicsShadowQuality == nil and gp["Cinematic"].renderScale == nil, "Cinematic leaves graphics settings alone")
 check(ns.addon.db.profile.builtinVersion == #ns.Database.BUILTIN_UPDATES, "update recorded")
 gp["Max saver"].graphicsParticleDensity = 2; SavedDB = JimPowerMizerDB
 ns = session("session 8b: reload")
+ns.addon.db.profile.graphicsProfiles["Cinematic"] = nil; SavedDB = JimPowerMizerDB
+ns = session("session 8b2: reload after deleting Cinematic")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsParticleDensity == 2, "user's later edit not overwritten again")
+check(ns.addon.db.profile.graphicsProfiles["Cinematic"] == nil, "deleted Cinematic stays deleted")
 JimPowerMizerDB = nil; SavedDB = nil
 ns = session("session 8c: fresh install")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsParticleDensity == 0, "fresh install: particle density Low")
+check(ns.addon.db.profile.graphicsProfiles["Cinematic"] ~= nil, "fresh install: Cinematic profile")
+advance(ns.STARTUP_GRACE); poke()
+ns.addon.db.profile.situations.taxi.profile = "Cinematic"
+local before = { shadow = cvars.graphicsShadowQuality, scale = cvars.renderScale, view = cvars.graphicsViewDistance }
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(not UIParent:IsShown() and cvars.UnitNameNPC == "0" and cvars.maxFPS == "30" and cvars.useMaxFPS == "1", "Cinematic: UI and names hidden, FPS capped")
+check(cvars.graphicsShadowQuality == before.shadow and cvars.renderScale == before.scale and cvars.graphicsViewDistance == before.view, "Cinematic: graphics left at your settings")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+check(UIParent:IsShown() and cvars.UnitNameNPC == "1" and cvars.maxFPS == "144", "Cinematic ends: everything back")
 slash("watch"); C_CVar.SetCVar("graphicsSSAO", "1")
 local seen = false
 for _, line in ipairs(printed) do if line:find("CVar graphicsSSAO = 1", 1, true) then seen = true end end

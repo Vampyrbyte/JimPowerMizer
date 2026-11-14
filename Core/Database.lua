@@ -22,6 +22,13 @@ Database.BUILTIN_PROFILES = {
 		graphicsGroundClutter = 0,
 		graphicsComputeEffects = 0,
 	},
+	-- Screensaver feel: your own graphics, no UI or names, frame rate capped.
+	["Cinematic"] = {
+		hideUI = true,
+		hideNames = true,
+		useMaxFPS = 1,
+		maxFPS = 30,
+	},
 	["Light saver"] = {
 		useMaxFPS = 1,
 		maxFPS = 30,
@@ -30,12 +37,14 @@ Database.BUILTIN_PROFILES = {
 	},
 }
 
--- Changes to the built-in profiles after release, applied once to existing settings. A value is
--- only changed if the profile still exists and still has the old built-in value (`from`; nil =
--- not set), so the user's own edits are never overwritten.
+-- Changes to the built-in profiles after release, applied once to existing settings.
+--  change: a value is only changed if the profile still exists and still has the old built-in
+--          value (`from`; nil = not set), so the user's own edits are never overwritten.
+--  add:    new built-in profiles, copied from BUILTIN_PROFILES unless the name is taken.
 Database.BUILTIN_UPDATES = {
-	[1] = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } },
-	[2] = { ["Max saver"] = { graphicsPBRLiquidDetail = { to = 0 }, graphicsLightMode = { to = 0 } } },
+	[1] = { change = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } } },
+	[2] = { change = { ["Max saver"] = { graphicsPBRLiquidDetail = { to = 0 }, graphicsLightMode = { to = 0 } } } },
+	[3] = { add = { "Cinematic" } },
 }
 
 local defaults = {
@@ -97,13 +106,17 @@ function Database:EnsureProfiles(addon)
 	-- `dim` (a screen overlay) only existed in development builds; dimming is now Brightness.
 	for _, profile in pairs(p.graphicsProfiles) do profile.dim = nil end
 	for version = (p.builtinVersion or 0) + 1, #self.BUILTIN_UPDATES do
-		for name, changes in pairs(self.BUILTIN_UPDATES[version]) do
+		local update = self.BUILTIN_UPDATES[version]
+		for name, changes in pairs(update.change or {}) do
 			local profile = p.graphicsProfiles[name]
 			if profile then
 				for key, change in pairs(changes) do
 					if profile[key] == change.from then profile[key] = change.to end
 				end
 			end
+		end
+		for _, name in ipairs(update.add or {}) do
+			if p.graphicsProfiles[name] == nil then p.graphicsProfiles[name] = copy(self.BUILTIN_PROFILES[name]) end
 		end
 		p.builtinVersion = version
 	end

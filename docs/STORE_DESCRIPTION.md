@@ -33,7 +33,7 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 Each situation has its own graphics profile, priority and delay. Idle keeps saving while you're alt-tabbed.
 
 ### Graphics profiles
-- Built-in **Max saver** (20 FPS, half render scale, low shadows/particles/effects/view distance) and **Light saver** (30 FPS, lighter shadows).
+- Built-in **Max saver** (20 FPS, half render scale, low shadows/particles/effects/view distance) **Light saver** (30 FPS, lighter shadows) and **Cinematic** (your own graphics with the UI, names and nameplates hidden and the frame rate capped: a cozy screensaver for idle time or long flights).
 - Create your own: start from your current settings, then tick only the settings you want changed.
 - When a profile caps foreground FPS, your background FPS cap is lowered to match, so alt-tabbing doesn't *raise* the frame rate.
 - Optionally **hide the UI** (like Alt+Z), **names and nameplates**, and turn the **brightness** down while a profile is active, e.g. on long flights or while idle. Both come back for combat.
