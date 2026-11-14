@@ -213,6 +213,11 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Idle: only your own movement (`PLAYER_STARTED/STOPPED_MOVING`) ends idle, so riding a transport doesn't;
   mouse/camera movement counts only with the new option "Mouse and camera movement count as activity" (default off)
 - [x] **In game (2026-11-14):** idle stays active while riding the Deeprun Tram
+- [x] Profile screen effects (`Core/Screen.lua`): "Hide the user interface" (`UIParent:Hide()`, not in combat lockdown
+  or during cinematics; Alt+Z by the user wins until the next switch) and "Dim the screen" (black overlay on
+  `WorldFrame`, 0-90 %, fades in over 1 s). Profile keys `hideUI`/`dim`; nothing saved, so a reload clears both
+- [ ] **In game:** UI hides/dims on a flight and while idle; combat brings the UI back; Alt+Z while hidden; a cinematic
+  during a hidden-UI flight; chat/minimap come back intact after landing
 
 ### M5: More flavors
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free

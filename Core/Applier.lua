@@ -212,7 +212,9 @@ end
 local function effectiveProfile(profile)
 	if not profile then return nil end
 	local p = {}
-	for k, v in pairs(profile) do p[k] = v end
+	for k, v in pairs(profile) do
+		if not ns.Screen.KEYS[k] then p[k] = v end -- screen effects aren't CVars
+	end
 	local fg = tonumber(p.maxFPS)
 	if ns.addon.db.profile.capBackground and tonumber(p.useMaxFPS) == 1 and fg
 		and p.maxFPSBk == nil and p.useMaxFPSBk == nil then
@@ -271,6 +273,7 @@ function Applier:Apply(profileName, reason, force)
 
 	st.active = profileName
 	applyChanges(changes, profileName or "restore", fresh)
+	ns.Screen:Apply(profileName and ns.addon.db.profile.graphicsProfiles[profileName])
 
 	if ns.addon.db.profile.notify then
 		if profileName then
@@ -354,6 +357,7 @@ function Applier:GetDetailCount()
 end
 
 function Applier:Enable()
+	ns.Screen:Enable()
 	self:RegisterEvent("CVAR_UPDATE", "OnCVarUpdate")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED", "OnCombatEnd")
 	self:RegisterEvent("PLAYER_LOGOUT", "OnLogout")

@@ -125,7 +125,15 @@ function CreateFrame()
 	function f:IsEventRegistered(e) return self.events[e] end
 	function f:SetScript(_, fn) self.script = fn end
 	function f:GetScript() return self.script end
-	function f:Show() end function f:Hide() end
+	f.shown, f.alpha, f.hooks = true, 1, {}
+	function f:Show() local was = self.shown; self.shown = true
+		if not was then for _, h in ipairs(self.hooks.OnShow or {}) do h(self) end end end
+	function f:Hide() self.shown = false end
+	function f:IsShown() return self.shown end
+	function f:HookScript(s, fn) self.hooks[s] = self.hooks[s] or {}; table.insert(self.hooks[s], fn) end
+	function f:SetAlpha(a) self.alpha = a end function f:GetAlpha() return self.alpha end
+	function f:SetFrameStrata() end function f:SetAllPoints() end function f:EnableMouse() end
+	function f:CreateTexture() return { SetAllPoints = function() end, SetColorTexture = function() end } end
 	frames[#frames+1] = f
 	return f
 end
@@ -182,6 +190,11 @@ local function session(label)
 	io.write("\n== ", label, "\n")
 	frames, timers, printed = {}, {}, {}
 	LibStub, JimPowerMizer, JimPowerMizerDB = nil, nil, SavedDB
+	UIParent, WorldFrame = CreateFrame(), CreateFrame()
+	UIParent.Hide = function(self) if combat then error("blocked: UIParent:Hide() in combat") end self.shown = false end
+	UIParent.Show = function(self) if combat then error("blocked: UIParent:Show() in combat") end
+		local was = self.shown; self.shown = true
+		if not was then for _, h in ipairs(self.hooks.OnShow or {}) do h(self) end end end
 	local ns = {}
 	local f = assert(io.open(ROOT .. "/JimPowerMizer_Mainline.toc"))
 	for line in f:lines() do
@@ -490,6 +503,53 @@ ns = session("session 5b: reload after deleting Light saver")
 check(ns.addon.db.profile.graphicsProfiles["Light saver"] == nil, "deleted built-in profile stays deleted")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].maxFPS == 15, "edited built-in profile keeps edits")
 noErrors("session 5")
+
+-- Session 7: screen effects (hide UI, dim) -------------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+taxi, afk, resting, dead, combat, cine = false, false, false, false, false, false
+ns = session("session 7: hide UI and dim")
+advance(ns.STARTUP_GRACE); poke()
+check(ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen ~= nil, "profile page has screen options")
+local ms = ns.addon.db.profile.graphicsProfiles["Max saver"]
+ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.hideUI.set({}, true)
+ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.dim.set({}, 0.6)
+check(ms.hideUI == true and ms.dim == 0.6, "screen options stored in the profile")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "20" and not UIParent:IsShown(), "taxi: UI hidden")
+local skipped = false
+for _, line in ipairs(printed) do if line:find("Skipping hideUI") or line:find("Skipping dim") then skipped = true end end
+check(not skipped and cvars.hideUI == nil, "screen keys not treated as CVars")
+advance(1.1)
+check(math.abs(ns.Screen:GetDim() - 0.6) < 1e-6, "screen dimmed to 60% after fading in")
+cine = true; fire("CINEMATIC_START"); advance(0.1)
+check(not UIParent:IsShown() and ns.Screen:GetDim() == 0, "cinematic: undimmed, UI left to the cinematic")
+cine = false; fire("CINEMATIC_STOP"); advance(1.2)
+check(not UIParent:IsShown() and ns.Screen:GetDim() > 0.59, "after the cinematic: still hidden and dimmed on the flight")
+UIParent:Show() -- user presses Alt+Z
+advance(4)
+check(UIParent:IsShown(), "UI shown by the user stays shown for the rest of the switch")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
+check(UIParent:IsShown() and ns.Screen:GetDim() == 0 and cvars.maxFPS == "144", "landed: UI shown, undimmed")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(not UIParent:IsShown(), "next flight hides the UI again")
+fire("PLAYER_REGEN_DISABLED"); combat = true; advance(0.1)
+check(UIParent:IsShown() and ns.Screen:GetDim() == 0, "combat: UI shown before lockdown, undimmed")
+combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
+check(not UIParent:IsShown(), "after combat, still flying: UI hidden again")
+-- Combat situation disabled: can't show in lockdown, shown once combat ends
+ns.addon.db.profile.situations.combat.enabled = false
+combat = true; fire("PLAYER_REGEN_DISABLED"); taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(2.5)
+check(not UIParent:IsShown() and cvars.maxFPS == "144", "landed in combat lockdown: UI waits")
+combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
+check(UIParent:IsShown(), "UI shown once combat ends")
+ns.addon.db.profile.situations.combat.enabled = true
+-- Capture keeps the screen options
+ns.Options:GetTable().args.graphics.args["p_Max saver"].args.capture.func()
+ms = ns.addon.db.profile.graphicsProfiles["Max saver"]
+check(ms.hideUI == true and ms.dim == 0.6 and ms.maxFPS == 144, "Capture current keeps hide/dim settings")
+ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.dim.set({}, 0)
+check(ms.dim == nil, "dim 0% removes the setting")
+noErrors("session 7")
 
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

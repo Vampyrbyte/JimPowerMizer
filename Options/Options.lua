@@ -170,6 +170,29 @@ local function cvarArgs(profileName)
 	return args
 end
 
+-- Screen effects (not CVars): hide the UI, dim the screen.
+local function screenArgs(profileName)
+	local function profile() return db().graphicsProfiles[profileName] or {} end
+	return {
+		type = "group", inline = true, order = 6, name = L["Screen"],
+		args = {
+			hideUI = {
+				type = "toggle", name = L["Hide the user interface"], order = 1, width = "full",
+				desc = L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."],
+				get = function() return profile().hideUI and true or false end,
+				set = function(_, v) profile().hideUI = v or nil; profileEdited(profileName) end,
+			},
+			dim = {
+				type = "range", name = L["Dim the screen"], order = 2, width = 1.5,
+				desc = L["Darken the screen by this much while this profile is active. 0% leaves it alone."],
+				min = 0, max = ns.Screen.MAX_DIM, step = 0.05, isPercent = true,
+				get = function() return tonumber(profile().dim) or 0 end,
+				set = function(_, v) profile().dim = (v > 0) and v or nil; profileEdited(profileName) end,
+			},
+		},
+	}
+end
+
 local function profileGroup(name, order)
 	local args = cvarArgs(name)
 	args.rename = {
@@ -195,7 +218,9 @@ local function profileGroup(name, order)
 		desc = L["Set every setting in this profile to your current graphics settings (your own values, not ones this addon has lowered)."],
 		confirm = true, confirmText = L["Replace all settings in '%s' with your current graphics settings?"]:format(name),
 		func = function()
-			db().graphicsProfiles[name] = captureUserSettings()
+			local values = captureUserSettings()
+			for key in pairs(ns.Screen.KEYS) do values[key] = db().graphicsProfiles[name][key] end
+			db().graphicsProfiles[name] = values
 			profileEdited(name)
 			Options:Refresh()
 		end,
@@ -217,6 +242,7 @@ local function profileGroup(name, order)
 				.. "\n" .. L["Tick |cffffd200Change|r for each setting this profile should change; unticked settings are left alone."] .. "\n"
 		end,
 	}
+	args.screen = screenArgs(name)
 	return { type = "group", name = name, order = order, args = args }
 end
 

@@ -36,6 +36,7 @@ Each situation has its own graphics profile, priority and delay. Idle keeps savi
 - Built-in **Max saver** (20 FPS, half render scale, low shadows/effects/view distance) and **Light saver** (30 FPS, lighter shadows).
 - Create your own: start from your current settings, then tick only the settings you want changed.
 - When a profile caps foreground FPS, your background FPS cap is lowered to match, so alt-tabbing doesn't *raise* the frame rate.
+- Optionally **hide the UI** (like Alt+Z) and **dim the screen** while a profile is active, e.g. on long flights or while idle. Both undo themselves for combat.
 
 ### Your settings are safe
 - Your own values are saved before anything changes and restored afterwards, including after a `/reload`, logout or crash.

@@ -92,6 +92,11 @@ if L then
 	L["On"] = true
 	L["Change"] = true
 	L["Untick to leave this setting as it is when this profile is active."] = true
+	L["Screen"] = true
+	L["Hide the user interface"] = true
+	L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."] = true
+	L["Dim the screen"] = true
+	L["Darken the screen by this much while this profile is active. 0% leaves it alone."] = true
 	L["Rename"] = true
 	L["Copy"] = true
 	L["%s copy"] = true
