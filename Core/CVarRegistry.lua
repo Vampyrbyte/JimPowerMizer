@@ -37,6 +37,10 @@ local CVARS = {
 	{ name = "graphicsSSAO",            kind = "enum",   label = L["SSAO"],                min = 0, max = 4, levels = LEVELS.offToUltra },
 	{ name = "graphicsParticleDensity", kind = "enum",   label = L["Particle density"],    min = 0, max = 5, levels = LEVELS.particle },
 	{ name = "graphicsLiquidDetail",    kind = "enum",   label = L["Liquid detail"],       min = 0, max = 3, levels = LEVELS.liquid },
+	-- Forever menu options; ranges seen with /jpm watch. Light mode also sets giQuality and
+	-- RenderFormat, PBR liquid sets pbrLiquidDetail (kept safe as lower-level settings).
+	{ name = "graphicsPBRLiquidDetail", kind = "enum",   label = L["PBR liquid detail"],   min = 0, max = 2 },
+	{ name = "graphicsLightMode",       kind = "enum",   label = L["Secondary lighting"],  min = 0, max = 3 },
 	{ name = "graphicsViewDistance",    kind = "enum",   label = L["View distance"],       min = 0, max = 9 },
 	{ name = "graphicsEnvironmentDetail", kind = "enum", label = L["Environment detail"],  min = 0, max = 9 },
 	{ name = "graphicsGroundClutter",   kind = "enum",   label = L["Ground clutter"],      min = 0, max = 9 },

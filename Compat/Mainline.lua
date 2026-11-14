@@ -108,6 +108,7 @@ local KNOWN_DETAIL_CVARS = {
 	"shadowTextureSize", "shadowSoft", "shadowBlendCascades", "waterDetail", "rippleDetail",
 	"reflectionMode", "sunShafts", "ssao", "ssaoBlur", "spellClutter", "projectedTextures",
 	"textureFilteringMode", "componentTextureLevel", "worldBaseMip",
+	"giQuality", "RenderFormat", "pbrLiquidDetail", -- under graphicsLightMode / graphicsPBRLiquidDetail
 }
 local detailNames, detailFromConsole
 

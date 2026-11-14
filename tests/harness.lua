@@ -81,6 +81,7 @@ local cvars = {
 	graphicsShadowQuality = "4", graphicsSSAO = "3", graphicsParticleDensity = "4",
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
 	graphicsGroundClutter = "9", graphicsViewDistance = "9",
+	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
@@ -97,6 +98,8 @@ local SetCVarRaw
 local CASCADE = {
 	graphicsGroundClutter = function(level) SetCVarRaw("groundEffectDensity", level * 16); SetCVarRaw("groundEffectDist", level * 20) end,
 	graphicsViewDistance = function(level) C_Timer.After(0.1, function() SetCVarRaw("farclip", level * 500) end) end,
+	graphicsLightMode = function(level) SetCVarRaw("giQuality", level + 1); SetCVarRaw("RenderFormat", math.min(level + 1, 2)) end,
+	graphicsPBRLiquidDetail = function(level) SetCVarRaw("pbrLiquidDetail", level) end,
 }
 function SetCVarRaw(n, v)
 	cvars[n] = tostring(v); fire("CVAR_UPDATE", n, tostring(v))
@@ -398,6 +401,7 @@ check(cvars.groundEffectDensity == "256" and cvars.farclip == "5000", "start wit
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.graphicsGroundClutter == "0" and cvars.groundEffectDensity == "0", "saver: clutter 0 cascades density down")
 check(cvars.farclip == "1000", "saver: view distance cascades farclip down (delayed)")
+check(cvars.graphicsLightMode == "0" and cvars.giQuality == "1" and cvars.graphicsPBRLiquidDetail == "0" and cvars.pbrLiquidDetail == "0", "saver: secondary lighting and PBR liquid lowered")
 cvars.chatStyleThing = "y" -- changed by something else mid-flight
 taxi = false; fire("PLAYER_CONTROL_GAINED")
 C_Timer.After(0.2, function() SetCVarRaw("lastSeenThing", "b") end) -- unrelated change just after landing
@@ -405,6 +409,7 @@ advance(0.01)
 check(cvars.graphicsGroundClutter == "9" and cvars.groundEffectDensity == "256" and cvars.groundEffectDist == "300", "restore: custom density/dist put back at once")
 advance(0.6)
 check(cvars.farclip == "5000", "restore: delayed cascade on farclip undone by 2nd pass")
+check(cvars.graphicsLightMode == "3" and cvars.giQuality == "4" and cvars.RenderFormat == "2" and cvars.pbrLiquidDetail == "2", "restore: lighting and PBR liquid settings back")
 check(cvars.gxWindow == "1", "display settings untouched")
 check(cvars.chatStyleThing == "y" and cvars.lastSeenThing == "b", "unrelated Default-category changes not reverted")
 check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after restore")
@@ -558,6 +563,8 @@ ns = session("session 8: built-in updates")
 local gp = ns.addon.db.profile.graphicsProfiles
 check(gp["Max saver"].graphicsParticleDensity == 0 and gp["Max saver"].maxFPS == 20, "old Max saver particle density lowered to Low")
 check(gp["Mine"].graphicsParticleDensity == 1, "user's own profiles untouched")
+check(gp["Max saver"].graphicsLightMode == 0 and gp["Max saver"].graphicsPBRLiquidDetail == 0, "secondary lighting and PBR liquid added to old Max saver")
+check(gp["Mine"].graphicsLightMode == nil, "not added to the user's own profiles")
 check(ns.addon.db.profile.builtinVersion == #ns.Database.BUILTIN_UPDATES, "update recorded")
 gp["Max saver"].graphicsParticleDensity = 2; SavedDB = JimPowerMizerDB
 ns = session("session 8b: reload")

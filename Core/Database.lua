@@ -14,6 +14,8 @@ Database.BUILTIN_PROFILES = {
 		graphicsSSAO = 0,
 		graphicsParticleDensity = 0,
 		graphicsLiquidDetail = 0,
+		graphicsPBRLiquidDetail = 0,
+		graphicsLightMode = 0,
 		graphicsSpellDensity = 0,
 		graphicsViewDistance = 2,
 		graphicsEnvironmentDetail = 2,
@@ -33,6 +35,7 @@ Database.BUILTIN_PROFILES = {
 -- not set), so the user's own edits are never overwritten.
 Database.BUILTIN_UPDATES = {
 	[1] = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } },
+	[2] = { ["Max saver"] = { graphicsPBRLiquidDetail = { to = 0 }, graphicsLightMode = { to = 0 } } },
 }
 
 local defaults = {

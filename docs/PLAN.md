@@ -218,6 +218,12 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
   `WorldFrame`, 0-90 %, fades in over 1 s). Profile keys `hideUI`/`dim`; nothing saved, so a reload clears both
 - [ ] **In game:** UI hides/dims on a flight and while idle; combat brings the UI back; Alt+Z while hidden; a cinematic
   during a hidden-UI flight; chat/minimap come back intact after landing
+- [x] Max saver: particle density Low (was Fair); new registry CVars `graphicsLightMode` (Secondary Lighting, 0-3;
+  also sets `giQuality`, `RenderFormat`) and `graphicsPBRLiquidDetail` (0-2; also sets `pbrLiquidDetail`), both 0 in
+  Max saver. Names found in game with the new `/jpm watch`. Existing settings get built-in changes through
+  `Database.BUILTIN_UPDATES` (only values still at the old built-in value)
+- [ ] **In game:** Max saver lowers both; landing restores them and `giQuality`/`RenderFormat`/`pbrLiquidDetail`;
+  level names for the two new dropdowns (currently plain numbers)
 
 ### M5: More flavors
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free

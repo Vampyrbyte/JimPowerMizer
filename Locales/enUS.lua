@@ -31,6 +31,8 @@ if L then
 	L["SSAO"] = true
 	L["Particle density"] = true
 	L["Liquid detail"] = true
+	L["PBR liquid detail"] = true
+	L["Secondary lighting"] = true
 	L["View distance"] = true
 	L["Environment detail"] = true
 	L["Ground clutter"] = true
