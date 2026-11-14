@@ -209,7 +209,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **v0.1.1 (2026-11-14):** published to CurseForge (project 1803739), Wago (aND9V26o) and GitHub by the
   release workflow (secrets `CF_API_TOKEN`, `WAGO_API_TOKEN`; the workflow checks the CurseForge token first)
 
-### After v0.1.1 (from play)
+### v0.1.2 (from play)
 - [x] Idle: only your own movement (`PLAYER_STARTED/STOPPED_MOVING`) ends idle, so riding a transport doesn't;
   mouse/camera movement counts only with the new option "Mouse and camera movement count as activity" (default off)
 - [x] **In game (2026-11-14):** idle stays active while riding the Deeprun Tram
@@ -218,21 +218,22 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Profile option "Hide names and nameplates" (key `hideNames`): sets every `UnitName*`/`nameplateShow*` CVar in
   `Registry.NAME_CVARS` that the client has to 0 through the Applier (baseline/restore/crash safety as usual; hidden
   from the editor; `/jpm probe` counts them)
-- [ ] **In game:** names and nameplates disappear on a flight and come back on landing and for combat
+- [x] **In game (2026-11-14):** names and nameplates disappear on a flight and come back on landing and for combat
 - [x] Built-in "Cinematic" profile: hide UI + names/nameplates, 30 FPS cap, graphics left at your settings (screensaver
   feel). Not assigned to a situation by default; added to existing settings by `BUILTIN_UPDATES` (now `change`/`add`)
-- [ ] **In game:** Cinematic profile assigned to idle or taxi
+- [x] **In game (2026-11-14):** Cinematic profile assigned to idle or taxi
 - [x] Situation "Cinematic" shown as "Cutscenes" (key stays `cinematic`; `cutscenes` accepted in commands)
 - [x] Dimming: the game's `Brightness` CVar (0-100) as a normal profile setting. A black overlay was tried first but
   conflicted with hiding the UI; leftover `dim` keys are removed from saved profiles
-- [ ] **In game:** UI hides and brightness drops on a flight and while idle; combat brings both back; Alt+Z while
+- [x] **In game (2026-11-14):** UI hides and brightness drops on a flight and while idle; combat brings both back; Alt+Z while
   hidden; a cinematic during a hidden-UI flight; chat/minimap come back intact after landing
 - [x] Max saver: particle density Low (was Fair); new registry CVars `graphicsLightMode` (Secondary Lighting, 0-3;
   also sets `giQuality`, `RenderFormat`) and `graphicsPBRLiquidDetail` (0-2; also sets `pbrLiquidDetail`), both 0 in
   Max saver. Names found in game with the new `/jpm watch`. Existing settings get built-in changes through
   `Database.BUILTIN_UPDATES` (only values still at the old built-in value)
-- [ ] **In game:** Max saver lowers both; landing restores them and `giQuality`/`RenderFormat`/`pbrLiquidDetail`;
-  level names for the two new dropdowns (currently plain numbers)
+- [x] **In game (2026-11-14):** Max saver lowers both; landing restores them and `giQuality`/`RenderFormat`/`pbrLiquidDetail`
+- [ ] Level names for Secondary Lighting / PBR liquid dropdowns (currently plain numbers; need the menu's labels)
+- [x] **v0.1.2 (2026-11-14):** tagged; released by the workflow
 
 ### M5: More flavors
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
