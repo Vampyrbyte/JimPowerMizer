@@ -143,7 +143,7 @@ function JPM:ListSituations()
 			extra = (", after %ds, idle for %ds"):format(cfg.timeout or 0, math.floor(ns.IdleSeconds and ns.IdleSeconds() or 0))
 		end
 		self:Msg("  %s|cffffd200%s|r (%s): %s, %s, priority %d, delay %ss%s%s",
-			key == current and "> " or "", key, defs[key].name,
+			key == current and "> " or "", key == "cinematic" and "cutscenes" or key, defs[key].name,
 			cfg.enabled and "|cff00ff00on|r" or "|cff808080off|r",
 			cfg.profile and ("profile " .. cfg.profile) or "your settings",
 			cfg.priority or 0, tostring(cfg.enterDelay or 0), extra,
@@ -154,6 +154,7 @@ end
 function JPM:HandleSlash(input)
 	local cmd, arg = self:GetArgs(input or "", 2)
 	cmd = cmd and cmd:lower() or "options"
+	if arg and arg:lower() == "cutscenes" then arg = "cinematic" end -- situation shown as "Cutscenes"
 	local db = self.db.profile
 
 	if cmd == "options" or cmd == "config" then

@@ -17,7 +17,7 @@ local Registry = ns.CVarRegistry
 
 local SITUATION_HELP = {
 	combat = L["In combat. Use your own settings so fights look and play as normal."],
-	cinematic = L["In-game cinematics and movies."],
+	cinematic = L["In-game cutscenes and movies."],
 	idle = L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."],
 	taxi = L["On a flight path."],
 	dead = L["Dead or a ghost."],

@@ -23,7 +23,7 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 | Situation | Default |
 |---|---|
 | **Combat** | Always your own settings, restored the instant a fight starts |
-| **Cinematics** | Always your own settings |
+| **Cutscenes** | Always your own settings |
 | **Idle / AFK** | *Max saver* after 3 minutes without input, or 5 seconds after `/afk` |
 | **Flight path** | *Max saver* |
 | Dead / ghost | Off by default |
@@ -33,7 +33,7 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 Each situation has its own graphics profile, priority and delay. Idle keeps saving while you're alt-tabbed.
 
 ### Graphics profiles
-- Built-in **Max saver** (20 FPS, half render scale, low shadows/particles/effects/view distance) **Light saver** (30 FPS, lighter shadows) and **Cinematic** (your own graphics with the UI, names and nameplates hidden and the frame rate capped: a cozy screensaver for idle time or long flights).
+- Built-in **Max saver** (20 FPS, half render scale, low shadows/particles/effects/view distance), **Light saver** (30 FPS, lighter shadows) and **Cinematic** (your own graphics with the UI, names and nameplates hidden and the frame rate capped: a cozy screensaver for idle time or long flights).
 - Create your own: start from your current settings, then tick only the settings you want changed.
 - When a profile caps foreground FPS, your background FPS cap is lowered to match, so alt-tabbing doesn't *raise* the frame rate.
 - Optionally **hide the UI** (like Alt+Z), **names and nameplates**, and turn the **brightness** down while a profile is active, e.g. on long flights or while idle. Both come back for combat.

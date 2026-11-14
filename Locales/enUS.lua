@@ -76,7 +76,7 @@ if L then
 	L["situation ended"] = true
 	L["Left-click: options"] = true
 	L["Right-click: turn automatic switching on/off"] = true
-	L["Cinematic"] = true
+	L["Cutscenes"] = true
 	L["Combat"] = true
 	L["Dead / ghost"] = true
 	L["Idle"] = true
@@ -84,7 +84,7 @@ if L then
 	L["Auction house / mail / bank / vendor"] = true
 	L["Flight path"] = true
 	L["In combat. Use your own settings so fights look and play as normal."] = true
-	L["In-game cinematics and movies."] = true
+	L["In-game cutscenes and movies."] = true
 	L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["On a flight path."] = true
 	L["Dead or a ghost."] = true

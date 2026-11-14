@@ -222,6 +222,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Built-in "Cinematic" profile: hide UI + names/nameplates, 30 FPS cap, graphics left at your settings (screensaver
   feel). Not assigned to a situation by default; added to existing settings by `BUILTIN_UPDATES` (now `change`/`add`)
 - [ ] **In game:** Cinematic profile assigned to idle or taxi
+- [x] Situation "Cinematic" shown as "Cutscenes" (key stays `cinematic`; `cutscenes` accepted in commands)
 - [x] Dimming: the game's `Brightness` CVar (0-100) as a normal profile setting. A black overlay was tried first but
   conflicted with hiding the UI; leftover `dim` keys are removed from saved profiles
 - [ ] **In game:** UI hides and brightness drops on a flight and while idle; combat brings both back; Alt+Z while
