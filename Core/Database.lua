@@ -94,6 +94,8 @@ function Database:EnsureProfiles(addon)
 		p.profilesSeeded = true
 		p.builtinVersion = #self.BUILTIN_UPDATES -- freshly seeded profiles are already current
 	end
+	-- `dim` (a screen overlay) only existed in development builds; dimming is now Brightness.
+	for _, profile in pairs(p.graphicsProfiles) do profile.dim = nil end
 	for version = (p.builtinVersion or 0) + 1, #self.BUILTIN_UPDATES do
 		for name, changes in pairs(self.BUILTIN_UPDATES[version]) do
 			local profile = p.graphicsProfiles[name]

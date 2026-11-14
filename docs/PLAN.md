@@ -213,11 +213,12 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Idle: only your own movement (`PLAYER_STARTED/STOPPED_MOVING`) ends idle, so riding a transport doesn't;
   mouse/camera movement counts only with the new option "Mouse and camera movement count as activity" (default off)
 - [x] **In game (2026-11-14):** idle stays active while riding the Deeprun Tram
-- [x] Profile screen effects (`Core/Screen.lua`): "Hide the user interface" (`UIParent:Hide()`, not in combat lockdown
-  or during cinematics; Alt+Z by the user wins until the next switch) and "Dim the screen" (black overlay on
-  `WorldFrame`, 0-90 %, fades in over 1 s). Profile keys `hideUI`/`dim`; nothing saved, so a reload clears both
-- [ ] **In game:** UI hides/dims on a flight and while idle; combat brings the UI back; Alt+Z while hidden; a cinematic
-  during a hidden-UI flight; chat/minimap come back intact after landing
+- [x] Profile option "Hide the user interface" (`Core/Screen.lua`, profile key `hideUI`): `UIParent:Hide()`, not in
+  combat lockdown or during cinematics; Alt+Z by the user wins until the next switch; nothing saved
+- [x] Dimming: the game's `Brightness` CVar (0-100) as a normal profile setting. A black overlay was tried first but
+  conflicted with hiding the UI; leftover `dim` keys are removed from saved profiles
+- [ ] **In game:** UI hides and brightness drops on a flight and while idle; combat brings both back; Alt+Z while
+  hidden; a cinematic during a hidden-UI flight; chat/minimap come back intact after landing
 - [x] Max saver: particle density Low (was Fair); new registry CVars `graphicsLightMode` (Secondary Lighting, 0-3;
   also sets `giQuality`, `RenderFormat`) and `graphicsPBRLiquidDetail` (0-2; also sets `pbrLiquidDetail`), both 0 in
   Max saver. Names found in game with the new `/jpm watch`. Existing settings get built-in changes through

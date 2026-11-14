@@ -32,6 +32,7 @@ local CVARS = {
 	{ name = "maxFPS",                  kind = "number", label = L["Max foreground FPS"], min = 8, max = 300, bigStep = 5 },
 	{ name = "useMaxFPSBk",             kind = "bool",   label = L["Limit background FPS"] },
 	{ name = "maxFPSBk",                kind = "number", label = L["Max background FPS"], min = 8, max = 300, bigStep = 5 },
+	{ name = "Brightness",              kind = "number", label = L["Brightness"], min = 0, max = 100, bigStep = 5 },
 	{ name = "renderScale",             kind = "number", label = L["Render scale"], min = 0.33, max = 2.0, step = 0.01, bigStep = 0.05, percent = true },
 	{ name = "graphicsShadowQuality",   kind = "enum",   label = L["Shadow quality"],      min = 0, max = 5, levels = LEVELS.shadow },
 	{ name = "graphicsSSAO",            kind = "enum",   label = L["SSAO"],                min = 0, max = 4, levels = LEVELS.offToUltra },

@@ -26,6 +26,7 @@ if L then
 	L["Max foreground FPS"] = true
 	L["Limit background FPS"] = true
 	L["Max background FPS"] = true
+	L["Brightness"] = true
 	L["Render scale"] = true
 	L["Shadow quality"] = true
 	L["SSAO"] = true
@@ -100,8 +101,6 @@ if L then
 	L["Screen"] = true
 	L["Hide the user interface"] = true
 	L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."] = true
-	L["Dim the screen"] = true
-	L["Darken the screen by this much while this profile is active. 0% leaves it alone."] = true
 	L["Rename"] = true
 	L["Copy"] = true
 	L["%s copy"] = true

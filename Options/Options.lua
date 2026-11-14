@@ -170,7 +170,7 @@ local function cvarArgs(profileName)
 	return args
 end
 
--- Screen effects (not CVars): hide the UI, dim the screen.
+-- Screen effects (not CVars): hide the UI.
 local function screenArgs(profileName)
 	local function profile() return db().graphicsProfiles[profileName] or {} end
 	return {
@@ -181,13 +181,6 @@ local function screenArgs(profileName)
 				desc = L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."],
 				get = function() return profile().hideUI and true or false end,
 				set = function(_, v) profile().hideUI = v or nil; profileEdited(profileName) end,
-			},
-			dim = {
-				type = "range", name = L["Dim the screen"], order = 2, width = 1.5,
-				desc = L["Darken the screen by this much while this profile is active. 0% leaves it alone."],
-				min = 0, max = ns.Screen.MAX_DIM, step = 0.05, isPercent = true,
-				get = function() return tonumber(profile().dim) or 0 end,
-				set = function(_, v) profile().dim = (v > 0) and v or nil; profileEdited(profileName) end,
 			},
 		},
 	}
