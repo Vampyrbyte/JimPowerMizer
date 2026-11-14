@@ -26,6 +26,8 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 | **Cutscenes** | Always your own settings |
 | **Idle / AFK** | *Max saver* after 3 minutes without input, or 5 seconds after `/afk` |
 | **Flight path** | *Max saver* |
+| **Fishing** | *Light saver* while a fishing pole is in your main hand |
+| **Crafting** | *Light saver* while you craft, and for 10 seconds after (moving or closing the profession window ends it sooner) |
 | Dead / ghost | Off by default |
 | Auction house / mail / bank / vendor | Off by default |
 | Resting (inn / city) | Off by default |

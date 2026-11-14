@@ -49,6 +49,7 @@ if L then
 	L["|cffffd200/jpm list|r - list situations, their settings and whether they're active"] = true
 	L["|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off"] = true
 	L["|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle"] = true
+	L["|cffffd200/jpm crafting <seconds>|r - how long crafting stays active after a craft ends"] = true
 	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"] = true
 	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"] = true
 	L["|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts"] = true
@@ -69,6 +70,8 @@ if L then
 	L["Situation %s disabled."] = true
 	L["Usage: /jpm idle <seconds> (at least 10). Currently %d."] = true
 	L["Idle after %d seconds without input."] = true
+	L["Usage: /jpm crafting <seconds> (0 or more). Currently %d."] = true
+	L["Crafting stays active %d seconds after a craft ends."] = true
 	L["manual restore"] = true
 	L["No longer forcing a situation."] = true
 	L["Watching setting changes. /jpm watch again to stop."] = true
@@ -78,7 +81,9 @@ if L then
 	L["Right-click: turn automatic switching on/off"] = true
 	L["Cutscenes"] = true
 	L["Combat"] = true
+	L["Crafting"] = true
 	L["Dead / ghost"] = true
+	L["Fishing"] = true
 	L["Idle"] = true
 	L["Resting (inn / city)"] = true
 	L["Auction house / mail / bank / vendor"] = true
@@ -87,6 +92,8 @@ if L then
 	L["In-game cutscenes and movies."] = true
 	L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["On a flight path."] = true
+	L["A fishing pole is in your main hand."] = true
+	L["Crafting with a profession, and for a short time after each craft so the next one doesn't switch back and forth. Having the profession window open doesn't count on its own. Moving, or closing the profession window, ends it early."] = true
 	L["Dead or a ghost."] = true
 	L["An auction house, mailbox, bank, guild bank or vendor window is open."] = true
 	L["In an inn or a city."] = true
@@ -125,6 +132,8 @@ if L then
 	L["Seconds without input before you count as idle. With the AFK flag set, idle starts after 5 seconds."] = true
 	L["Mouse and camera movement count as activity"] = true
 	L["Moving the mouse, panning the camera or turning ends idle. Off: only moving your character, casting, targeting, looting, talking to NPCs and combat do."] = true
+	L["Keep after crafting (seconds)"] = true
+	L["How long to stay in this situation after a craft ends, in case you start another. Moving or closing the profession window ends it early."] = true
 	L["General"] = true
 	L["Enable automatic switching"] = true
 	L["Chat message when switching"] = true

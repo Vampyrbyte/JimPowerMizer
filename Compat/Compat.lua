@@ -18,6 +18,9 @@ local REQUIRED = {
 	"IsDeadOrGhost",  -- () -> boolean
 	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)
 	"IsServiceWindowOpen", -- () -> boolean (auction house, mail, bank, vendor, ...)
+	"IsCraftingCast", -- () -> boolean (casting or channeling a profession spell, e.g. Smelt Copper)
+	"IsProfessionWindowOpen", -- () -> boolean
+	"IsFishingPoleEquipped", -- () -> boolean (fishing pole in the main hand)
 	"GetActivitySnapshot", -- () -> moving, casting, cursorX, cursorY, facing (facing may be nil)
 	"GetCascadeCandidates", -- () -> delayedNames, syncNames, countFromConsole (see Applier)
 }

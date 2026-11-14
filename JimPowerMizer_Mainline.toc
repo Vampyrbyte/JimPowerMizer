@@ -29,6 +29,8 @@ Situations\Combat.lua
 Situations\Cinematic.lua
 Situations\Idle.lua
 Situations\Taxi.lua
+Situations\Fishing.lua
+Situations\Crafting.lua
 Situations\Dead.lua
 Situations\ServiceWindow.lua
 Situations\Resting.lua

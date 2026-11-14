@@ -5,6 +5,7 @@ local C_CVar = C_CVar
 local UnitOnTaxi, InCombatLockdown = UnitOnTaxi, InCombatLockdown
 local UnitAffectingCombat, UnitIsAFK, IsResting, UnitIsDeadOrGhost =
 	UnitAffectingCombat, UnitIsAFK, IsResting, UnitIsDeadOrGhost
+local UnitCastingInfo, UnitChannelInfo, GetInventoryItemID = UnitCastingInfo, UnitChannelInfo, GetInventoryItemID
 
 local impl = { name = "Mainline" }
 
@@ -202,11 +203,74 @@ local LEGACY_EVENTS = {
 }
 local serviceTypes, typeNames, openWindows = {}, {}, {}
 
+-- Professions. The profession window alone doesn't count as crafting (it's often browsed on the
+-- move); a profession cast does. UnitCastingInfo/UnitChannelInfo's 6th value is isTradeSkill
+-- (verified on Forever: true for Smelt Copper, false for Fishing).
+local CAST_EVENTS = {
+	"UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
+	"UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_FAILED",
+}
+local professionWindowOpen, craftingCast = false, false
+
+function impl.IsCraftingCast()
+	local _, _, _, _, _, castTrade = UnitCastingInfo("player")
+	if flag(castTrade) then return true end
+	local _, _, _, _, _, channelTrade = UnitChannelInfo("player")
+	return flag(channelTrade)
+end
+
+function impl.IsProfessionWindowOpen()
+	return professionWindowOpen
+end
+
+-- Fishing on Forever means holding the pole in the main hand (item class Weapon, subclass Fishing Pole).
+local MAIN_HAND = 16
+function impl.IsFishingPoleEquipped()
+	local id = clean(GetInventoryItemID("player", MAIN_HAND))
+	if not id then return false end
+	local info = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+	if not info then return false end
+	local _, _, _, _, _, classID, subclassID = info(id)
+	local weapon = (Enum and Enum.ItemClass and Enum.ItemClass.Weapon) or 2
+	local pole = (Enum and Enum.ItemWeaponSubclass and Enum.ItemWeaponSubclass.Fishingpole) or 20
+	return classID == weapon and subclassID == pole
+end
+
+local function initProfessions(notify)
+	local frame = CreateFrame("Frame")
+	for _, event in ipairs(CAST_EVENTS) do
+		if not (frame.RegisterUnitEvent and pcall(frame.RegisterUnitEvent, frame, event, "player")) then
+			pcall(frame.RegisterEvent, frame, event)
+		end
+	end
+	pcall(frame.RegisterEvent, frame, "TRADE_SKILL_SHOW")
+	pcall(frame.RegisterEvent, frame, "TRADE_SKILL_CLOSE")
+	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	frame:SetScript("OnEvent", function(_, event, unit)
+		if event == "PLAYER_ENTERING_WORLD" then
+			professionWindowOpen = false
+		elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_CLOSE" then
+			local open = event == "TRADE_SKILL_SHOW"
+			if open ~= professionWindowOpen then
+				professionWindowOpen = open
+				notify(open and "profession window opened" or "profession window closed")
+			end
+		elseif unit == "player" then
+			local now = impl.IsCraftingCast()
+			if now ~= craftingCast then
+				craftingCast = now
+				notify(now and "profession cast started" or "profession cast ended")
+			end
+		end
+	end)
+end
+
 function impl.IsServiceWindowOpen()
 	return next(openWindows) ~= nil
 end
 
 function impl.Init(notify)
+	initProfessions(notify)
 	local types = Enum and Enum.PlayerInteractionType
 	if types then
 		for name, id in pairs(types) do typeNames[id] = name end

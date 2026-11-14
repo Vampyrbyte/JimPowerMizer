@@ -20,6 +20,8 @@ local SITUATION_HELP = {
 	cinematic = L["In-game cutscenes and movies."],
 	idle = L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."],
 	taxi = L["On a flight path."],
+	fishing = L["A fishing pole is in your main hand."],
+	crafting = L["Crafting with a profession, and for a short time after each craft so the next one doesn't switch back and forth. Having the profession window open doesn't count on its own. Moving, or closing the profession window, ends it early."],
 	dead = L["Dead or a ghost."],
 	serviceWindow = L["An auction house, mailbox, bank, guild bank or vendor window is open."],
 	resting = L["In an inn or a city."],
@@ -289,6 +291,14 @@ local function situationGroup(key, def, order)
 			desc = L["Moving the mouse, panning the camera or turning ends idle. Off: only moving your character, casting, targeting, looting, talking to NPCs and combat do."],
 			get = function() return cfg().mouseActivity end,
 			set = function(_, v) cfg().mouseActivity = v end,
+		}
+	end
+	if key == "crafting" then
+		args.grace = {
+			type = "range", name = L["Keep after crafting (seconds)"], order = 5, min = 0, max = 120, step = 1, bigStep = 5,
+			desc = L["How long to stay in this situation after a craft ends, in case you start another. Moving or closing the profession window ends it early."],
+			get = function() return cfg().grace or 10 end,
+			set = function(_, v) cfg().grace = v; refreshEngine() end,
 		}
 	end
 	return {

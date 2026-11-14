@@ -12,6 +12,7 @@ local HELP = {
 	L["|cffffd200/jpm list|r - list situations, their settings and whether they're active"],
 	L["|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off"],
 	L["|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle"],
+	L["|cffffd200/jpm crafting <seconds>|r - how long crafting stays active after a craft ends"],
 	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"],
 	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"],
 	L["|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts"],
@@ -141,6 +142,9 @@ function JPM:ListSituations()
 		local extra = ""
 		if key == "idle" then
 			extra = (", after %ds, idle for %ds"):format(cfg.timeout or 0, math.floor(ns.IdleSeconds and ns.IdleSeconds() or 0))
+		elseif key == "crafting" then
+			local left = ns.CraftingGraceLeft and ns.CraftingGraceLeft()
+			extra = (", keep %ds after crafting%s"):format(cfg.grace or 0, left and (" (%ds left)"):format(math.ceil(left)) or "")
 		end
 		self:Msg("  %s|cffffd200%s|r (%s): %s, %s, priority %d, delay %ss%s%s",
 			key == current and "> " or "", key == "cinematic" and "cutscenes" or key, defs[key].name,
@@ -185,6 +189,15 @@ function JPM:HandleSlash(input)
 		else
 			db.situations.idle.timeout = math.floor(seconds)
 			self:Msg(L["Idle after %d seconds without input."], db.situations.idle.timeout)
+			ns.Engine:Refresh("settings")
+		end
+	elseif cmd == "crafting" then
+		local seconds = tonumber(arg)
+		if not seconds or seconds < 0 then
+			self:Msg(L["Usage: /jpm crafting <seconds> (0 or more). Currently %d."], db.situations.crafting.grace)
+		else
+			db.situations.crafting.grace = math.floor(seconds)
+			self:Msg(L["Crafting stays active %d seconds after a craft ends."], db.situations.crafting.grace)
 			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "restore" then

@@ -69,6 +69,10 @@ local defaults = {
 			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0, timeout = 180,
 			                  mouseActivity = false },
 			taxi          = { enabled = true,  profile = "Max saver",   priority = 80,  enterDelay = 2 },
+			fishing       = { enabled = true,  profile = "Light saver", priority = 55,  enterDelay = 1 },
+			-- crafting.grace: seconds to stay active after a craft ends (ended early by moving or
+			-- closing the profession window).
+			crafting      = { enabled = true,  profile = "Light saver", priority = 50,  enterDelay = 0, grace = 10 },
 			dead          = { enabled = false, profile = "Light saver", priority = 40,  enterDelay = 3 },
 			serviceWindow = { enabled = false, profile = "Light saver", priority = 35,  enterDelay = 1 },
 			resting       = { enabled = false, profile = "Light saver", priority = 30,  enterDelay = 5 },

@@ -98,6 +98,8 @@ char/global = {
 | **Idle** | AFK flag (`PLAYER_FLAGS_CHANGED` + `UnitIsAFK`), plus our own timer: no movement (`PLAYER_STARTED/STOPPED_MOVING`), no casting, camera/cursor unchanged for N seconds | Max saver |
 | **Flight path** | `UnitOnTaxi("player")`, `PLAYER_CONTROL_LOST/GAINED`, `TAXIMAP_CLOSED` | Max saver |
 | **Background** | Client already has `maxFPSBk`; we just expose it in the UI | (CVar only) |
+| **Fishing** | Fishing pole in the main hand: `GetInventoryItemID("player", 16)` + `C_Item.GetItemInfoInstant` (class Weapon, subclass Fishing Pole), `PLAYER_EQUIPMENT_CHANGED` | Light saver |
+| **Crafting** | Profession cast (`UnitCastingInfo`/`UnitChannelInfo` 6th value `isTradeSkill`, player `UNIT_SPELLCAST_*`), then a grace period (10 s) ended early by moving or `TRADE_SKILL_CLOSE`. The profession window alone doesn't count | Light saver |
 | **Resting / city** | `IsResting()`, `PLAYER_UPDATE_RESTING` | Off by default |
 | **Vendor/AH/Mail/Bank open** | `AUCTION_HOUSE_SHOW/CLOSED`, `MAIL_SHOW`, `BANKFRAME_OPENED`… | Light saver, off by default |
 | **Dead / ghost** | `UnitIsDeadOrGhost`, `PLAYER_DEAD`, `PLAYER_ALIVE`, `PLAYER_UNGHOST` | Off by default |
@@ -235,7 +237,18 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [ ] Level names for Secondary Lighting / PBR liquid dropdowns (currently plain numbers; need the menu's labels)
 - [x] **v0.1.2 (2026-11-14):** tagged; released by the workflow
 
+### v0.1.3 (from play)
+- [x] Situation "Fishing": a fishing pole in the main hand (Forever: you hold the pole; verified item 12225 in
+  slot 16, profession tool slots 28/29 empty). Light saver, priority 55, delay 1 s. Each cast counts as input for Idle
+- [x] Situation "Crafting": a profession cast (`isTradeSkill`, verified true for Smelt Copper and false for Fishing),
+  then `grace` seconds (default 10, option and `/jpm crafting <seconds>`) ended early by moving or by closing the
+  profession window if it was open during the craft. Light saver, priority 50
+- [x] **In game (2026-11-14):** fishing pole on/off switches; a Craft All run stays on Light saver between casts; grace ends on
+  moving and on closing the window; browsing the profession window while moving doesn't switch
+- [x] **v0.1.3 (2026-11-14):** tagged; released by the workflow
+
 ### M5: More flavors
+- [ ] Crafting: count the crafting orders window (not in Forever)
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
 

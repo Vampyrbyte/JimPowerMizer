@@ -54,8 +54,15 @@ local SECRET = setmetatable({}, { __lt = function() error("attempt to compare a 
 	__le = function() error("attempt to compare a secret number value") end })
 issecretvalue = function(v) return v == SECRET end
 GetUnitSpeed = function() if combat then return SECRET end return moving and 7 or 0 end
-UnitCastingInfo = function() if combat then return SECRET end return nil end
-UnitChannelInfo = function() return nil end
+-- castInfo/channelInfo: the values UnitCastingInfo/UnitChannelInfo return (6th = isTradeSkill).
+local castInfo, channelInfo
+UnitCastingInfo = function() if combat then return SECRET end if castInfo then return unpack(castInfo) end end
+UnitChannelInfo = function() if channelInfo then return unpack(channelInfo) end end
+local mainHand -- item ID in the main hand
+local ITEMS = { [12225] = { 2, 20 }, [1234] = { 2, 7 } } -- Blump Family Fishing Pole, a sword
+GetInventoryItemID = function(_, slot) if slot == 16 then return mainHand end end
+C_Item = { GetItemInfoInstant = function(id) local i = ITEMS[id]
+	if i then return id, "Weapon", "?", "INVTYPE_WEAPON", 0, i[1], i[2] end end }
 GetCursorPosition = function() return cx, cy end
 local facing = 1.5
 GetPlayerFacing = function() return facing end
@@ -124,6 +131,7 @@ C_CVar = {
 function CreateFrame()
 	local f = { events = {} }
 	function f:RegisterEvent(e) self.events[e] = true end
+	function f:RegisterUnitEvent(e) self.events[e] = true end
 	function f:UnregisterEvent(e) self.events[e] = nil end
 	function f:UnregisterAllEvents() self.events = {} end
 	function f:IsEventRegistered(e) return self.events[e] end
@@ -390,6 +398,61 @@ dead = true; fire("PLAYER_DEAD"); advance(3.5)
 check(cvars.maxFPS == "30", "dead -> Light saver")
 dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
+-- Fishing and crafting
+mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
+check(cvars.maxFPS == "144", "a sword in the main hand isn't fishing")
+mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.5)
+check(cvars.maxFPS == "144", "fishing: waits for enter delay")
+advance(0.6)
+check(cvars.maxFPS == "30", "fishing pole equipped -> Light saver")
+channelInfo = { "Fishing", "Fishing", 136245, 1, 2, false, false, 7731 }
+fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(0.1)
+check(ns.Engine:GetCurrent() == "fishing", "a Fishing cast isn't crafting")
+channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player")
+mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.1)
+check(cvars.maxFPS == "144", "weapon back on -> your settings")
+
+fire("TRADE_SKILL_SHOW"); advance(3)
+check(cvars.maxFPS == "144", "profession window alone isn't crafting")
+local SMELT = { "Smelt Copper", "Smelt Copper", 136235, 1, 2, true, "Cast-1", true, 2657 }
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+check(cvars.maxFPS == "30", "profession cast -> Light saver")
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(3)
+check(cvars.maxFPS == "30", "still crafting during the grace period")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(9.5)
+check(cvars.maxFPS == "30", "next craft restarts the grace period")
+advance(1)
+check(cvars.maxFPS == "144", "grace period over -> your settings")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(2)
+moving = true; fire("PLAYER_STARTED_MOVING"); advance(0.1)
+check(cvars.maxFPS == "144", "moving ends the grace period early")
+moving = false; fire("PLAYER_STOPPED_MOVING")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(2)
+fire("TRADE_SKILL_CLOSE"); advance(0.1)
+check(cvars.maxFPS == "144", "closing the profession window ends the grace period early")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+check(cvars.maxFPS == "30", "craft with the window closed (macro)")
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(5)
+check(cvars.maxFPS == "30", "macro craft keeps its grace period")
+advance(5.5)
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+moving = true; fire("PLAYER_STARTED_MOVING"); castInfo = nil; fire("UNIT_SPELLCAST_INTERRUPTED", "player"); advance(0.1)
+check(cvars.maxFPS == "144", "craft interrupted by moving: no grace period")
+moving = false; fire("PLAYER_STOPPED_MOVING")
+slash("crafting 0")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(1.1)
+check(cvars.maxFPS == "144" and ns.addon.db.profile.situations.crafting.grace == 0, "/jpm crafting 0: no grace period")
+slash("crafting 10")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+combat = true; fire("PLAYER_REGEN_DISABLED"); advance(0.1)
+check(cvars.maxFPS == "144", "combat outranks crafting (secret cast info)")
+castInfo = nil; combat = false; fire("PLAYER_REGEN_ENABLED"); advance(11)
+check(cvars.maxFPS == "144", "back to your settings after combat and grace")
+
 slash("disable cutscenes")
 check(ns.addon.db.profile.situations.cinematic.enabled == false, "/jpm disable cutscenes works on the cinematic situation")
 slash("enable cutscenes")
@@ -458,6 +521,8 @@ check(ok, "options table passes AceConfig validation" .. (ok and "" or (": " .. 
 check(node("graphics", "p_Max saver") and node("graphics", "p_Light saver"), "built-in profiles listed")
 check(node("situations", "idle", "args") == nil and node("situations", "idle", "timeout") ~= nil, "idle has a timeout setting")
 check(node("situations", "taxi", "timeout") == nil, "only idle has a timeout")
+check(node("situations", "crafting", "grace") ~= nil and get("situations", "crafting", "grace") == 10, "crafting has a grace setting, 10 s by default")
+check(node("situations", "fishing") ~= nil and node("situations", "fishing", "grace") == nil, "fishing listed, no grace setting")
 check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live
