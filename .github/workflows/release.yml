@@ -20,4 +20,13 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - name: Check CurseForge token
+        if: env.CF_API_TOKEN != ''
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Api-Token: $CF_API_TOKEN" https://wow.curseforge.com/api/game/wow/versions)
+          echo "CurseForge token check: HTTP $code (token length ${#CF_API_TOKEN})"
+          if [ "$code" != "200" ]; then
+            echo "::error::CurseForge rejected CF_API_TOKEN (HTTP $code). Use an upload token from https://authors.curseforge.com/account/api-tokens and check the secret has no extra spaces or newlines."
+            exit 1
+          fi
       - uses: BigWigsMods/packager@v2
