@@ -209,6 +209,11 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **v0.1.1 (2026-11-14):** published to CurseForge (project 1803739), Wago (aND9V26o) and GitHub by the
   release workflow (secrets `CF_API_TOKEN`, `WAGO_API_TOKEN`; the workflow checks the CurseForge token first)
 
+### After v0.1.1 (from play)
+- [x] Idle: only your own movement (`PLAYER_STARTED/STOPPED_MOVING`) ends idle, so riding a transport doesn't;
+  mouse/camera movement counts only with the new option "Mouse and camera movement count as activity" (default off)
+- [x] **In game (2026-11-14):** idle stays active while riding the Deeprun Tram
+
 ### M5: More flavors
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
