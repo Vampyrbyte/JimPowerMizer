@@ -551,5 +551,26 @@ ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.dim.set
 check(ms.dim == nil, "dim 0% removes the setting")
 noErrors("session 7")
 
+-- Session 8: built-in profile updates for existing settings --------------------------------
+SavedDB = { profileKeys = { ["Tester - Realm"] = "Default" }, profiles = { Default = { profilesSeeded = true,
+	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20 }, ["Mine"] = { graphicsParticleDensity = 1 } } } } }
+ns = session("session 8: built-in updates")
+local gp = ns.addon.db.profile.graphicsProfiles
+check(gp["Max saver"].graphicsParticleDensity == 0 and gp["Max saver"].maxFPS == 20, "old Max saver particle density lowered to Low")
+check(gp["Mine"].graphicsParticleDensity == 1, "user's own profiles untouched")
+check(ns.addon.db.profile.builtinVersion == #ns.Database.BUILTIN_UPDATES, "update recorded")
+gp["Max saver"].graphicsParticleDensity = 2; SavedDB = JimPowerMizerDB
+ns = session("session 8b: reload")
+check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsParticleDensity == 2, "user's later edit not overwritten again")
+JimPowerMizerDB = nil; SavedDB = nil
+ns = session("session 8c: fresh install")
+check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsParticleDensity == 0, "fresh install: particle density Low")
+slash("watch"); C_CVar.SetCVar("graphicsSSAO", "1")
+local seen = false
+for _, line in ipairs(printed) do if line:find("CVar graphicsSSAO = 1", 1, true) then seen = true end end
+check(seen, "/jpm watch prints setting changes")
+slash("watch")
+noErrors("session 8")
+
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

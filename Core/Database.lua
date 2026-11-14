@@ -12,7 +12,7 @@ Database.BUILTIN_PROFILES = {
 		renderScale = 0.5,
 		graphicsShadowQuality = 0,
 		graphicsSSAO = 0,
-		graphicsParticleDensity = 1,
+		graphicsParticleDensity = 0,
 		graphicsLiquidDetail = 0,
 		graphicsSpellDensity = 0,
 		graphicsViewDistance = 2,
@@ -28,6 +28,13 @@ Database.BUILTIN_PROFILES = {
 	},
 }
 
+-- Changes to the built-in profiles after release, applied once to existing settings. A value is
+-- only changed if the profile still exists and still has the old built-in value (`from`; nil =
+-- not set), so the user's own edits are never overwritten.
+Database.BUILTIN_UPDATES = {
+	[1] = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } },
+}
+
 local defaults = {
 	profile = {
 		enabled = true,
@@ -37,6 +44,7 @@ local defaults = {
 		protectDetails = true,       -- save and put back lower-level settings (e.g. /console tweaks)
 		graphicsProfiles = {},       -- seeded from BUILTIN_PROFILES once (see EnsureProfiles)
 		profilesSeeded = false,
+		builtinVersion = 0,          -- last BUILTIN_UPDATES entry applied
 		situations = {
 			-- profile: graphics profile name, or false for "your own settings".
 			-- priority: higher wins when several situations are active at once.
@@ -81,6 +89,18 @@ function Database:EnsureProfiles(addon)
 			if p.graphicsProfiles[name] == nil then p.graphicsProfiles[name] = copy(values) end
 		end
 		p.profilesSeeded = true
+		p.builtinVersion = #self.BUILTIN_UPDATES -- freshly seeded profiles are already current
+	end
+	for version = (p.builtinVersion or 0) + 1, #self.BUILTIN_UPDATES do
+		for name, changes in pairs(self.BUILTIN_UPDATES[version]) do
+			local profile = p.graphicsProfiles[name]
+			if profile then
+				for key, change in pairs(changes) do
+					if profile[key] == change.from then profile[key] = change.to end
+				end
+			end
+		end
+		p.builtinVersion = version
 	end
 end
 

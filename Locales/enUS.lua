@@ -49,6 +49,7 @@ if L then
 	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"] = true
 	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"] = true
 	L["|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts"] = true
+	L["|cffffd200/jpm watch|r - print every setting the game changes (e.g. change one in the graphics menu to see its CVar name)"] = true
 	L["|cffffd200/jpm debug|r - toggle debug messages"] = true
 	L["Automatic switching is off."] = true
 	L["Situation: %s"] = true
@@ -67,6 +68,8 @@ if L then
 	L["Idle after %d seconds without input."] = true
 	L["manual restore"] = true
 	L["No longer forcing a situation."] = true
+	L["Watching setting changes. /jpm watch again to stop."] = true
+	L["Stopped watching setting changes."] = true
 	L["situation ended"] = true
 	L["Left-click: options"] = true
 	L["Right-click: turn automatic switching on/off"] = true
