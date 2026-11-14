@@ -185,7 +185,9 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] Addon compartment: tooltip with situation + profile; left-click options, right-click on/off
 - [x] Chat notification on switch (toggle)
 - [x] **In game:** options window, Settings > AddOns page, compartment tooltip/clicks
-- [ ] **In game:** live edit of the active profile (drag Max saver's FPS slider during a flight)
+- [x] **In game:** live edit of the active profile (drag Max saver's FPS slider during a flight)
+
+**M3 complete.**
 - [x] Keep `/console` tweaks: presets (e.g. `graphicsGroundClutter`) overwrite the CVars under them
   (e.g. `groundEffectDensity`). The Applier detects which CVars each batch of preset writes changed and
   restores their pre-saver values afterwards. Candidates: Graphics console category + known list (checked
