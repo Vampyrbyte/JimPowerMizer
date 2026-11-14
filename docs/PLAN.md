@@ -204,7 +204,8 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **v0.1.0 released (2026-11-13):** https://github.com/Vampyrbyte/JimPowerMizer/releases/tag/v0.1.0
   (`JimPowerMizer-v0.1.0-forever.zip`: libs, licences, version filled in, no dev files)
 - [x] **In game:** `_Mainline` TOC loads on Forever; level-name dropdowns match the game's menu
-- [ ] Publish to CurseForge / Wago (needs project pages + API keys as repo secrets)
+- [x] **v0.1.1 (2026-11-14):** published to CurseForge (project 1803739), Wago (aND9V26o) and GitHub by the
+  release workflow (secrets `CF_API_TOKEN`, `WAGO_API_TOKEN`; the workflow checks the CurseForge token first)
 
 ### M5: More flavors
 - [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
