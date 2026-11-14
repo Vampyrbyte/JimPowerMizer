@@ -76,9 +76,12 @@ function JPM:Probe()
 	self:Msg("Build %s (%s), interface %s, WOW_PROJECT_ID %s, WOW_PROJECT_CAMELOT %s, in combat: %s",
 		tostring(c.version), tostring(c.build), tostring(c.interface), tostring(c.projectID),
 		tostring(rawget(_G, "WOW_PROJECT_CAMELOT")), tostring(ns.Compat:InCombat()))
+	local names, missingNames = 0, 0
 	for _, def in ipairs(ns.CVarRegistry:All()) do
 		local info = ns.Compat:GetCVarInfo(def.name)
-		if info then
+		if def.hidden then
+			if info then names = names + 1 else missingNames = missingNames + 1 end
+		elseif info then
 			local flags = {}
 			if info.isSecure then flags[#flags + 1] = "secure" end
 			if info.isReadOnly then flags[#flags + 1] = "read-only" end
@@ -90,6 +93,8 @@ function JPM:Probe()
 			self:Msg("  %s: |cffff0000not on this client|r", def.name)
 		end
 	end
+
+	self:Msg("  Name/nameplate settings for \"Hide names\": %d on this client, %d not", names, missingNames)
 
 	local delayedNames, syncNames, fromConsole = ns.Compat:GetCascadeCandidates()
 	self:Msg("Lower-level settings watched: %d graphics (%d from the console's Graphics list), %d more checked only during preset changes",

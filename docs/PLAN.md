@@ -215,6 +215,10 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **In game (2026-11-14):** idle stays active while riding the Deeprun Tram
 - [x] Profile option "Hide the user interface" (`Core/Screen.lua`, profile key `hideUI`): `UIParent:Hide()`, not in
   combat lockdown or during cinematics; Alt+Z by the user wins until the next switch; nothing saved
+- [x] Profile option "Hide names and nameplates" (key `hideNames`): sets every `UnitName*`/`nameplateShow*` CVar in
+  `Registry.NAME_CVARS` that the client has to 0 through the Applier (baseline/restore/crash safety as usual; hidden
+  from the editor; `/jpm probe` counts them)
+- [ ] **In game:** names and nameplates disappear on a flight and come back on landing and for combat
 - [x] Dimming: the game's `Brightness` CVar (0-100) as a normal profile setting. A black overlay was tried first but
   conflicted with hiding the UI; leftover `dim` keys are removed from saved profiles
 - [ ] **In game:** UI hides and brightness drops on a flight and while idle; combat brings both back; Alt+Z while

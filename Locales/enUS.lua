@@ -101,6 +101,8 @@ if L then
 	L["Screen"] = true
 	L["Hide the user interface"] = true
 	L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."] = true
+	L["Hide names and nameplates"] = true
+	L["Turn off the names above players and NPCs, and nameplates, while this profile is active. Your own name settings come back when it ends."] = true
 	L["Rename"] = true
 	L["Copy"] = true
 	L["%s copy"] = true

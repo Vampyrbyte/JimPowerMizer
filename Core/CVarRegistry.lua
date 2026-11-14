@@ -54,6 +54,23 @@ local CVARS = {
 	{ name = "MSAAQuality",             kind = "enum",   label = L["MSAA"],           restart = true },
 }
 
+-- Names above characters and nameplates. Not shown in the profile editor: a profile's "Hide names"
+-- option sets every one the client has to 0 (see Applier effectiveProfile). Names differ between
+-- clients, so missing ones are simply skipped. ("Hostle" is Blizzard's spelling.)
+Registry.NAME_CVARS = {
+	"UnitNameOwn", "UnitNameNPC", "UnitNameHostleNPC", "UnitNameInteractiveNPC",
+	"UnitNameFriendlySpecialNPCName", "UnitNameNonCombatCreatureName",
+	"UnitNameFriendlyPlayerName", "UnitNameFriendlyMinionName", "UnitNameFriendlyPetName",
+	"UnitNameFriendlyGuardianName", "UnitNameFriendlyTotemName",
+	"UnitNameEnemyPlayerName", "UnitNameEnemyMinionName", "UnitNameEnemyPetName",
+	"UnitNameEnemyGuardianName", "UnitNameEnemyTotemName",
+	"UnitNamePlayerGuild", "UnitNamePlayerPVPTitle", "UnitNameGuildTitle",
+	"nameplateShowAll", "nameplateShowEnemies", "nameplateShowFriends", "nameplateShowFriendlyNPCs",
+}
+for _, name in ipairs(Registry.NAME_CVARS) do
+	CVARS[#CVARS + 1] = { name = name, kind = "bool", label = name, hidden = true }
+end
+
 local byName = {}
 for i, def in ipairs(CVARS) do
 	def.order = i

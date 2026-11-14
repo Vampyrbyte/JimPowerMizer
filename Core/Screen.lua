@@ -16,7 +16,8 @@ LibStub("AceEvent-3.0"):Embed(Screen)
 
 -- Profile keys handled here rather than as CVars. `dim` was an overlay in development builds;
 -- it's ignored, and removed from saved profiles by Database:EnsureProfiles.
-Screen.KEYS = { hideUI = true, dim = true }
+-- hideNames is applied as CVars by the Applier (Registry.NAME_CVARS), so it's restored like them.
+Screen.KEYS = { hideUI = true, hideNames = true, dim = true }
 
 local wantHidden = false -- the active profile wants the UI hidden
 local hiddenByUs = false -- UIParent is hidden because we hid it

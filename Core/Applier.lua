@@ -215,6 +215,12 @@ local function effectiveProfile(profile)
 	for k, v in pairs(profile) do
 		if not ns.Screen.KEYS[k] then p[k] = v end -- screen effects aren't CVars
 	end
+	-- "Hide names": every name/nameplate CVar this client has goes to 0.
+	if profile.hideNames then
+		for _, name in ipairs(Registry.NAME_CVARS) do
+			if p[name] == nil and Registry:IsUsable(name) then p[name] = 0 end
+		end
+	end
 	local fg = tonumber(p.maxFPS)
 	if ns.addon.db.profile.capBackground and tonumber(p.useMaxFPS) == 1 and fg
 		and p.maxFPSBk == nil and p.useMaxFPSBk == nil then

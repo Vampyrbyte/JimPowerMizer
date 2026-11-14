@@ -62,7 +62,7 @@ end
 local function captureUserSettings()
 	local values = {}
 	for _, def in ipairs(Registry:All()) do
-		if Registry:IsUsable(def.name) then
+		if not def.hidden and Registry:IsUsable(def.name) then
 			local v = ns.Applier:GetUserValue(def.name)
 			values[def.name] = tonumber(v) or v
 		end
@@ -118,7 +118,7 @@ local function cvarArgs(profileName)
 	local function profile() return db().graphicsProfiles[profileName] or {} end
 	local args = {}
 	for i, def in ipairs(Registry:All()) do
-		if not def.restart and ns.Compat:GetCVarInfo(def.name) then
+		if not def.restart and not def.hidden and ns.Compat:GetCVarInfo(def.name) then
 			local name = def.name
 			local function unset() return profile()[name] == nil end
 			local value
@@ -181,6 +181,12 @@ local function screenArgs(profileName)
 				desc = L["Hide the user interface (like Alt+Z) while this profile is active. It comes back when the profile ends, e.g. when combat starts. If you show it yourself with Alt+Z, it stays shown until the next switch."],
 				get = function() return profile().hideUI and true or false end,
 				set = function(_, v) profile().hideUI = v or nil; profileEdited(profileName) end,
+			},
+			hideNames = {
+				type = "toggle", name = L["Hide names and nameplates"], order = 2, width = "full",
+				desc = L["Turn off the names above players and NPCs, and nameplates, while this profile is active. Your own name settings come back when it ends."],
+				get = function() return profile().hideNames and true or false end,
+				set = function(_, v) profile().hideNames = v or nil; profileEdited(profileName) end,
 			},
 		},
 	}

@@ -77,6 +77,7 @@ Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, De
 
 -- CVars
 local cvars = {
+	UnitNameNPC = "1", UnitNameOwn = "0", UnitNameFriendlyPlayerName = "1", nameplateShowEnemies = "1",
 	Brightness = "50", useMaxFPS = "0", maxFPS = "144", useMaxFPSBk = "1", maxFPSBk = "30", renderScale = "1",
 	graphicsShadowQuality = "4", graphicsSSAO = "3", graphicsParticleDensity = "4",
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
@@ -86,7 +87,7 @@ local cvars = {
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
 }
-local secure = { renderScale = true }
+local secure = { renderScale = true, nameplateShowEnemies = true }
 local function fire(event, ...)
 	for _, f in ipairs(frames) do
 		if f.events[event] and f.script then f.script(f, event, ...) end
@@ -519,13 +520,16 @@ local ms = ns.addon.db.profile.graphicsProfiles["Max saver"]
 ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.hideUI.set({}, true)
 ns.Options:GetTable().args.graphics.args["p_Max saver"].args.Brightness.args.change.set({}, true)
 ns.Options:GetTable().args.graphics.args["p_Max saver"].args.Brightness.args.value.set({}, 20)
-check(ms.hideUI == true and ms.Brightness == 20, "hide UI and brightness stored in the profile")
+ns.Options:GetTable().args.graphics.args["p_Max saver"].args.screen.args.hideNames.set({}, true)
+check(ms.hideUI == true and ms.Brightness == 20 and ms.hideNames == true, "hide UI, names and brightness stored in the profile")
+check(ns.Options:GetTable().args.graphics.args["p_Max saver"].args.UnitNameNPC == nil, "name settings not listed in the profile editor")
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.maxFPS == "20" and not UIParent:IsShown(), "taxi: UI hidden")
 local skipped = false
 for _, line in ipairs(printed) do if line:find("Skipping hideUI") or line:find("Skipping dim") then skipped = true end end
 check(not skipped and cvars.hideUI == nil, "screen keys not treated as CVars")
 check(cvars.Brightness == "20", "taxi: brightness lowered")
+check(cvars.UnitNameNPC == "0" and cvars.UnitNameFriendlyPlayerName == "0" and cvars.nameplateShowEnemies == "0", "taxi: names and nameplates hidden")
 cine = true; fire("CINEMATIC_START"); advance(0.1)
 check(not UIParent:IsShown() and cvars.Brightness == "50", "cinematic: your brightness, UI left to the cinematic")
 cine = false; fire("CINEMATIC_STOP"); advance(1.2)
@@ -535,10 +539,12 @@ advance(4)
 check(UIParent:IsShown(), "UI shown by the user stays shown for the rest of the switch")
 taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
 check(UIParent:IsShown() and cvars.Brightness == "50" and cvars.maxFPS == "144", "landed: UI shown, brightness restored")
+check(cvars.UnitNameNPC == "1" and cvars.UnitNameOwn == "0" and cvars.nameplateShowEnemies == "1", "landed: your name settings back")
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(not UIParent:IsShown(), "next flight hides the UI again")
 fire("PLAYER_REGEN_DISABLED"); combat = true; advance(0.1)
 check(UIParent:IsShown() and cvars.Brightness == "50", "combat: UI shown before lockdown, brightness restored")
+check(cvars.UnitNameNPC == "1" and cvars.nameplateShowEnemies == "1", "combat: names and nameplates back before lockdown")
 combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
 check(not UIParent:IsShown(), "after combat, still flying: UI hidden again")
 -- Combat situation disabled: can't show in lockdown, shown once combat ends
@@ -551,7 +557,7 @@ ns.addon.db.profile.situations.combat.enabled = true
 -- Capture keeps the screen options
 ns.Options:GetTable().args.graphics.args["p_Max saver"].args.capture.func()
 ms = ns.addon.db.profile.graphicsProfiles["Max saver"]
-check(ms.hideUI == true and ms.maxFPS == 144, "Capture current keeps the hide UI setting")
+check(ms.hideUI == true and ms.hideNames == true and ms.maxFPS == 144 and ms.UnitNameNPC == nil, "Capture current keeps screen options, no name CVars")
 ms.dim = 0.6; SavedDB = JimPowerMizerDB
 ns = session("session 7b: leftover dim from a development build")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].dim == nil, "old dim setting removed")
