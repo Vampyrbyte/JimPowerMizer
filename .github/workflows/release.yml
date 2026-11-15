@@ -6,7 +6,12 @@ on:
       - "v*"
 
 jobs:
+  # The same lint, locale and mock-API checks as CI: nothing is packaged if one fails.
+  checks:
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: checks
     runs-on: ubuntu-latest
     permissions:
       contents: write
