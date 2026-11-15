@@ -234,6 +234,10 @@ local function noErrors(label)
 end
 local function check(cond, msg) io.write(cond and "  PASS " or "  FAIL ", msg, "\n"); if not cond then FAILED = true end end
 local function slash(s) SlashCmdList["ACECONSOLE_JPM"](s) end
+-- Land from a flight path and walk off (the taxi situation lasts until you move).
+local function land()
+	taxi = false; fire("PLAYER_CONTROL_GAINED"); fire("PLAYER_STARTED_MOVING"); fire("PLAYER_STOPPED_MOVING")
+end
 
 -- Session 1 --------------------------------------------------------------
 IsLoggedIn = function() return false end
@@ -246,7 +250,7 @@ advance(2.5)
 check(cvars.maxFPS == "20" and cvars.useMaxFPS == "1" and cvars.renderScale == "0.5", "Max saver applied on taxi")
 check(cvars.useMaxFPSBk == "1" and cvars.maxFPSBk == "20", "background FPS capped to foreground cap")
 check(cvars.graphicsQuality == "7", "graphicsQuality never touched")
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
+land(); advance(0.1)
 check(cvars.maxFPS == "144" and cvars.useMaxFPS == "0" and cvars.renderScale == "1" and cvars.graphicsShadowQuality == "4", "all restored after landing")
 check(cvars.maxFPSBk == "30", "background FPS cap restored")
 check(next(JimPowerMizerDB.global.state.baseline) == nil, "baseline cleared")
@@ -255,7 +259,7 @@ check(next(JimPowerMizerDB.global.state.baseline) == nil, "baseline cleared")
 taxi = true; advance(4)
 check(cvars.maxFPS == "20", "applied again (poll fallback, no event)")
 C_CVar.SetCVar("graphicsShadowQuality", "2") -- user edits in Blizzard settings
-taxi = false; advance(2.1)
+land(); advance(2.1)
 check(cvars.graphicsShadowQuality == "2", "user's mid-flight change kept")
 check(cvars.maxFPS == "144", "others restored")
 
@@ -303,13 +307,13 @@ ns = session("session 3: log in again, still on taxi")
 check(cvars.maxFPS == "20", "reapplied immediately on login while on taxi")
 advance(ns.STARTUP_GRACE + 1)
 check(cvars.maxFPS == "20", "grace-period recovery didn't undo the taxi profile")
-taxi = false; advance(2.1)
+land(); advance(2.1)
 check(cvars.maxFPS == "144" and cvars.renderScale == "1" and cvars.graphicsShadowQuality == "2" and cvars.maxFPSBk == "30", "final restore matches user settings")
 
 -- Background cap not raised: user's background cap already lower than the profile's foreground cap
 cvars.maxFPSBk = "10"; taxi = true; advance(2.5)
 check(cvars.maxFPSBk == "10", "lower user background cap left alone")
-taxi = false; advance(2.1)
+land(); advance(2.1)
 
 noErrors("session 3")
 
@@ -358,7 +362,7 @@ cine = true; fire("CINEMATIC_START"); advance(0.1)
 check(cvars.maxFPS == "144", "cinematic on a flight -> your settings")
 cine = false; fire("CINEMATIC_STOP"); advance(0.1)
 check(cvars.maxFPS == "20", "cinematic over -> back to Max saver")
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
+land(); advance(0.1)
 check(cvars.maxFPS == "144", "landed")
 
 fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 21); advance(2)
@@ -389,7 +393,7 @@ resting = true; fire("PLAYER_UPDATE_RESTING"); advance(5.5)
 check(cvars.maxFPS == "30", "resting -> Light saver")
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.maxFPS == "20", "taxi outranks resting")
-taxi = false; advance(2.1)
+land(); advance(2.1)
 check(cvars.maxFPS == "30", "back to resting after taxi")
 resting = false; fire("PLAYER_UPDATE_RESTING"); advance(0.1)
 
@@ -458,6 +462,72 @@ check(ns.addon.db.profile.situations.cinematic.enabled == false, "/jpm disable c
 slash("enable cutscenes")
 check(ns.Engine:GetSituation("cinematic").name == "Cutscenes", "cinematic situation shown as Cutscenes")
 slash("list")
+
+-- Flight path: stays active after landing until you move
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "20", "flight -> Max saver")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(30)
+check(cvars.maxFPS == "20", "landed, untouched: still saving")
+fire("PLAYER_TARGET_CHANGED"); advance(0.1)
+check(cvars.maxFPS == "20", "changing target after landing doesn't end it")
+fire("PLAYER_STARTED_MOVING"); advance(0.1)
+check(cvars.maxFPS == "144", "moving after landing ends it")
+fire("PLAYER_STOPPED_MOVING")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(2.1)
+moving = true; advance(2.1)
+check(cvars.maxFPS == "144", "missed STARTED_MOVING: the poll ends it")
+moving = false
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(1)
+castInfo = { "Summon Mount" }; fire("UNIT_SPELLCAST_SENT", "player"); advance(0.1)
+check(cvars.maxFPS == "144", "casting after landing ends it")
+castInfo = nil; advance(1.1)
+
+-- Idle: a loading screen (ship crossing zones) isn't input
+slash("idle 30"); poke(); advance(1.1)
+afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
+check(cvars.maxFPS == "20", "AFK on a ship -> idle")
+fire("LOADING_SCREEN_ENABLED")
+afk = false; fire("PLAYER_FLAGS_CHANGED", "player") -- the game drops the flag while zoning
+fire("PLAYER_TARGET_CHANGED"); fire("LOADING_SCREEN_DISABLED"); fire("PLAYER_ENTERING_WORLD", false, false)
+moving = true; fire("PLAYER_STARTED_MOVING"); cx = cx + 50; facing = facing + 1; advance(4)
+check(cvars.maxFPS == "20", "loading screen and zoning events don't end idle")
+moving = false; fire("PLAYER_STOPPED_MOVING"); advance(10)
+check(cvars.maxFPS == "20", "AFK from before the loading screen still counts")
+poke(); advance(0.1)
+check(cvars.maxFPS == "144", "real input after the loading screen ends idle")
+advance(10)
+check(cvars.maxFPS == "144", "carried AFK cleared by input: back to the timeout")
+
+-- Long idle: its own timeout and profile, outranks idle
+ns.addon.db.profile.situations.longIdle.profile = "Light saver"
+slash("longidle 120"); poke(); advance(31)
+check(ns.Engine:GetCurrent() == "idle" and cvars.maxFPS == "20", "short idle first (Max saver)")
+advance(90)
+check(ns.Engine:GetCurrent() == "longIdle" and cvars.maxFPS == "30", "long idle after its timeout (its own profile)")
+poke(); advance(0.1)
+check(cvars.maxFPS == "144", "input ends both")
+afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
+check(ns.Engine:GetCurrent() == "idle", "AFK flag starts short idle, not long idle")
+afk = false; poke(); advance(0.1)
+slash("disable longidle")
+check(ns.addon.db.profile.situations.longIdle.enabled == false, "/jpm disable longidle (any case)")
+advance(130)
+check(ns.Engine:GetCurrent() == "idle", "long idle disabled: short idle stays")
+slash("enable longIdle"); slash("list"); poke(); advance(1) -- let the restore's 2nd pass run
+ns.addon.db.profile.situations.longIdle.profile = "Max saver"
+-- Flight path outranks idle (no input on a flight), long idle outranks flight path
+slash("idle 30"); ns.addon.db.profile.situations.taxi.profile = "Light saver"; poke()
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(40)
+check(ns.Engine:GetCurrent() == "taxi" and cvars.maxFPS == "30", "a long flight keeps the flight profile over idle")
+slash("longidle 60"); advance(30)
+check(ns.Engine:GetCurrent() == "longIdle" and cvars.maxFPS == "20", "long idle outranks the flight")
+land(); advance(1)
+check(cvars.maxFPS == "144", "landing and walking off ends all")
+ns.addon.db.profile.situations.taxi.profile = "Max saver"
+slash("longidle 900")
+slash("idle 600")
 noErrors("session 4")
 
 -- Session 6: lower-level (/console) settings ------------------------------------------
@@ -471,7 +541,7 @@ check(cvars.graphicsGroundClutter == "0" and cvars.groundEffectDensity == "0", "
 check(cvars.farclip == "1000", "saver: view distance cascades farclip down (delayed)")
 check(cvars.graphicsLightMode == "0" and cvars.giQuality == "1" and cvars.graphicsPBRLiquidDetail == "0" and cvars.pbrLiquidDetail == "0", "saver: secondary lighting and PBR liquid lowered")
 cvars.chatStyleThing = "y" -- changed by something else mid-flight
-taxi = false; fire("PLAYER_CONTROL_GAINED")
+land()
 C_Timer.After(0.2, function() SetCVarRaw("lastSeenThing", "b") end) -- unrelated change just after landing
 advance(0.01)
 check(cvars.graphicsGroundClutter == "9" and cvars.groundEffectDensity == "256" and cvars.groundEffectDist == "300", "restore: custom density/dist put back at once")
@@ -484,7 +554,7 @@ check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared
 -- User changes a console setting while nothing is active: next snapshot picks it up
 cvars.groundEffectDensity = "200"
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+land(); advance(0.6)
 check(cvars.groundEffectDensity == "200", "new console value captured at next switch")
 -- Crash mid-flight: details recovered on next login
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
@@ -496,7 +566,7 @@ check(cvars.groundEffectDensity == "200" and cvars.farclip == "5000" and cvars.g
 -- Option off: old behaviour
 ns.addon.db.profile.protectDetails = false
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+land(); advance(0.6)
 check(cvars.groundEffectDensity == "144", "option off: preset values left as the game sets them")
 noErrors("session 6")
 
@@ -570,7 +640,7 @@ check(cvars.maxFPS == "15", "General: enable applies again")
 check(type(call(node("general", "status").name)) == "string", "status text renders")
 JimPowerMizer_OnAddonCompartmentClick("JimPowerMizer", "LeftButton")
 check(LibStub("AceConfigDialog-3.0").OpenFrames.JimPowerMizer, "compartment left-click opens options")
-taxi = false; advance(2.1)
+land(); advance(2.1)
 -- Deleted built-ins stay deleted after reload
 run("graphics", "p_Light saver", "delete")
 SavedDB = JimPowerMizerDB
@@ -606,7 +676,7 @@ check(not UIParent:IsShown() and cvars.Brightness == "20", "after the cinematic:
 UIParent:Show() -- user presses Alt+Z
 advance(4)
 check(UIParent:IsShown(), "UI shown by the user stays shown for the rest of the switch")
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.1)
+land(); advance(0.1)
 check(UIParent:IsShown() and cvars.Brightness == "50" and cvars.maxFPS == "144", "landed: UI shown, brightness restored")
 check(cvars.UnitNameNPC == "1" and cvars.UnitNameOwn == "0" and cvars.nameplateShowEnemies == "1", "landed: your name settings back")
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
@@ -618,7 +688,7 @@ combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
 check(not UIParent:IsShown(), "after combat, still flying: UI hidden again")
 -- Combat situation disabled: can't show in lockdown, shown once combat ends
 ns.addon.db.profile.situations.combat.enabled = false
-combat = true; fire("PLAYER_REGEN_DISABLED"); taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(2.5)
+combat = true; fire("PLAYER_REGEN_DISABLED"); land(); advance(2.5)
 check(not UIParent:IsShown() and cvars.maxFPS == "144", "landed in combat lockdown: UI waits")
 combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
 check(UIParent:IsShown(), "UI shown once combat ends")
@@ -660,7 +730,7 @@ local before = { shadow = cvars.graphicsShadowQuality, scale = cvars.renderScale
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(not UIParent:IsShown() and cvars.UnitNameNPC == "0" and cvars.maxFPS == "30" and cvars.useMaxFPS == "1", "Cinematic: UI and names hidden, FPS capped")
 check(cvars.graphicsShadowQuality == before.shadow and cvars.renderScale == before.scale and cvars.graphicsViewDistance == before.view, "Cinematic: graphics left at your settings")
-taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(0.6)
+land(); advance(0.6)
 check(UIParent:IsShown() and cvars.UnitNameNPC == "1" and cvars.maxFPS == "144", "Cinematic ends: everything back")
 slash("watch"); C_CVar.SetCVar("graphicsSSAO", "1")
 local seen = false

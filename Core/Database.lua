@@ -68,7 +68,9 @@ local defaults = {
 			-- character, casting, targeting, looting, NPCs and combat do).
 			idle          = { enabled = true,  profile = "Max saver",   priority = 90,  enterDelay = 0, timeout = 180,
 			                  mouseActivity = false },
-			taxi          = { enabled = true,  profile = "Max saver",   priority = 80,  enterDelay = 2 },
+			-- longIdle.timeout: seconds without input (same rules as idle) before a long absence.
+			longIdle      = { enabled = true,  profile = "Max saver",   priority = 92,  enterDelay = 0, timeout = 900 },
+			taxi          = { enabled = true,  profile = "Max saver",   priority = 91,  enterDelay = 2 },
 			fishing       = { enabled = true,  profile = "Light saver", priority = 55,  enterDelay = 1 },
 			-- crafting.grace: seconds to stay active after a craft ends (ended early by moving or
 			-- closing the profession window).

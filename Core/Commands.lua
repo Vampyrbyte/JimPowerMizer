@@ -12,6 +12,7 @@ local HELP = {
 	L["|cffffd200/jpm list|r - list situations, their settings and whether they're active"],
 	L["|cffffd200/jpm enable <situation>|r / |cffffd200disable <situation>|r - turn a situation on or off"],
 	L["|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle"],
+	L["|cffffd200/jpm longidle <seconds>|r - seconds without input before you count as long idle"],
 	L["|cffffd200/jpm crafting <seconds>|r - how long crafting stays active after a craft ends"],
 	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"],
 	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"],
@@ -142,6 +143,8 @@ function JPM:ListSituations()
 		local extra = ""
 		if key == "idle" then
 			extra = (", after %ds, idle for %ds"):format(cfg.timeout or 0, math.floor(ns.IdleSeconds and ns.IdleSeconds() or 0))
+		elseif key == "longIdle" then
+			extra = (", after %ds"):format(cfg.timeout or 0)
 		elseif key == "crafting" then
 			local left = ns.CraftingGraceLeft and ns.CraftingGraceLeft()
 			extra = (", keep %ds after crafting%s"):format(cfg.grace or 0, left and (" (%ds left)"):format(math.ceil(left)) or "")
@@ -160,6 +163,11 @@ function JPM:HandleSlash(input)
 	cmd = cmd and cmd:lower() or "options"
 	if arg and arg:lower() == "cutscenes" then arg = "cinematic" end -- situation shown as "Cutscenes"
 	local db = self.db.profile
+	if arg and not db.situations[arg] then -- situation keys are camelCase (longIdle, serviceWindow)
+		for key in pairs(db.situations) do
+			if key:lower() == arg:lower() then arg = key break end
+		end
+	end
 
 	if cmd == "options" or cmd == "config" then
 		ns.Options:Toggle()
@@ -189,6 +197,15 @@ function JPM:HandleSlash(input)
 		else
 			db.situations.idle.timeout = math.floor(seconds)
 			self:Msg(L["Idle after %d seconds without input."], db.situations.idle.timeout)
+			ns.Engine:Refresh("settings")
+		end
+	elseif cmd == "longidle" then
+		local seconds = tonumber(arg)
+		if not seconds or seconds < 60 then
+			self:Msg(L["Usage: /jpm longidle <seconds> (at least 60). Currently %d."], db.situations.longIdle.timeout)
+		else
+			db.situations.longIdle.timeout = math.floor(seconds)
+			self:Msg(L["Long idle after %d seconds without input."], db.situations.longIdle.timeout)
 			ns.Engine:Refresh("settings")
 		end
 	elseif cmd == "crafting" then
