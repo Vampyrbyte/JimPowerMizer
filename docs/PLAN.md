@@ -9,7 +9,7 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 | Flavor | Interface | TOC file | API family | Status |
 |---|---|---|---|---|
 | **Forever** | `16001` | `JimPowerMizer_Mainline.toc` | Mainline (Midnight 12.x API) | **Primary target** |
-| Midnight (Standard) | `120105` | `JimPowerMizer_Mainline.toc` | Mainline | Future (easy, same API) |
+| Midnight (Standard) | `120105` (12.1.5 installed; confirm in game) | `JimPowerMizer_Mainline.toc` | Mainline | **In progress** on the `midnight` branch (M5), first release 0.2.x |
 | Mists / Cata / Wrath / TBC / Vanilla | `50504` / … / `11509` | `JimPowerMizer_Classic.toc` or per-flavor | Classic | Future |
 
 **Verified on Forever build 1.60.1 (70938), 2026-11-13 (`/jpm probe`, out of combat):**
@@ -248,8 +248,58 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - [x] **v0.1.3 (2026-11-14):** tagged; released by the workflow
 
 ### M5: More flavors
-- [ ] Crafting: count the crafting orders window (not in Forever)
-- [ ] Midnight: add its interface to `JimPowerMizer_Mainline.toc` (`## Interface: 16001, 120105`), which should be nearly free
+
+#### Midnight (Standard)
+Goal: **one package for Forever and Midnight**, first released as 0.2.x. Forever-only releases stay 0.1.x
+from `main` until the merge.
+
+**How the work is organized**
+- Branch `midnight`, in its own worktree (`../JimPowerMizer-midnight`). Each game's dev copy is linked to
+  its own checkout: `_forever_` → main checkout, `_retail_` → midnight worktree (`scripts/link.sh --forever`
+  / `--retail`, run from the checkout to link). No `git checkout` needed to switch between Forever fixes
+  and Midnight work.
+- Forever fixes and features go to `main` (released as 0.1.x) and are merged into `midnight` (merge, not
+  rebase). Changes that don't depend on the client go to `main` first.
+- CI runs on pushes to `main` and `midnight`. The release workflow runs the same checks first, and
+  `scripts/check-release-tag.sh` only releases stable tags from `main` and alpha/beta tags that include
+  all of `main`.
+
+**Forever must keep working at every step** (betas go to both clients):
+- Shared code (Core, Situations, Options) is the same for both clients; differences between the games
+  live in `Compat`, chosen by interface number (16001 vs 12xxxx), never by `WOW_PROJECT_ID`.
+- The harness runs every shared test for both clients (`tests/harness.lua . forever|midnight`), and CI
+  runs both. Each Midnight change has a Forever check that its behavior is unchanged.
+- New CVars and events must be safe where they don't exist (the registry skips missing CVars; optional
+  events are registered with `pcall`).
+- Before each beta: merge `main`, then a short Forever smoke test (load with `/jpm debug`, force idle and
+  back, a flight, the fishing pole), recorded in the test log.
+
+**Steps**
+- [x] Phase 0: `link.sh --forever/--retail`; CI on `midnight`; release runs the checks; tag guard
+- [ ] Harness flavors (`forever`, `midnight`), CI runs both (on `main`)
+- [ ] Phase 1, in game on Midnight: TOC `## Interface: 16001, 120105`; `/dump select(4, GetBuildInfo()),
+  WOW_PROJECT_ID`; `/jpm debug` load; `/jpm probe` and `/jpm probe combat`; force idle and back (incl.
+  `/console` tweaks); hide UI and names/nameplates. Record results in §1 like Forever's.
+- [ ] Phase 2 (one commit each, both clients pass):
+  - [ ] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
+    channeling Fishing, with a short grace between casts, ended early by moving. Chosen in `Compat`.
+    Spell IDs from `/dump UnitChannelInfo("player")` while fishing
+  - [ ] Service windows: retail's bank, warband bank, auction house and mail interaction types (`/jpm debug`)
+  - [ ] Crafting: count the crafting orders window
+  - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),
+    found with `/jpm watch`; add the ones that save power
+  - [ ] Combat: confirm writes in lockdown (`/jpm probe combat`); the combat deferral covers secure CVars
+  - [ ] Secret values: no "errored" debug lines in combat or dungeons
+  - [ ] Typing and interface clicks keep you active
+- [ ] Packaging: dry-run the packager with both interfaces (game versions on one file for CurseForge and
+  Wago). Fallback: separate TOCs (`_Mainline` for Midnight, `_Camelot` for Forever, if Forever loads it)
+- [ ] Store pages: Retail enabled on CurseForge and Wago; README/store text mention Midnight
+- [ ] Betas `v0.2.0-betaN` from `midnight` (tagged only when asked), for both clients; check each site's
+  Files page shows type Beta. If the sites mishandle it, archive the file and keep testing private
+- [ ] Merge into `main`, retest Forever, release `v0.2.0`. After that, each Midnight patch needs its
+  interface number added to the TOC
+
+#### Later
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
 
 ## 8. Risks / open questions
