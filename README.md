@@ -13,7 +13,7 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
 ```sh
 scripts/fetch-libs.sh          # fetch LibStub + Ace3 into Libs/ (git-ignored)
-scripts/link.sh [game_dir]     # link as AddOns/JimPowerMizerDev (defaults to the _forever_ folder)
+scripts/link.sh [--retail]     # link as AddOns/JimPowerMizerDev in _forever_ (or _retail_)
 luajit tests/harness.lua .     # run the mock-API tests
 scripts/gen-locale.py          # regenerate Locales/enUS.lua after adding L["..."] strings
 ```

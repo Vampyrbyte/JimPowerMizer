@@ -1,18 +1,31 @@
 #!/usr/bin/env bash
-# Link this repo into the game's AddOns folder as a separate dev copy, JimPowerMizerDev, so it
-# can sit next to the release install (AddOns/JimPowerMizer). Enable one of the two at a time in
-# the game's AddOns list. Each keeps its own settings (saved variables are stored per folder).
+# Link this repo (or worktree) into a game's AddOns folder as a separate dev copy,
+# JimPowerMizerDev, so it can sit next to the release install (AddOns/JimPowerMizer). Enable one
+# of the two at a time in the game's AddOns list. Each keeps its own settings (saved variables are
+# stored per folder).
 #
 # The game only reads the TOC named after the folder, so this writes JimPowerMizerDev_Mainline.toc
 # (gitignored) from JimPowerMizer_Mainline.toc with a dev title and version. Run it again after
 # the release TOC changes (e.g. a new file), or the dev copy won't load that file.
 #
-# Usage: scripts/link.sh [path/to/World of Warcraft/_forever_]
-# Defaults to $WOW_FOREVER_DIR, then the Faugus Battle.net prefix on this machine.
+# Usage: scripts/link.sh [--forever | --retail | path/to/World of Warcraft/_flavor_]
+#   --forever (default)  <WoW>/_forever_
+#   --retail             <WoW>/_retail_ (Midnight)
+# <WoW> is $WOW_DIR, defaulting to the Faugus Battle.net prefix on this machine. A path, or
+# $WOW_FOREVER_DIR for the default, overrides it.
+#
+# Running this from another worktree (e.g. the midnight branch) points that game's dev copy at
+# that worktree; run it from the main checkout to point it back.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GAME_DIR="${1:-${WOW_FOREVER_DIR:-$HOME/Faugus/battlenet/drive_c/Program Files (x86)/World of Warcraft/_forever_}}"
+WOW_DIR="${WOW_DIR:-$HOME/Faugus/battlenet/drive_c/Program Files (x86)/World of Warcraft}"
+case "${1:---forever}" in
+	--forever) GAME_DIR="${WOW_FOREVER_DIR:-$WOW_DIR/_forever_}" ;;
+	--retail)  GAME_DIR="$WOW_DIR/_retail_" ;;
+	-*)        echo "Unknown option $1 (use --forever, --retail or a game folder)" >&2; exit 1 ;;
+	*)         GAME_DIR="$1" ;;
+esac
 ADDONS="$GAME_DIR/Interface/AddOns"
 NAME="JimPowerMizerDev"
 TARGET="$ADDONS/$NAME"
@@ -31,7 +44,7 @@ grep -q '^## Title: JimPowerMizer |cffff8000(dev)|r' "$DEV_TOC" && grep -q '^## 
 	|| { echo "Couldn't set the dev title/version in $DEV_TOC" >&2; exit 1; }
 echo "Wrote $DEV_TOC"
 
-# The old setup linked the repo as AddOns/JimPowerMizer, where the release now goes.
+# The first dev setup linked the repo as AddOns/JimPowerMizer, where the release now goes.
 OLD="$ADDONS/JimPowerMizer"
 if [[ -L "$OLD" && "$(readlink -f "$OLD")" == "$ROOT" ]]; then
 	rm "$OLD"
