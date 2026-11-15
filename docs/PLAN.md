@@ -143,7 +143,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
 - **BigWigs packager** (`BigWigsMods/packager` GitHub Action) runs on tag push: fetches `.pkgmeta`
   externals, builds the zip, and optionally uploads to CurseForge / Wago / WoWInterface (needs API tokens as repo secrets).
 - `scripts/fetch-libs.sh` gets Libs for local dev (via the packager's `-d -z` mode or plain `svn`/`git` checkouts).
-- `scripts/link.sh` symlinks the repo into `World of Warcraft/_forever_/Interface/AddOns/JimPowerMizer` (check the folder name on your install).
+- `scripts/link.sh` symlinks the repo into `World of Warcraft/_forever_/Interface/AddOns/JimPowerMizerDev` (with a generated, git-ignored `JimPowerMizerDev_Mainline.toc`), so it can sit next to the release install in `AddOns/JimPowerMizer`.
 - Lint: `luacheck` with WoW globals (`.luacheckrc`), run in CI.
 - Version: `## Version: @project-version@` substituted by packager from git tags.
 

@@ -13,10 +13,15 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
 ```sh
 scripts/fetch-libs.sh          # fetch LibStub + Ace3 into Libs/ (git-ignored)
-scripts/link.sh [game_dir]     # symlink into <game_dir>/Interface/AddOns (defaults to the _forever_ folder)
+scripts/link.sh [game_dir]     # link as AddOns/JimPowerMizerDev (defaults to the _forever_ folder)
 luajit tests/harness.lua .     # run the mock-API tests
 scripts/gen-locale.py          # regenerate Locales/enUS.lua after adding L["..."] strings
 ```
+
+The dev copy (`JimPowerMizerDev`, titled "JimPowerMizer (dev)") can sit next to the release
+install (`JimPowerMizer`) with its own settings. Enable one at a time in the game's AddOns list and
+reload. `link.sh` writes the dev TOC (git-ignored) from the release TOC, so run it again after the
+TOC changes.
 
 CI runs luacheck, the locale check and the tests on every push. Pushing a tag like `v0.2.0` builds
 a release zip with the libraries via the BigWigs packager and attaches it to a GitHub release.
