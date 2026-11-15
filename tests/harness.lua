@@ -109,7 +109,10 @@ local CASCADE = {
 	graphicsLightMode = function(level) SetCVarRaw("giQuality", level + 1); SetCVarRaw("RenderFormat", math.min(level + 1, 2)) end,
 	graphicsPBRLiquidDetail = function(level) SetCVarRaw("pbrLiquidDetail", level) end,
 }
+local writes = {} -- CVar -> number of times it was set
+local CLAMP = {}  -- CVar -> function(number) returning the value the client keeps
 function SetCVarRaw(n, v)
+	writes[n] = (writes[n] or 0) + 1
 	cvars[n] = tostring(v); fire("CVAR_UPDATE", n, tostring(v))
 end
 C_CVar = {
@@ -117,6 +120,7 @@ C_CVar = {
 	SetCVar = function(n, v)
 		if cvars[n] == nil then return false end
 		if secure[n] and combat then error("blocked: secure cvar in combat") end
+		if CLAMP[n] then v = CLAMP[n](tonumber(v)) end
 		SetCVarRaw(n, v)
 		if CASCADE[n] then CASCADE[n](tonumber(v)) end
 		return true
@@ -738,6 +742,101 @@ for _, line in ipairs(printed) do if line:find("CVar graphicsSSAO = 1", 1, true)
 check(seen, "/jpm watch prints setting changes")
 slash("watch")
 noErrors("session 8")
+
+-- Session 9: fixes from the code review ---------------------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+taxi, afk, resting, dead, combat, cine, moving = false, false, false, false, false, false, false
+castInfo, channelInfo, mainHand = nil, nil, nil
+cvars.maxFPSBk = "30"
+ns = session("session 9: review fixes")
+advance(ns.STARTUP_GRACE); poke()
+slash("idle 30"); poke()
+-- Start running inside the settle window after a loading screen and keep running
+fire("LOADING_SCREEN_ENABLED"); fire("LOADING_SCREEN_DISABLED"); fire("PLAYER_ENTERING_WORLD", false, false)
+advance(1); moving = true; fire("PLAYER_STARTED_MOVING"); advance(45)
+check(cvars.maxFPS == "144", "running since just after a loading screen: not idle while still running")
+moving = false; fire("PLAYER_STOPPED_MOVING"); advance(31)
+check(cvars.maxFPS == "20", "idle 30 s after stopping")
+poke(); advance(1)
+-- Carried AFK flag isn't cleared by someone else's flag change
+afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
+fire("LOADING_SCREEN_ENABLED"); afk = false
+fire("LOADING_SCREEN_DISABLED"); fire("PLAYER_ENTERING_WORLD", false, false); advance(6)
+fire("PLAYER_FLAGS_CHANGED", "nameplate3"); advance(1.1)
+check(cvars.maxFPS == "20", "another player's flag change doesn't clear the carried AFK flag")
+poke(); advance(1)
+-- /jpm off during combat, /jpm on after it
+combat = true; fire("PLAYER_REGEN_DISABLED"); advance(0.1)
+slash("off"); combat = false; fire("PLAYER_REGEN_ENABLED"); slash("on"); advance(31)
+check(cvars.maxFPS == "20", "turned off in combat and on after it: idle still works")
+poke(); advance(1)
+slash("idle 600")
+-- /jpm probe while a profile owns maxFPSBk
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPSBk == "20", "flight caps the background FPS")
+slash("probe")
+land(); advance(1)
+check(cvars.maxFPSBk == "30", "probe during a profile doesn't lose your maxFPSBk")
+-- /jpm force while switched off isn't remembered
+slash("off"); slash("force taxi"); slash("on"); advance(3)
+check(cvars.maxFPS == "144" and ns.Engine:GetCurrent() == nil, "/jpm force while off isn't applied on /jpm on")
+-- A switch at the end of combat isn't undone by changes queued during it
+ns.addon.db.profile.situations.combat.enabled = false
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+combat = true; fire("PLAYER_REGEN_DISABLED"); land(); advance(1)
+check(cvars.maxFPS == "144" and cvars.renderScale == "0.5", "landed in combat: secure renderScale queued")
+combat = false; slash("force taxi") -- a switch that lands before the Applier's own combat-end handler
+fire("PLAYER_REGEN_ENABLED"); advance(1)
+check(cvars.maxFPS == "20" and cvars.renderScale == "0.5", "queued restore doesn't overwrite the newer profile")
+slash("force off"); advance(1)
+check(cvars.maxFPS == "144" and cvars.renderScale == "1" and next(JimPowerMizerDB.global.state.baseline) == nil, "and everything is restored afterwards")
+ns.addon.db.profile.situations.combat.enabled = true
+-- Settings profiles carry their own on/off switch
+ns.addon.db:SetProfile("Other"); slash("off")
+ns.addon.db:SetProfile("Default")
+check(ns.Engine:IsEnabled(), "switching to a settings profile that's on turns switching on")
+ns.addon.db:SetProfile("Other")
+check(not ns.Engine:IsEnabled(), "switching to a settings profile that's off turns switching off")
+ns.addon.db:SetProfile("Default")
+-- The client clamps a value we set: not mistaken for a change made by the user
+CLAMP.maxFPS = function(v) return math.max(v, 24) end
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "24", "client clamps the profile's maxFPS")
+land(); advance(1)
+check(cvars.maxFPS == "144", "a clamped value is still restored afterwards")
+CLAMP.maxFPS = nil
+-- A value the profile wants that's already set isn't written again
+local ssao = cvars.graphicsSSAO; cvars.graphicsSSAO = "0"; writes.graphicsSSAO = 0
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+land(); advance(1)
+check(writes.graphicsSSAO == 0 and cvars.graphicsSSAO == "0", "a setting already at the profile's value isn't rewritten")
+cvars.graphicsSSAO = ssao
+-- Secure lower-level setting reset by a delayed cascade after combat lockdown began
+secure.farclip = true; cvars.farclip = "5000" -- (an earlier session left it at a preset value)
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.farclip == "1000", "flight lowers farclip")
+fire("PLAYER_REGEN_DISABLED"); combat = true; land(); advance(1)
+check(cvars.farclip == "4500" and cvars.maxFPS == "144", "in combat: the 2nd pass can't write the secure farclip")
+combat = false; fire("PLAYER_REGEN_ENABLED"); advance(1)
+check(cvars.farclip == "5000", "farclip put back once combat ends")
+check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after that")
+secure.farclip = nil
+-- "Keep custom console settings" turned off mid-flight: what was saved is still put back
+cvars.groundEffectDensity = "200"
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.groundEffectDensity == "0", "flight lowers ground density")
+ns.addon.db.profile.protectDetails = false
+land(); advance(1)
+check(cvars.groundEffectDensity == "200" and cvars.farclip == "5000", "option turned off mid-flight: saved console values still restored")
+ns.addon.db.profile.protectDetails = true
+-- A loading screen that never reports its end
+slash("idle 30"); poke()
+fire("LOADING_SCREEN_ENABLED"); advance(310)
+check(cvars.maxFPS == "20", "idle during an endless loading screen")
+poke(); advance(0.1)
+check(cvars.maxFPS == "144", "after 5 minutes without an end-of-loading event, input counts again")
+slash("idle 600")
+noErrors("session 9")
 
 io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
 os.exit(FAILED and 1 or 0)

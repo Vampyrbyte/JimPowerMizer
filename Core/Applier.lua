@@ -24,17 +24,35 @@ local function state()
 	return ns.addon.db.global.state
 end
 
+local writing -- name of the CVar we're setting right now: its CVAR_UPDATE isn't a user change
+
 -- Set one CVar, remembering the value we wrote. Returns true on success.
 local function write(name, value)
 	local st = state()
 	value = tostring(value)
+	local previous = ns.Compat:GetCVar(name)
+	if Equal(previous, value) then
+		-- Already there: no write, so a preset isn't made to reset the settings under it again.
+		st.owned[name] = previous
+		return true
+	end
 	st.owned[name] = value
+	writing = name
 	local ok = ns.Compat:SetCVar(name, value)
+	writing = nil
 	if not ok then
 		st.owned[name] = nil
 		ns.addon:Debug("SetCVar(%s, %s) failed", name, value)
+		return false
 	end
-	return ok
+	-- The client may clamp or round what we asked for. Remember what it kept, or its value would
+	-- look like a change made by the user (and the saved original would be dropped).
+	local kept = ns.Compat:GetCVar(name)
+	if kept ~= nil and not Equal(kept, value) and not Equal(kept, previous) then
+		st.owned[name] = kept
+		ns.addon:Debug("%s: asked for %s, the client kept %s", name, value, kept)
+	end
+	return true
 end
 
 local function canWriteNow(name)
@@ -128,18 +146,21 @@ local function clearDetails()
 end
 
 -- Write back every remembered detail CVar that differs from its original value.
+-- Returns how many were written, and how many couldn't be (secure CVars in combat).
 local function restoreDetails(label)
-	local n = 0
+	local n, blocked = 0, 0
 	for name, value in pairs(state().detail) do
 		local current = ns.Compat:GetCVar(name)
-		if current ~= nil and not Equal(current, value) and canWriteNow(name) then
-			if ns.Compat:SetCVar(name, value) then
+		if current ~= nil and not Equal(current, value) then
+			if not canWriteNow(name) then
+				blocked = blocked + 1
+			elseif ns.Compat:SetCVar(name, value) then
 				n = n + 1
 				ns.addon:Debug("%s: put back %s = %s (was %s)", label, name, value, current)
 			end
 		end
 	end
-	return n
+	return n, blocked
 end
 
 local function fullyRestored()
@@ -150,7 +171,9 @@ end
 -- `fresh` = the user's own settings are live right now (first change of a saver period).
 local function applyChanges(changes, label, fresh)
 	local st = state()
-	local protect = ns.addon.db.profile.protectDetails
+	-- Details already saved in this period are seen through to the restore, even if the option
+	-- was turned off meanwhile.
+	local protect = ns.addon.db.profile.protectDetails or next(st.detail) ~= nil
 	local before
 	if protect then
 		before = snapshot(getCandidates().all)
@@ -201,8 +224,10 @@ local function applyChanges(changes, label, fresh)
 	ns.addon:ScheduleTimer(function()
 		record(before, candidates.delayed, label .. " (delayed)")
 		if seq == batchSeq and fullyRestored() then
-			restoreDetails("restore (2nd pass)")
-			clearDetails()
+			local _, blocked = restoreDetails("restore (2nd pass)")
+			-- This pass often runs in combat (the restore was for the fight that just started).
+			-- What couldn't be written is kept for OnCombatEnd.
+			if blocked == 0 then clearDetails() end
 		end
 	end, DELAYED_CHECK)
 end
@@ -278,6 +303,9 @@ function Applier:Apply(profileName, reason, force)
 	end
 
 	st.active = profileName
+	-- `changes` covers every CVar we manage (all of them have a baseline), so anything still queued
+	-- from an earlier switch is out of date; what can't be written now is queued again.
+	pending, pendingProfile = nil, nil
 	applyChanges(changes, profileName or "restore", fresh)
 	ns.Screen:Apply(profileName and ns.addon.db.profile.graphicsProfiles[profileName])
 
@@ -319,27 +347,40 @@ end
 -- CVAR_UPDATE: notice user-made changes to CVars we manage.
 function Applier:OnCVarUpdate(_, name, value)
 	if type(name) ~= "string" then return end
-	local st = state()
-	-- CVar names in events can differ in case from ours.
-	for ownedName, ownedValue in pairs(st.owned) do
-		if ownedName:lower() == name:lower() then
-			local current = value or ns.Compat:GetCVar(ownedName)
-			if not Equal(current, ownedValue) then
-				ns.addon:Debug("User changed %s to %s; keeping it", ownedName, tostring(current))
-				st.owned[ownedName] = nil
-				st.baseline[ownedName] = nil
-				if pending then pending[ownedName] = nil end
+	local owned = state().owned
+	if not next(owned) then return end
+	local ownedName, ownedValue = name, owned[name]
+	if ownedValue == nil then
+		-- CVar names in events can differ in case from ours.
+		local lower = name:lower()
+		for k, v in pairs(owned) do
+			if k:lower() == lower then
+				ownedName, ownedValue = k, v
+				break
 			end
-			return
 		end
+		if ownedValue == nil then return end
+	end
+	if ownedName == writing then return end -- our own write, whatever value the client made of it
+	local current = value or ns.Compat:GetCVar(ownedName)
+	if not Equal(current, ownedValue) then
+		ns.addon:Debug("User changed %s to %s; keeping it", ownedName, tostring(current))
+		owned[ownedName] = nil
+		state().baseline[ownedName] = nil
+		if pending then pending[ownedName] = nil end
 	end
 end
 
 function Applier:OnCombatEnd()
-	if not pending then return end
-	local changes = pending
-	pending, pendingProfile = nil, nil
-	applyChanges(changes, state().active or "restore")
+	if pending then
+		local changes = pending
+		pending, pendingProfile = nil, nil
+		applyChanges(changes, state().active or "restore")
+	elseif fullyRestored() and next(state().detail) then
+		-- Lower-level settings the restore couldn't write in combat.
+		restoreDetails("restore (after combat)")
+		clearDetails()
+	end
 end
 
 function Applier:OnLogout()

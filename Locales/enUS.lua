@@ -77,6 +77,7 @@ if L then
 	L["Crafting stays active %d seconds after a craft ends."] = true
 	L["manual restore"] = true
 	L["No longer forcing a situation."] = true
+	L["Automatic switching is off. Turn it on first with /jpm on."] = true
 	L["Watching setting changes. /jpm watch again to stop."] = true
 	L["Stopped watching setting changes."] = true
 	L["situation ended"] = true

@@ -133,6 +133,8 @@ function Database:Init(addon)
 	self:EnsureProfiles(addon)
 	local function changed()
 		self:EnsureProfiles(addon)
+		-- The new settings profile has its own on/off switch.
+		if addon.SetEnabled and ns.Engine then addon:SetEnabled(addon.db.profile.enabled) end
 		if ns.Engine and ns.Engine:IsEnabled() then ns.Engine:Refresh("settings profile changed") end
 		if ns.Options then ns.Options:Refresh() end
 	end

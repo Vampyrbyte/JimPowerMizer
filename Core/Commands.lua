@@ -112,7 +112,10 @@ function JPM:Probe()
 	-- Write test: change maxFPSBk by one and put it back.
 	local name = "maxFPSBk"
 	local before = ns.Compat:GetCVar(name)
-	if before then
+	if before and ns.Applier:GetBaseline()[name] ~= nil then
+		-- The test write would look like a change made by the user and drop the saved original.
+		self:Msg("Write test skipped: %s is changed by the active graphics profile. Run the probe again with your own settings.", name)
+	elseif before then
 		local test = tostring((tonumber(before) or 30) == 30 and 31 or 30)
 		local ok = ns.Compat:SetCVar(name, test)
 		local after = ns.Compat:GetCVar(name)
@@ -225,7 +228,9 @@ function JPM:HandleSlash(input)
 			ns.Engine:Force(nil)
 			self:Msg(L["No longer forcing a situation."])
 		elseif ns.Engine:GetSituation(arg) then
-			ns.Engine:Force(arg)
+			if not ns.Engine:Force(arg) then
+				self:Msg(L["Automatic switching is off. Turn it on first with /jpm on."])
+			end
 		else
 			self:Msg(L["Unknown situation '%s'. See /jpm list."], arg)
 		end

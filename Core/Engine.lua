@@ -5,7 +5,8 @@
 --   ns.Engine:RegisterSituation({
 --     key = "taxi", name = "Flight path",
 --     events = { "PLAYER_CONTROL_LOST", ... },  -- re-evaluate when these fire
---     poll = 2,                                  -- optional: also re-evaluate every N seconds
+--     poll = 2,                                  -- optional: also re-evaluate at least every N seconds
+--                                                --   (all situations share the shortest interval)
 --     OnEvent = function(event, ...) end,        -- optional: called for every engine event first
 --     Evaluate = function() return isActive end,
 --   })
@@ -70,6 +71,8 @@ end
 
 function Engine:Evaluate(trigger, ...)
 	if not enabled then return end
+	-- Fires for every player nearby (AFK, DND, ...); only our own flags matter to any situation.
+	if trigger == "PLAYER_FLAGS_CHANGED" and (...) ~= "player" then return end
 	local now = GetTime()
 	for _, key in ipairs(order) do
 		local def = situations[key]
@@ -131,9 +134,13 @@ function Engine:GetSituation(key)
 	return situations[key]
 end
 
+-- Returns false if `key` can't be forced because the engine is off (it would otherwise be
+-- remembered and applied when the engine is next turned on).
 function Engine:Force(key)
+	if key and not enabled then return false end
 	forced = key
 	self:Evaluate("force")
+	return true
 end
 
 function Engine:Enable()
@@ -141,7 +148,10 @@ function Engine:Enable()
 	enabled = true
 	startupUntil = GetTime() + ns.STARTUP_GRACE
 	for _, key in ipairs(order) do
-		if situations[key].OnEnable then pcall(situations[key].OnEnable) end
+		if situations[key].OnEnable then
+			local ok, err = pcall(situations[key].OnEnable)
+			if not ok then reportError(key, "OnEnable", err) end
+		end
 	end
 	local addon = ns.addon
 	local registered = {}

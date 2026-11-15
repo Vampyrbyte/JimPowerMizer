@@ -225,15 +225,19 @@ end
 
 -- Fishing on Forever means holding the pole in the main hand (item class Weapon, subclass Fishing Pole).
 local MAIN_HAND = 16
+local poleCheckedID, poleResult -- last main-hand item looked up (this is asked every second)
 function impl.IsFishingPoleEquipped()
 	local id = clean(GetInventoryItemID("player", MAIN_HAND))
 	if not id then return false end
+	if id == poleCheckedID then return poleResult end
 	local info = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
 	if not info then return false end
 	local _, _, _, _, _, classID, subclassID = info(id)
 	local weapon = (Enum and Enum.ItemClass and Enum.ItemClass.Weapon) or 2
 	local pole = (Enum and Enum.ItemWeaponSubclass and Enum.ItemWeaponSubclass.Fishingpole) or 20
-	return classID == weapon and subclassID == pole
+	local result = classID == weapon and subclassID == pole
+	if classID ~= nil then poleCheckedID, poleResult = id, result end -- don't cache "no item info yet"
+	return result
 end
 
 local function initProfessions(notify)
