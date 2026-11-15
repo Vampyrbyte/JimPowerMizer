@@ -114,6 +114,7 @@ local CASCADE = {
 }
 local writes = {} -- CVar -> number of times it was set
 local CLAMP = {}  -- CVar -> function(number) returning the value the client keeps
+local LATE = {}   -- CVar -> true: CVAR_UPDATE fires a moment after the write, not during it
 function SetCVarRaw(n, v)
 	writes[n] = (writes[n] or 0) + 1
 	cvars[n] = tostring(v); fire("CVAR_UPDATE", n, tostring(v))
@@ -124,7 +125,12 @@ C_CVar = {
 		if cvars[n] == nil then return false end
 		if secure[n] and combat then error("blocked: secure cvar in combat") end
 		if CLAMP[n] then v = CLAMP[n](tonumber(v)) end
-		SetCVarRaw(n, v)
+		if LATE[n] then
+			cvars[n] = tostring(v)
+			C_Timer.After(0.01, function() fire("CVAR_UPDATE", n, cvars[n]) end)
+		else
+			SetCVarRaw(n, v)
+		end
 		if CASCADE[n] then CASCADE[n](tonumber(v)) end
 		return true
 	end,
@@ -820,6 +826,14 @@ taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.maxFPS == "24", "client clamps the profile's maxFPS")
 land(); advance(1)
 check(cvars.maxFPS == "144", "a clamped value is still restored afterwards")
+-- The same when the game reports the change a moment after the write rather than during it
+LATE.maxFPS = true
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(cvars.maxFPS == "24" and JimPowerMizerDB.global.state.baseline.maxFPS == "144", "clamped value reported late: your original is still saved")
+land(); advance(1)
+check(cvars.maxFPS == "144", "a clamped value reported late is still restored afterwards")
+check(next(JimPowerMizerDB.global.state.baseline) == nil and next(JimPowerMizerDB.global.state.owned) == nil, "nothing left over after the late reports")
+LATE.maxFPS = nil
 CLAMP.maxFPS = nil
 -- A value the profile wants that's already set isn't written again
 local ssao = cvars.graphicsSSAO; cvars.graphicsSSAO = "0"; writes.graphicsSSAO = 0
