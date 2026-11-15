@@ -472,11 +472,24 @@ taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.maxFPS == "20", "flight -> Max saver")
 taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(30)
 check(cvars.maxFPS == "20", "landed, untouched: still saving")
-fire("PLAYER_TARGET_CHANGED"); advance(0.1)
-check(cvars.maxFPS == "20", "changing target after landing doesn't end it")
 fire("PLAYER_STARTED_MOVING"); advance(0.1)
 check(cvars.maxFPS == "144", "moving after landing ends it")
 fire("PLAYER_STOPPED_MOVING")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+fire("PLAYER_TARGET_CHANGED"); advance(5) -- input during the flight isn't input after landing
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(30)
+check(cvars.maxFPS == "20", "targeting during the flight doesn't end it after landing")
+fire("PLAYER_TARGET_CHANGED"); advance(0.1)
+check(cvars.maxFPS == "144", "changing target after landing ends it (any input by Idle's rules)")
+-- With Idle's mouse option on, the turn of the landing itself isn't input; moving the mouse later is
+ns.addon.db.profile.situations.idle.mouseActivity = true
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+facing = facing + 1; advance(3); facing = facing + 1
+taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(30)
+check(cvars.maxFPS == "20", "mouse option on: the landing's own turn doesn't end it")
+cx = cx + 50; advance(1.1)
+check(cvars.maxFPS == "144", "mouse option on: moving the mouse after landing ends it")
+ns.addon.db.profile.situations.idle.mouseActivity = false
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 taxi = false; fire("PLAYER_CONTROL_GAINED"); advance(2.1)
 moving = true; advance(2.1)

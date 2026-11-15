@@ -97,7 +97,7 @@ if L then
 	L["In-game cutscenes and movies."] = true
 	L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["No input for the long idle timeout (same rules as Idle; the AFK flag doesn't shorten it). Give it a different profile than Idle to save more during a long absence."] = true
-	L["On a flight path, and after landing until you move."] = true
+	L["On a flight path, and after landing until you do something: move, cast, target, loot, talk to an NPC or enter combat."] = true
 	L["A fishing pole is in your main hand."] = true
 	L["Crafting with a profession, and for a short time after each craft so the next one doesn't switch back and forth. Having the profession window open doesn't count on its own. Moving, or closing the profession window, ends it early."] = true
 	L["Dead or a ghost."] = true

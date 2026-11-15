@@ -162,6 +162,11 @@ ns.Engine:RegisterSituation({
 	end,
 })
 
+-- GetTime() of the last input, by Idle's rules (shared with the Flight path situation).
+function ns.LastInputTime()
+	return lastActivity
+end
+
 -- For /jpm status.
 function ns.IdleSeconds()
 	return GetTime() - lastActivity

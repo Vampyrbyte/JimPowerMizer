@@ -26,7 +26,7 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 | **Cutscenes** | Always your own settings |
 | **Idle / AFK** | *Max saver* after 3 minutes without input, or 5 seconds after `/afk` |
 | **Long idle** | *Max saver* after 15 minutes without input; give it its own profile (e.g. *Cinematic*, or *Light saver* for short idle) |
-| **Flight path** | *Max saver*, until you move after landing |
+| **Flight path** | *Max saver*, until you do something after landing |
 | **Fishing** | *Light saver* while a fishing pole is in your main hand |
 | **Crafting** | *Light saver* while you craft, and for 10 seconds after (moving or closing the profession window ends it sooner) |
 | Dead / ghost | Off by default |
