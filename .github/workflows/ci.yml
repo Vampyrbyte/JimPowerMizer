@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, midnight]
   pull_request:
+  workflow_call: # the release workflow runs these checks before packaging
 
 jobs:
   check:
