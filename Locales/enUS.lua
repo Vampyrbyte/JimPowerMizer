@@ -95,9 +95,9 @@ if L then
 	L["Flight path"] = true
 	L["In combat. Use your own settings so fights look and play as normal."] = true
 	L["In-game cutscenes and movies."] = true
-	L["You're AFK, or haven't moved your character, cast, targeted, looted or talked to an NPC for the idle timeout. Being carried by a ship or zeppelin doesn't count as moving."] = true
+	L["You're AFK, or haven't done anything for the idle timeout: moved your character, cast, targeted, looted, talked to an NPC, typed, or clicked in or opened a window. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["No input for the long idle timeout (same rules as Idle; the AFK flag doesn't shorten it). Give it a different profile than Idle to save more during a long absence."] = true
-	L["On a flight path, and after landing until you do something: move, cast, target, loot, talk to an NPC or enter combat."] = true
+	L["On a flight path, and after landing until you do something (the same input as for Idle)."] = true
 	L["A fishing pole is in your main hand."] = true
 	L["Crafting with a profession, and for a short time after each craft so the next one doesn't switch back and forth. Having the profession window open doesn't count on its own. Moving, or closing the profession window, ends it early."] = true
 	L["Dead or a ghost."] = true
@@ -137,7 +137,7 @@ if L then
 	L["Idle after (seconds)"] = true
 	L["Seconds without input before you count as idle. With the AFK flag set, idle starts after 5 seconds."] = true
 	L["Mouse and camera movement count as activity"] = true
-	L["Moving the mouse, panning the camera or turning ends idle. Off: only moving your character, casting, targeting, looting, talking to NPCs and combat do."] = true
+	L["Moving the mouse, panning the camera or turning ends idle. Off: only actions do, such as moving your character, casting, targeting, looting, typing, clicking in a window and combat."] = true
 	L["Long idle after (seconds)"] = true
 	L["Seconds without input before you count as long idle. Mouse and camera movement count as input if Idle's option says so."] = true
 	L["Keep after crafting (seconds)"] = true

@@ -2,7 +2,10 @@
 -- Long idle: no input for its own (longer) `timeout`, so a long absence can use another graphics
 -- profile. It shares Idle's input tracking (and the mouse option); the AFK flag doesn't shorten it.
 --
--- Input = moving your character, casting, changing target, looting, talking to an NPC, combat.
+-- Input = moving your character, casting, changing target, looting, talking to an NPC, combat,
+-- typing (chat or any other text box), clicking on the interface, and opening a window (mailbox,
+-- vendor, bank, auction house, professions, flight map). The last three come from the Compat
+-- layer: typing as a polled snapshot, the others as the trigger "USER_INPUT".
 -- Movement comes from PLAYER_STARTED/STOPPED_MOVING, which only fire for your own movement, not
 -- when a ship or zeppelin carries you (polled speed and facing do change on a transport).
 -- Mouse and camera movement (cursor, facing, mouselook, turning) only count if the idle option
@@ -19,6 +22,7 @@ local LOAD_SETTLE = 5 -- seconds after a loading screen during which nothing cou
 local LOAD_MAX = 300 -- a loading screen that hasn't reported its end by now is taken to be over
 local lastActivity = 0
 local lastX, lastY, lastFacing
+local lastBox, lastText -- edit box with keyboard focus at the last poll, and its text
 local inCombat = false
 local movingByInput = false -- between PLAYER_STARTED_MOVING and PLAYER_STOPPED_MOVING
 local loading = false -- between LOADING_SCREEN_ENABLED and LOADING_SCREEN_DISABLED
@@ -30,7 +34,7 @@ local pendingMove = false -- PLAYER_STARTED_MOVING seen in the settle window, no
 -- Event -> activity name (for the debug line).
 local ACTIVITY_EVENTS = {
 	PLAYER_TARGET_CHANGED = "target", UNIT_SPELLCAST_SENT = "casting", LOOT_OPENED = "looting",
-	GOSSIP_SHOW = "NPC", QUEST_DETAIL = "quest",
+	GOSSIP_SHOW = "NPC", QUEST_DETAIL = "quest", TAXIMAP_OPENED = "flight map",
 	-- Combat counts as activity (and combat outranks idle anyway).
 	PLAYER_REGEN_DISABLED = "combat", PLAYER_REGEN_ENABLED = "combat",
 }
@@ -71,6 +75,7 @@ ns.Engine:RegisterSituation({
 	OnEnable = function()
 		lastActivity = GetTime()
 		lastX, lastY, lastFacing = nil, nil, nil
+		lastBox, lastText = nil, nil
 		movingByInput = false
 		loading, settleUntil, afkCarried, pendingMove = false, 0, false, false
 		inCombat = ns.Compat:IsInCombat() -- enabled mid-combat, or disabled during the last fight
@@ -104,6 +109,8 @@ ns.Engine:RegisterSituation({
 			if unit == "player" and not ns.Compat:IsAFK() then afkCarried = false end -- /afk toggled off
 		elseif ACTIVITY_EVENTS[event] then
 			activity(ACTIVITY_EVENTS[event])
+		elseif event == "USER_INPUT" then -- from the Compat layer; `unit` is what it was
+			activity(unit or "input")
 		elseif CAMERA_EVENTS[event] and settings().mouseActivity then
 			activity(CAMERA_EVENTS[event])
 		end
@@ -126,6 +133,11 @@ ns.Engine:RegisterSituation({
 		-- A missed STOPPED_MOVING mustn't block idle forever: "not moving" from the poll is reliable.
 		if movingByInput and not moving then movingByInput = false end
 		if pendingMove and not moving then pendingMove = false end
+		-- A text box that just got the keyboard focus, or whose text changed. Losing the focus
+		-- isn't input: hiding the interface takes it away.
+		local box, text = ns.Compat:GetTypingSnapshot()
+		local typing = box ~= nil and (box ~= lastBox or text ~= lastText)
+		lastBox, lastText = box, text
 		if settling(now) then
 			-- Zoning moves the cursor, facing and cast state: only refresh the baselines.
 			x, y, facing = nil, nil, nil
@@ -137,6 +149,8 @@ ns.Engine:RegisterSituation({
 			lastActivity = now -- still running: no log line every second
 		elseif casting then
 			activity("casting", now)
+		elseif typing then
+			activity("typing", now)
 		elseif settings().mouseActivity then
 			local cursorMoved = x ~= nil and lastX ~= nil and (math.abs(x - lastX) > 1 or math.abs(y - lastY) > 1)
 			local turned = facing ~= nil and lastFacing ~= nil and math.abs(facing - lastFacing) > 0.01

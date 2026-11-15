@@ -98,6 +98,27 @@ function impl.GetActivitySnapshot()
 	return moving and true or false, casting and true or false, x, y, facing
 end
 
+-- Typing: the edit box with keyboard focus and its text. The caller compares these between polls
+-- (a new box, or new text, means the player is typing).
+function impl.GetTypingSnapshot()
+	local box = GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
+	if not box or not box.GetText or (box.IsForbidden and box:IsForbidden()) then return nil end
+	return box, clean(box:GetText())
+end
+
+-- A mouse click on the interface (a window, a button, the chat box), as opposed to one on the
+-- world, which may just be panning the camera.
+local function mouseOverInterface()
+	local focus
+	if GetMouseFoci then
+		local foci = GetMouseFoci()
+		focus = type(foci) == "table" and foci[1] or nil
+	elseif GetMouseFocus then
+		focus = GetMouseFocus()
+	end
+	return focus ~= nil and focus ~= _G.WorldFrame
+end
+
 -- Lower-level graphics CVars. Setting a graphics preset CVar (graphicsGroundClutter, ...) makes the
 -- client overwrite the CVars it controls (groundEffectDensity, ...) with its own values, wiping
 -- tweaks made with /console. We snapshot these and put them back after restoring the presets.
@@ -257,7 +278,7 @@ local function initProfessions(notify)
 			local open = event == "TRADE_SKILL_SHOW"
 			if open ~= professionWindowOpen then
 				professionWindowOpen = open
-				notify(open and "profession window opened" or "profession window closed")
+				if open then notify("USER_INPUT", "profession window") else notify("profession window closed") end
 			end
 		elseif unit == "player" then
 			local now = impl.IsCraftingCast()
@@ -309,8 +330,19 @@ function impl.Init(notify)
 		end
 		local was = openWindows[key] or false
 		openWindows[key] = open or nil
-		if was ~= open then notify("service window " .. key) end
+		-- Opening a window is something the player did; closing may just be walking away.
+		if was ~= open then
+			if open then notify("USER_INPUT", key .. " window") else notify("service window " .. key) end
+		end
 	end)
+
+	local clicks = CreateFrame("Frame")
+	if pcall(clicks.RegisterEvent, clicks, "GLOBAL_MOUSE_DOWN") then -- may not exist on every client
+		clicks:SetScript("OnEvent", function()
+			local ok, onInterface = pcall(mouseOverInterface)
+			if ok and onInterface then notify("USER_INPUT", "interface click") end
+		end)
+	end
 end
 
 ns.Compat:Register(impl)

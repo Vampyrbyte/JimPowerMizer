@@ -22,6 +22,7 @@ local REQUIRED = {
 	"IsProfessionWindowOpen", -- () -> boolean
 	"IsFishingPoleEquipped", -- () -> boolean (fishing pole in the main hand)
 	"GetActivitySnapshot", -- () -> moving, casting, cursorX, cursorY, facing (facing may be nil)
+	"GetTypingSnapshot", -- () -> focused edit box (or nil), its text (may be nil): compared between polls
 	"GetCascadeCandidates", -- () -> delayedNames, syncNames, countFromConsole (see Applier)
 }
 
@@ -42,10 +43,11 @@ function Compat:Init()
 			self.name = impl.name
 			self.impl = impl
 			-- Optional: lets the implementation tell the Engine its state changed (event-driven
-			-- trackers such as the service-window one).
+			-- trackers such as the service-window one). The reason "USER_INPUT" (plus a word for
+			-- the debug line) means the player did something: Idle counts it as input.
 			if impl.Init then
-				impl.Init(function(reason)
-					if ns.Engine and ns.Engine:IsEnabled() then ns.Engine:Evaluate(reason) end
+				impl.Init(function(reason, ...)
+					if ns.Engine and ns.Engine:IsEnabled() then ns.Engine:Evaluate(reason, ...) end
 				end)
 			end
 			return

@@ -64,6 +64,9 @@ GetInventoryItemID = function(_, slot) if slot == 16 then return mainHand end en
 C_Item = { GetItemInfoInstant = function(id) local i = ITEMS[id]
 	if i then return id, "Weapon", "?", "INVTYPE_WEAPON", 0, i[1], i[2] end end }
 GetCursorPosition = function() return cx, cy end
+local focusBox, mouseFocus -- edit box with keyboard focus; frame under the mouse
+GetCurrentKeyBoardFocus = function() return focusBox end
+GetMouseFoci = function() return { mouseFocus } end
 local facing = 1.5
 GetPlayerFacing = function() return facing end
 InCinematic = function() return cine end
@@ -848,6 +851,28 @@ fire("LOADING_SCREEN_ENABLED"); advance(310)
 check(cvars.maxFPS == "20", "idle during an endless loading screen")
 poke(); advance(0.1)
 check(cvars.maxFPS == "144", "after 5 minutes without an end-of-loading event, input counts again")
+-- Typing, clicking on the interface and opening a window are input
+poke(); advance(20)
+local chatText = ""
+focusBox = { GetText = function() return chatText end }; advance(15)
+check(cvars.maxFPS == "144", "opening the chat box is input")
+chatText = "hel"; advance(20); chatText = "hello"; advance(20)
+check(cvars.maxFPS == "144", "typing keeps you active")
+advance(31)
+check(cvars.maxFPS == "20", "a chat box left open and untouched doesn't block idle")
+focusBox = nil; advance(2)
+check(cvars.maxFPS == "20", "losing the keyboard focus (e.g. interface hidden) isn't input")
+mouseFocus = WorldFrame; fire("GLOBAL_MOUSE_DOWN", "RightButton"); advance(0.1)
+check(cvars.maxFPS == "20", "a click on the world (panning the camera) isn't input")
+mouseFocus = UIParent; fire("GLOBAL_MOUSE_DOWN", "LeftButton"); advance(0.1)
+check(cvars.maxFPS == "144", "a click on the interface is input")
+mouseFocus = nil; advance(31)
+check(cvars.maxFPS == "20", "idle again")
+fire("MAIL_SHOW"); advance(0.1)
+check(cvars.maxFPS == "144", "opening the mailbox is input")
+fire("MAIL_CLOSED"); advance(31)
+check(cvars.maxFPS == "20", "closing it isn't")
+poke(); advance(1)
 slash("idle 600")
 noErrors("session 9")
 
