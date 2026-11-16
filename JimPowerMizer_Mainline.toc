@@ -1,4 +1,4 @@
-## Interface: 16001
+## Interface: 16001, 120105
 ## Title: JimPowerMizer
 ## Notes: Switches graphics settings by situation (idle, flight path, ...) to save power.
 ## Author: Jim Walters
