@@ -291,7 +291,8 @@ from `main` until the merge.
   - [x] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
     channeling Fishing (spell 131476, or any channel with that spell's name), then `fishing.grace` seconds
     (default 10, an option on Midnight only), ended early by moving. Chosen by `Compat:FishesByChannel()`
-  - [ ] **In game (Midnight):** fishing casts switch to Light saver and stay there between casts
+  - [x] **In game (2026-11-16, Midnight):** fishing casts switch to Light saver and stay there between casts;
+    the grace period ends after 10 s or on moving
   - [x] Service windows: no change needed. **In game (2026-11-16, Midnight 12.1.5):** bank `Banker` (8),
     mail `MailInfo` (17), vendor `Merchant` (5), auction house `Auctioneer` (21); each also fires its older
     window event, and every one starts and ends the situation. `AccountBanker` (warband bank from a
