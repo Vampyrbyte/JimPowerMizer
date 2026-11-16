@@ -313,11 +313,15 @@ from `main` until the merge.
   - [x] Secret values: no errors in a long open-world fight (2026-11-16, target dummy)
   - [ ] Secret values in a dungeon: not run yet on Midnight
   - [x] Typing and interface clicks keep you active; panning the camera doesn't (2026-11-16)
-- [ ] Packaging: dry-run the packager with both interfaces (game versions on one file for CurseForge and
-  Wago). Fallback: separate TOCs (`_Mainline` for Midnight, `_Camelot` for Forever, if Forever loads it)
-- [ ] Store pages: Retail enabled on CurseForge and Wago; README/store text mention Midnight
+- [x] Packaging: the BigWigs packager takes `_Mainline` with `## Interface: 16001, 120105` as one file for
+  Forever and Retail ("multi-version", game versions 12.1.5 and 1.60.1); no separate TOCs needed
+- [x] Store pages: nothing to enable. CurseForge and Wago take the game versions and the release type per file,
+  and the packager sets both (from the TOC and the tag name). README mentions Midnight (on `midnight`)
 - [ ] Betas `v0.2.0-betaN` from `midnight` (tagged only when asked), for both clients; check each site's
   Files page shows type Beta. If the sites mishandle it, archive the file and keep testing private
+  - [x] **v0.2.0-beta1 (2026-11-16):** from `midnight` at `2878360`. Uploaded to CurseForge and Wago as beta
+    for 12.1.5 and 1.60.1; GitHub pre-release. Still to check: each site's Files page
+  - [ ] Feedback wanted: crafting orders windows, dungeons (secret values)
 - [ ] Merge into `main`, retest Forever, release `v0.2.0`. After that, each Midnight patch needs its
   interface number added to the TOC
 
