@@ -47,4 +47,13 @@ jobs:
             echo "::error::CurseForge rejected CF_API_TOKEN (HTTP $code). Use an upload token from https://authors.curseforge.com/account/api-tokens and check the secret has no extra spaces or newlines."
             exit 1
           fi
+      # Label the upload only with the game versions of the TOCs it contains (scripts/package-args.sh).
+      - name: Packager arguments
+        id: pkg
+        run: |
+          args=$(scripts/package-args.sh)
+          echo "Packager arguments: ${args:-(none)}"
+          echo "args=$args" >> "$GITHUB_OUTPUT"
       - uses: BigWigsMods/packager@v2
+        with:
+          args: ${{ steps.pkg.outputs.args }}
