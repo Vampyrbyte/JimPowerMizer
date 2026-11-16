@@ -66,6 +66,7 @@ Registry.NAME_CVARS = {
 	"UnitNameEnemyGuardianName", "UnitNameEnemyTotemName",
 	"UnitNamePlayerGuild", "UnitNamePlayerPVPTitle", "UnitNameGuildTitle",
 	"nameplateShowAll", "nameplateShowEnemies", "nameplateShowFriends", "nameplateShowFriendlyNPCs",
+	"nameplateShowFriendlyPlayers", -- Midnight 12.1.5, which has no nameplateShowFriends
 }
 for _, name in ipairs(Registry.NAME_CVARS) do
 	CVARS[#CVARS + 1] = { name = name, kind = "bool", label = name, hidden = true }
