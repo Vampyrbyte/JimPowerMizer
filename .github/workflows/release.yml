@@ -18,6 +18,8 @@ jobs:
         run: |
           git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'
           scripts/check-release-tag.sh "$GITHUB_REF_NAME" origin
+      - name: Check the tag has release notes
+        run: scripts/release-notes.sh "$GITHUB_REF_NAME" > /dev/null
 
   # The same lint, locale and mock-API checks as CI: nothing is packaged if one fails.
   checks:
@@ -54,6 +56,12 @@ jobs:
           args=$(scripts/package-args.sh)
           echo "Packager arguments: ${args:-(none)}"
           echo "args=$args" >> "$GITHUB_OUTPUT"
+      # The notes for this tag (docs/releases/<tag>.md) plus the AI disclosure; .pkgmeta names the file
+      # as the manual changelog, used for the GitHub release, CurseForge and Wago.
+      - name: Release notes
+        run: |
+          scripts/release-notes.sh "$GITHUB_REF_NAME" > .release-notes.md
+          cat .release-notes.md
       - uses: BigWigsMods/packager@v2
         with:
           args: ${{ steps.pkg.outputs.args }}
