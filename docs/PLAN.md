@@ -370,9 +370,10 @@ without affecting the other's players).
 - While 0.2.0 isn't stable, each line goes to its own clients: `v0.2.0-betaN` (from `midnight`) to Forever
   and Midnight, `v0.3.0-betaN` (from `classic`) to the Classic clients only. Neither can overtake the
   other, since they never share a game version.
-- 0.3 packages leave out `JimPowerMizer_Mainline.toc` (an `ignore` line in `.pkgmeta`, on `classic` only),
-  so the packager labels them for Classic game versions only. That line is removed once 0.2.0 is stable;
-  from then on 0.3 betas go to every client.
+- 0.3 packages leave out `JimPowerMizer_Mainline.toc` (an `ignore` line in `.pkgmeta`, on `classic` only).
+  The packager would still label them with every TOC's game versions, so the release workflow passes
+  `-g` with only the packaged TOCs' versions (`scripts/package-args.sh`; dry run on `classic`: 1.15.9
+  only). The `ignore` line is removed once 0.2.0 is stable; from then on 0.3 betas go to every client.
 - A Midnight fix ships to Forever and Midnight beta players in the next 0.2 beta. It reaches Classic
   players only in a later 0.3 beta, after the Classic tests. A Classic fix never reaches 0.2 players.
 - Still merged down the chain (`main` → `midnight` → `classic`), so the final merges stay small.
@@ -381,14 +382,18 @@ without affecting the other's players).
 - [ ] Phase 0 (no game needed, except reading interface numbers):
   - [ ] The live Classic clients, their folders and interface numbers (`/dump select(4, GetBuildInfo())`),
     and whether each reads a `_Classic` TOC (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager
-    accepts any Classic interface in `_Classic`
-  - [ ] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic`; `link.sh` options for
-    `_classic_era_` (and each Classic folder added later)
-  - [ ] CI on `classic`; tag guard as above
-  - [ ] Harness flavors `classic_era`, `tbc_anniversary`, `mists_classic`; CI runs all flavors
-  - [ ] `JimPowerMizer_Classic.toc` (same file list); Compat chosen by interface. Start by finding how
-    much of `Compat/Mainline.lua` works there (Classic runs a modern client); `Compat/Classic.lua` only
-    for what differs
+    accepts any Classic interface in `_Classic`. Era: `_classic_era_`, build 1.15.9.70576, interface
+    11509 assumed. TBC Anniversary and Mists Classic: waiting for the installs
+  - [x] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic` (2026-11-16);
+    `link.sh --classic-era` (a dev TOC per release TOC); Era's dev copy linked to `classic`
+  - [x] CI on `classic`; each branch lists its client flavors in `tests/flavors`; tag guard for 0.3
+    (includes `main` and `midnight`; Classic-only while 0.2 isn't stable); game versions from the
+    packaged TOCs only
+  - [ ] Harness flavors: `classic_era` done (the mock still behaves like Mainline until the in-game
+    probe); `tbc_anniversary`, `mists_classic` after the installs
+  - [x] `JimPowerMizer_Classic.toc` (same file list, `## Interface: 11509`). Compat: the existing
+    Mainline code passes the harness as Era and picks the held-pole fishing rule by interface; what
+    Classic really lacks comes from the Phase 1 probe
 - [ ] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
   short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
