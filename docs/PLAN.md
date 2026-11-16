@@ -307,8 +307,9 @@ from `main` until the merge.
     (refused with "not a Shader Model 6 card" although `gxApi` is D3D12; maybe turned off with ray tracing).
     Revisit when ray tracing is back
   - [x] Combat: writes work in lockdown (`/jpm probe combat`, 2026-11-16); the combat deferral covers secure CVars
-  - [ ] Secret values: no "errored" debug lines in combat or dungeons
-  - [ ] Typing and interface clicks keep you active
+  - [x] Secret values: no errors in a long open-world fight (2026-11-16, target dummy)
+  - [ ] Secret values in a dungeon: not run yet on Midnight
+  - [x] Typing and interface clicks keep you active; panning the camera doesn't (2026-11-16)
 - [ ] Packaging: dry-run the packager with both interfaces (game versions on one file for CurseForge and
   Wago). Fallback: separate TOCs (`_Mainline` for Midnight, `_Camelot` for Forever, if Forever loads it)
 - [ ] Store pages: Retail enabled on CurseForge and Wago; README/store text mention Midnight
