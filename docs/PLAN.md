@@ -362,16 +362,20 @@ client's folder and interface number.
 - Parallel work: one Claude session per folder. Each game's dev copy is linked to the folder whose
   code it should run (`scripts/link.sh`).
 - Tag guard: stable tags only from `main` (unchanged); a `v0.3.0` pre-release must include all of `main`
-  and of `midnight` while `midnight` is unmerged.
+  and of `midnight` while `midnight` is unmerged, and (while 0.2.0 isn't stable) its package must not
+  include `JimPowerMizer_Mainline.toc`.
 
-**Two beta lines at once (decision needed).** Beta players get the newest beta file for their game
-version, so a `v0.2.0-beta2` uploaded after `v0.3.0-beta1` could take Forever and Midnight beta players
-back to a lower version.
-- A (recommended): once 0.3 betas start, they replace 0.2 betas for every client. Midnight fixes merge
-  down into `classic` and ship in the next 0.3 beta. 0.2.0 stable still comes from merging `midnight`
-  into `main` when the Retail feedback is good. One beta line, version numbers only go up.
-- B: both lines continue, 0.2 betas for Forever and Midnight, 0.3 betas for Classic only, until 0.2.0
-  is stable. Needs Classic-only packages from `classic` for a while.
+**Two beta lines at once** (decided 2026-11-16: run them side by side, so a fix can be tested in one
+without affecting the other's players).
+- While 0.2.0 isn't stable, each line goes to its own clients: `v0.2.0-betaN` (from `midnight`) to Forever
+  and Midnight, `v0.3.0-betaN` (from `classic`) to the Classic clients only. Neither can overtake the
+  other, since they never share a game version.
+- 0.3 packages leave out `JimPowerMizer_Mainline.toc` (an `ignore` line in `.pkgmeta`, on `classic` only),
+  so the packager labels them for Classic game versions only. That line is removed once 0.2.0 is stable;
+  from then on 0.3 betas go to every client.
+- A Midnight fix ships to Forever and Midnight beta players in the next 0.2 beta. It reaches Classic
+  players only in a later 0.3 beta, after the Classic tests. A Classic fix never reaches 0.2 players.
+- Still merged down the chain (`main` → `midnight` → `classic`), so the final merges stay small.
 
 **Steps**
 - [ ] Phase 0 (no game needed, except reading interface numbers):
@@ -397,12 +401,14 @@ back to a lower version.
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
   - [ ] Crafting: `isTradeSkill`; Era may use separate Craft window events for some professions
   - [ ] Secret values: not expected on Classic (already optional in Compat)
-- [ ] Packaging: dry run with `_Mainline` and `_Classic` TOCs; check the game versions on CurseForge
-  and Wago for each Classic client
-- [ ] Betas `v0.3.0-betaN` from `classic` (tagged only when asked). Before each: merge `midnight`, a
-  short Forever and Midnight smoke test, and the Classic tests
-- [ ] Finish: merge `midnight` into `main`, release 0.2.0; merge `main` into `classic`; when Classic
-  feedback is good, merge `classic` into `main` and release 0.3.0. Then one branch again; remove the
+- [ ] Packaging: dry run on `classic` with the `.pkgmeta` ignore line: only the `_Classic` TOC packaged, game
+  versions only Classic ones; check CurseForge and Wago list each Classic client. Later, a dry run with
+  both TOCs (after 0.2.0)
+- [ ] Betas `v0.3.0-betaN` from `classic` (tagged only when asked), Classic clients only. Before each:
+  merge `midnight`, run the Classic tests. Forever/Midnight smoke tests only once 0.3 packages include them
+- [ ] Finish: merge `midnight` into `main`, release 0.2.0; merge `main` into `classic` and drop the
+  `.pkgmeta` ignore line (0.3 betas now go to every client, with Forever and Midnight smoke tests); when
+  Classic feedback is good, merge `classic` into `main` and release 0.3.0. Then one branch again; remove the
   worktrees. Each Classic patch then needs its interface number added, like Midnight's
 
 ## 8. Risks / open questions
@@ -413,8 +419,9 @@ back to a lower version.
   a `/console` change made *while* a saver profile is active is overwritten by the snapshot on restore.
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
-- **Three branches at once (M6).** More merging, and each beta needs smoke tests on every client. The
-  one-way merge rule and the tag guard keep releases from missing fixes.
+- **Three branches, two beta lines (M6).** More merging and more release steps. The one-way merge rule
+  and the tag guard keep releases from missing fixes; separate game versions keep the beta lines apart.
+  If 0.2.0 takes long, 0.3 stays Classic-only for as long.
 - **Classic test coverage.** Each Classic client has to be installed and tested; interface numbers change
   with Classic patches as with Midnight.
 - **Taxi detection edge cases:** dragonriding / skyriding "flight paths" and boat/zeppelin rides aren't `UnitOnTaxi`.
