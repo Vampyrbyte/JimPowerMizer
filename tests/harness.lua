@@ -112,8 +112,9 @@ local cvars = {
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
 }
--- Friendly player nameplates: Midnight 12.1.5 has nameplateShowFriendlyPlayers and no nameplateShowFriends.
-local FRIEND_PLATES = FLAVOR == "midnight" and "nameplateShowFriendlyPlayers" or "nameplateShowFriends"
+-- Friendly player nameplates: both clients have nameplateShowFriendlyPlayers and no nameplateShowFriends
+-- (seen in game on Forever 1.60.1 and Midnight 12.1.5).
+local FRIEND_PLATES = "nameplateShowFriendlyPlayers"
 cvars[FRIEND_PLATES] = "1"
 local secure = { renderScale = true, nameplateShowEnemies = true }
 local function fire(event, ...)
