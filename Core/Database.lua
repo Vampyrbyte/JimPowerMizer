@@ -88,6 +88,14 @@ local defaults = {
 		-- detail: original values of lower-level CVars (e.g. groundEffectDensity) that a preset
 		-- change overwrote. initial: graphics CVar values at the start of the saver period.
 		state = { baseline = {}, owned = {}, detail = {}, initial = {}, active = nil },
+		-- Energy savings (Core/Savings.lua). normal: watts at your own settings; watts: per graphics
+		-- profile; price (per kWh) with a currency symbol, co2 (g per kWh): optional. stats: seconds
+		-- each profile was applied; deleted: all deleted profiles together (energy fixed at deletion);
+		-- since: time() of the first record or the last reset.
+		savings = {
+			normal = nil, watts = {}, price = nil, currency = nil, co2 = nil,
+			stats = {}, deleted = { seconds = 0, wh = 0 }, since = nil,
+		},
 	},
 }
 

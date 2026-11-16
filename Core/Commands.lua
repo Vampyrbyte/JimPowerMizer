@@ -14,6 +14,7 @@ local HELP = {
 	L["|cffffd200/jpm idle <seconds>|r - seconds without input before you count as idle"],
 	L["|cffffd200/jpm longidle <seconds>|r - seconds without input before you count as long idle"],
 	L["|cffffd200/jpm crafting <seconds>|r - how long crafting stays active after a craft ends"],
+	L["|cffffd200/jpm stats|r - time and energy saved per graphics profile (|cffffd200/jpm stats reset|r to start again)"],
 	L["|cffffd200/jpm force <situation>|r - pretend a situation is active (|cffffd200/jpm force off|r to stop)"],
 	L["|cffffd200/jpm probe|r - report which graphics CVars this client has and whether we can set them"],
 	L["|cffffd200/jpm probe combat|r - run the probe automatically when your next combat starts"],
@@ -219,6 +220,18 @@ function JPM:HandleSlash(input)
 			db.situations.crafting.grace = math.floor(seconds)
 			self:Msg(L["Crafting stays active %d seconds after a craft ends."], db.situations.crafting.grace)
 			ns.Engine:Refresh("settings")
+		end
+	elseif cmd == "stats" then
+		local _, sub, confirm = self:GetArgs(input or "", 3)
+		if sub and sub:lower() == "reset" then
+			if confirm and confirm:lower() == "yes" then
+				ns.Savings:Reset()
+				self:Msg(L["Savings stats cleared."])
+			else
+				self:Msg(L["This clears the time and energy saved for every profile. To go ahead: /jpm stats reset yes"])
+			end
+		else
+			for _, line in ipairs(ns.Savings:GetLines()) do self:Msg(line) end
 		end
 	elseif cmd == "restore" then
 		ns.Engine:Force(nil)
