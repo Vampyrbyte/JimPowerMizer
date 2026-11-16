@@ -100,6 +100,9 @@ Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, De
 -- CVars
 local cvars = {
 	UnitNameNPC = "1", UnitNameOwn = "0", UnitNameFriendlyPlayerName = "1", nameplateShowEnemies = "1",
+	-- Minion names on, pet names turned off by hand (the client sets all three with the minion one).
+	UnitNameFriendlyMinionName = "1", UnitNameFriendlyPetName = "0", UnitNameFriendlyGuardianName = "1",
+	UnitNameFriendlyTotemName = "1",
 	Brightness = "50", useMaxFPS = "0", maxFPS = "144", useMaxFPSBk = "1", maxFPSBk = "30", renderScale = "1",
 	graphicsShadowQuality = "4", graphicsSSAO = "3", graphicsParticleDensity = "4",
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
@@ -123,6 +126,10 @@ local CASCADE = {
 	graphicsViewDistance = function(level) C_Timer.After(0.1, function() SetCVarRaw("farclip", level * 500) end) end,
 	graphicsLightMode = function(level) SetCVarRaw("giQuality", level + 1); SetCVarRaw("RenderFormat", math.min(level + 1, 2)) end,
 	graphicsPBRLiquidDetail = function(level) SetCVarRaw("pbrLiquidDetail", level) end,
+	-- Seen on Midnight 12.1.5: restoring the minion names setting also set these.
+	UnitNameFriendlyMinionName = function(v)
+		SetCVarRaw("UnitNameFriendlyPetName", v); SetCVarRaw("UnitNameFriendlyGuardianName", v); SetCVarRaw("UnitNameFriendlyTotemName", v)
+	end,
 }
 local writes = {} -- CVar -> number of times it was set
 local CLAMP = {}  -- CVar -> function(number) returning the value the client keeps
@@ -724,6 +731,11 @@ check(UIParent:IsShown(), "UI shown by the user stays shown for the rest of the 
 land(); advance(0.1)
 check(UIParent:IsShown() and cvars.Brightness == "50" and cvars.maxFPS == "144", "landed: UI shown, brightness restored")
 check(cvars.UnitNameNPC == "1" and cvars.UnitNameOwn == "0" and cvars.nameplateShowEnemies == "1", "landed: your name settings back")
+check(cvars.UnitNameFriendlyMinionName == "1" and cvars.UnitNameFriendlyPetName == "0" and cvars.UnitNameFriendlyGuardianName == "1"
+	and cvars.UnitNameFriendlyTotemName == "1", "landed: minion, pet, guardian and totem names back, whatever the write order")
+local mistaken = false
+for _, line in ipairs(printed) do if line:find("User changed UnitName") then mistaken = true end end
+check(not mistaken and next(ns.addon.db.global.state.baseline) == nil, "linked name settings not mistaken for your changes")
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(not UIParent:IsShown(), "next flight hides the UI again")
 fire("PLAYER_REGEN_DISABLED"); combat = true; advance(0.1)
