@@ -271,6 +271,7 @@ savings = {
   price    = nil, currency = nil,  -- price per kWh and a symbol, e.g. 0.25 and "£"
   co2      = nil,                  -- grams of CO₂ per kWh (from your supplier or country)
   stats    = { ["Max saver"] = { seconds = 0 }, ... },
+  deleted  = { seconds = 0, wh = 0 },  -- all deleted profiles together, energy fixed at deletion
   since    = nil,                  -- time() of the first record or the last reset
 }
 ```
@@ -284,7 +285,10 @@ savings = {
   the clock for the new one. "Your own settings" isn't counted.
 - [ ] Stop on restore, on disable and on `PLAYER_LOGOUT`; start at login if a profile is still applied
   (crash recovery). A crash loses the time since the last logout (SavedVariables aren't written).
-- [ ] Renaming a graphics profile moves its stats and watts; deleting one keeps its stats.
+- [ ] Renaming a graphics profile moves its stats and watts. Deleting one moves its time, and its energy
+  worked out with its watts at that moment, into `deleted`, and removes its entry and watts; the totals
+  still include it, shown as one "Deleted profiles" line. A new profile (or a rename) that reuses the name
+  starts from zero, never adopting the old stats (decided 2026-11-16).
 
 **Output** (each part only when its figures are entered; no "n/a" or empty columns)
 - [ ] `/jpm stats`: per profile, time; plus energy if `normal` and that profile's watts are set; plus cost if
@@ -307,6 +311,12 @@ savings = {
 
 **Known limits:** savings are only as good as the watts entered; time with the game in the background
 counts the same as in the foreground (the background cap may already have saved some of it).
+
+**Open: detecting the background.** Blizzard's API has no window focus function or event (checked in the
+generated API docs, 2026-11-16). The only signal is the frame rate: in the background the game runs at
+`maxFPSBk`. That tells the two apart only when the background cap is clearly lower than the frame rate
+in the foreground, so not while a profile caps both to the same value (`capBackground`). First an in-game
+check on Forever of what `GetFramerate()` reports while alt-tabbed, with and without a profile applied.
 
 ### M5: More flavors
 
