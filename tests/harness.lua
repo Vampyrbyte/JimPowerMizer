@@ -112,6 +112,9 @@ local cvars = {
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
 }
+-- Friendly player nameplates: Midnight 12.1.5 has nameplateShowFriendlyPlayers and no nameplateShowFriends.
+local FRIEND_PLATES = FLAVOR == "midnight" and "nameplateShowFriendlyPlayers" or "nameplateShowFriends"
+cvars[FRIEND_PLATES] = "1"
 local secure = { renderScale = true, nameplateShowEnemies = true }
 local function fire(event, ...)
 	for _, f in ipairs(frames) do
@@ -721,6 +724,7 @@ for _, line in ipairs(printed) do if line:find("Skipping hideUI") or line:find("
 check(not skipped and cvars.hideUI == nil, "screen keys not treated as CVars")
 check(cvars.Brightness == "20", "taxi: brightness lowered")
 check(cvars.UnitNameNPC == "0" and cvars.UnitNameFriendlyPlayerName == "0" and cvars.nameplateShowEnemies == "0", "taxi: names and nameplates hidden")
+check(cvars[FRIEND_PLATES] == "0", "taxi: friendly player nameplates hidden (" .. FRIEND_PLATES .. ")")
 cine = true; fire("CINEMATIC_START"); advance(0.1)
 check(not UIParent:IsShown() and cvars.Brightness == "50", "cinematic: your brightness, UI left to the cinematic")
 cine = false; fire("CINEMATIC_STOP"); advance(1.2)
@@ -731,6 +735,7 @@ check(UIParent:IsShown(), "UI shown by the user stays shown for the rest of the 
 land(); advance(0.1)
 check(UIParent:IsShown() and cvars.Brightness == "50" and cvars.maxFPS == "144", "landed: UI shown, brightness restored")
 check(cvars.UnitNameNPC == "1" and cvars.UnitNameOwn == "0" and cvars.nameplateShowEnemies == "1", "landed: your name settings back")
+check(cvars[FRIEND_PLATES] == "1", "landed: friendly player nameplates back")
 check(cvars.UnitNameFriendlyMinionName == "1" and cvars.UnitNameFriendlyPetName == "0" and cvars.UnitNameFriendlyGuardianName == "1"
 	and cvars.UnitNameFriendlyTotemName == "1", "landed: minion, pet, guardian and totem names back, whatever the write order")
 local mistaken = false
