@@ -308,7 +308,9 @@ savings = {
 - [x] Harness (every flavor): time across switches with `advance()`, logout and restore; energy from
   watts entered later; output leaves out each missing part; no chat line with notify off or no watts;
   rename moves stats. Built 2026-11-16 (harness session 10, both flavors).
-- [ ] In game on Forever (logged in `notes/TESTING.md`): switch, `/jpm stats`, options tab, chat line.
+- [x] In game on Forever (logged in `notes/TESTING.md`): switch, `/jpm stats`, options tab, chat line.
+  Passed 2026-11-16. Released in v0.1.5 (Forever) and v0.2.0-beta2 (Forever and Midnight); merged into
+  `classic` (its TOC lists `Core\Savings.lua` too).
 
 **Known limits:** savings are only as good as the watts entered; time with the game in the background
 counts the same as in the foreground (the background cap may already have saved some of it).
@@ -381,6 +383,7 @@ from `main` until the merge.
   Files page shows type Beta. If the sites mishandle it, archive the file and keep testing private
   - [x] **v0.2.0-beta1 (2026-11-16):** from `midnight` at `2878360`. Uploaded to CurseForge and Wago as beta
     for 12.1.5 and 1.60.1; GitHub pre-release. Still to check: each site's Files page
+  - [x] **v0.2.0-beta2 (2026-11-16):** from `midnight`, adds energy savings (as in v0.1.5)
   - [ ] Feedback wanted: crafting orders windows, dungeons (secret values)
 - [ ] Merge into `main`, retest Forever, release `v0.2.0`. After that, each Midnight patch needs its
   interface number added to the TOC
