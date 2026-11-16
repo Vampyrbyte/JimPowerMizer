@@ -24,9 +24,10 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 - Interface `120105`; `WOW_PROJECT_ID` = `1`; `WOW_PROJECT_CAMELOT` is nil. Loads with compat Mainline.
 - The CVars in `Core/CVarRegistry.lua` exist under the same names, except `graphicsPBRLiquidDetail` and
   `graphicsLightMode` (Forever only; the registry skips them). None is secure, read-only or locked.
-- "Hide names": Midnight has `nameplateShowFriendlyPlayers` instead of `nameplateShowFriends`. Writing
-  `UnitNameEnemyMinionName` / `UnitNameFriendlyMinionName` makes the client set the matching pet, guardian
-  and totem name CVars too; the Applier sets again what such a write changed.
+- "Hide names": both clients have `nameplateShowFriendlyPlayers` and no `nameplateShowFriends` (Forever
+  checked 2026-11-16). On both, writing `UnitNameEnemyMinionName` / `UnitNameFriendlyMinionName` makes the
+  client set the matching pet, guardian and totem name CVars too; the Applier sets again what such a write
+  changed (verified in game on both).
 - Switch and restore work, including `/console` tweaks and hiding the UI, names and nameplates.
 - The `maxFPSBk` write test passes out of combat and in combat, as on Forever.
 
@@ -287,29 +288,49 @@ from `main` until the merge.
 **Steps**
 - [x] Phase 0: `link.sh --forever/--retail`; CI on `midnight`; release runs the checks; tag guard
 - [x] Harness flavors (`forever`, `midnight`), CI runs both (on `main`)
-- [ ] Phase 1, in game on Midnight: TOC `## Interface: 16001, 120105`; `/dump select(4, GetBuildInfo()),
-  WOW_PROJECT_ID`; `/jpm debug` load; `/jpm probe` and `/jpm probe combat`; force idle and back (incl.
-  `/console` tweaks); hide UI and names/nameplates. Record results in §1 like Forever's.
+- [x] Phase 1, in game on Midnight (2026-11-16): loads, probe in and out of combat, switch and restore, hide UI
+  and names/nameplates; results in §1. Forever loads the two-interface TOC (`16001, 120105`) as before
 - [ ] Phase 2 (one commit each, both clients pass):
-  - [ ] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
-    channeling Fishing, with a short grace between casts, ended early by moving. Chosen in `Compat`.
-    Spell IDs from `/dump UnitChannelInfo("player")` while fishing
-  - [ ] Service windows: retail's bank, warband bank, auction house and mail interaction types (`/jpm debug`)
-  - [ ] Crafting: count the crafting orders window
-  - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),
-    found with `/jpm watch`; add the ones that save power
-  - [ ] Combat: confirm writes in lockdown (`/jpm probe combat`); the combat deferral covers secure CVars
-  - [ ] Secret values: no "errored" debug lines in combat or dungeons
-  - [ ] Typing and interface clicks keep you active
-- [ ] Packaging: dry-run the packager with both interfaces (game versions on one file for CurseForge and
-  Wago). Fallback: separate TOCs (`_Mainline` for Midnight, `_Camelot` for Forever, if Forever loads it)
-- [ ] Store pages: Retail enabled on CurseForge and Wago; README/store text mention Midnight
+  - [x] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
+    channeling Fishing (spell 131476, or any channel with that spell's name), then `fishing.grace` seconds
+    (default 10, an option on Midnight only), ended early by moving. Chosen by `Compat:FishesByChannel()`
+  - [x] **In game (2026-11-16, Midnight):** fishing casts switch to Light saver and stay there between casts;
+    the grace period ends after 10 s or on moving
+  - [x] Service windows: no change needed. **In game (2026-11-16, Midnight 12.1.5):** bank `Banker` (8),
+    mail `MailInfo` (17), vendor `Merchant` (5), auction house `Auctioneer` (21); each also fires its older
+    window event, and every one starts and ends the situation. `AccountBanker` (warband bank from a
+    distance) is mapped but not seen yet
+  - [x] Crafting orders (from Blizzard's API documentation; the user's account can't open them): placing
+    orders (`ProfessionsCustomerOrder` (60), `CRAFTINGORDERS_SHOW/HIDE_CUSTOMER`) is a service window; the
+    orders you fill at a crafting table (`CRAFTINGORDERS_SHOW/HIDE_CRAFTER`) count as the profession window
+  - [ ] **In game (Midnight), by someone who can open crafting orders:** `/jpm debug` lines for both windows
+  - [x] Graphics: nothing to add (2026-11-16). `graphicsComputeEffects` is already in the registry, and the
+    user's Midnight menu has no upscaling beyond Forever's (FSR 1 only; no DLSS, FSR 3/4 or XeSS)
+  - [ ] Parked (2026-11-16): ray-traced shadows (turned off by Blizzard in 12.1.5) and variable rate shading
+    (refused with "not a Shader Model 6 card" although `gxApi` is D3D12; maybe turned off with ray tracing).
+    Revisit when ray tracing is back
+  - [x] Combat: writes work in lockdown (`/jpm probe combat`, 2026-11-16); the combat deferral covers secure CVars
+  - [x] Secret values: no errors in a long open-world fight (2026-11-16, target dummy)
+  - [ ] Secret values in a dungeon: not run yet on Midnight
+  - [x] Typing and interface clicks keep you active; panning the camera doesn't (2026-11-16)
+- [x] Packaging: the BigWigs packager takes `_Mainline` with `## Interface: 16001, 120105` as one file for
+  Forever and Retail ("multi-version", game versions 12.1.5 and 1.60.1); no separate TOCs needed
+- [x] Store pages: nothing to enable. CurseForge and Wago take the game versions and the release type per file,
+  and the packager sets both (from the TOC and the tag name). README mentions Midnight (on `midnight`)
 - [ ] Betas `v0.2.0-betaN` from `midnight` (tagged only when asked), for both clients; check each site's
   Files page shows type Beta. If the sites mishandle it, archive the file and keep testing private
+  - [x] **v0.2.0-beta1 (2026-11-16):** from `midnight` at `2878360`. Uploaded to CurseForge and Wago as beta
+    for 12.1.5 and 1.60.1; GitHub pre-release. Still to check: each site's Files page
+  - [ ] Feedback wanted: crafting orders windows, dungeons (secret values)
 - [ ] Merge into `main`, retest Forever, release `v0.2.0`. After that, each Midnight patch needs its
   interface number added to the TOC
 
 #### Later
+- [ ] Instances (asked for 2026-11-16, all clients): dungeons, raids and battlegrounds as situations
+  (`IsInInstance()` type `party` / `raid` / `pvp`; decide on arenas, scenarios and delves). Two uses: a
+  lockout (profile "your settings", priority above Idle and Long idle, so nothing switches inside and no
+  setting change can cause instability), or a profile of their own. Decide: one situation with a tick box
+  per kind or three situations, and whether the lockout is on by default
 - [ ] Classic: see M6
 
 ### M6: Classic (0.3.x)
@@ -318,10 +339,10 @@ Goal: one package for Forever, Midnight and the Classic clients, first released 
 `classic` branch. Meanwhile 0.1.x stays the stable release from `main` and 0.2.0 betas continue from
 `midnight`. Everything ends up on `main` as one version.
 
-**Which clients.** Installed on this machine (2026-11-16): Classic Era 1.15.9 (`_classic_era_`). Other
-Classic clients Blizzard runs at the time (e.g. Mists of Pandaria Classic, Anniversary realms; Season of
-Discovery and Hardcore share Era's client) are checked in Phase 0. Each one we support has to be installed
-to be tested. Proposal: start with Era, add the others one at a time.
+**Which clients.** Every Classic client Blizzard runs (decided 2026-11-16). Known now: Classic Era 1.15.9
+(`_classic_era_`, installed; Season of Discovery and Hardcore realms are played on this same client), TBC
+Anniversary and Mists of Pandaria Classic (the user will install both). Phase 0 confirms the list, each
+client's folder and interface number.
 
 **Branches while betas overlap**
 
@@ -335,8 +356,9 @@ to be tested. Proposal: start with Era, add the others one at a time.
   back up until a branch is finished.
 - Where a change goes: works on every client → `main` (named as such: it ships in the next 0.1.x);
   Midnight only → `midnight`; Classic only → `classic`. Then merge it down the chain the same day.
-- Progress notes for M6 are kept on `classic` (as M5's are on `midnight`), to keep `docs/PLAN.md`
-  merges simple.
+- **Docs live on `main` only** (decided 2026-11-16): `docs/` and `README.md` are edited on `main` and
+  reach the other branches by the usual merge down. They aren't packaged, so this never changes a
+  release. The split branches are meant to be short-lived; after the merge, back to one branch.
 - Parallel work: one Claude session per folder. Each game's dev copy is linked to the folder whose
   code it should run (`scripts/link.sh`).
 - Tag guard: stable tags only from `main` (unchanged); a `v0.3.0` pre-release must include all of `main`
@@ -352,17 +374,19 @@ back to a lower version.
   is stable. Needs Classic-only packages from `classic` for a while.
 
 **Steps**
-- [ ] Phase 0 (no game needed):
-  - [ ] Which Classic clients are live, their interface numbers, and whether each reads a `_Classic` TOC
-    (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager accepts any Classic interface in `_Classic`
+- [ ] Phase 0 (no game needed, except reading interface numbers):
+  - [ ] The live Classic clients, their folders and interface numbers (`/dump select(4, GetBuildInfo())`),
+    and whether each reads a `_Classic` TOC (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager
+    accepts any Classic interface in `_Classic`
   - [ ] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic`; `link.sh` options for
     `_classic_era_` (and each Classic folder added later)
   - [ ] CI on `classic`; tag guard as above
-  - [ ] Harness flavor `classic_era` (one per Classic client added); CI runs all flavors
+  - [ ] Harness flavors `classic_era`, `tbc_anniversary`, `mists_classic`; CI runs all flavors
   - [ ] `JimPowerMizer_Classic.toc` (same file list); Compat chosen by interface. Start by finding how
     much of `Compat/Mainline.lua` works there (Classic runs a modern client); `Compat/Classic.lua` only
     for what differs
-- [ ] Phase 1, in game on each Classic client: loads without errors and isn't out of date; `/jpm probe`
+- [ ] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
+  short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
   options window and Settings page; addon compartment (may not exist: `/jpm` still opens options)
 - [ ] Phase 2 (one commit each, every client passes):
