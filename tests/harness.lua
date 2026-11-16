@@ -55,6 +55,7 @@ GetCurrentRegion = function() return 3 end
 GetCurrentRegionName = function() return "EU" end
 GetBuildInfo = function() return CLIENT.version, CLIENT.build, "Nov 2026", CLIENT.interface end
 GetTime = function() return now end
+time, date = os.time, os.date
 WOW_PROJECT_ID = CLIENT.project
 SlashCmdList, hash_SlashCmdList = {}, {}
 C_AddOns = { GetAddOnMetadata = function() return "@project-version@" end }
@@ -987,6 +988,134 @@ check(cvars.maxFPS == "20", "closing it isn't")
 poke(); advance(1)
 slash("idle 600")
 noErrors("session 9")
+
+-- Session 10: energy savings ---------------------------------------------------------------
+JimPowerMizerDB = nil; SavedDB = nil
+taxi, afk, resting, dead, combat, moving, focusBox, mouseFocus = false, false, false, false, false, false, nil, nil
+ns = session("session 10: energy savings")
+advance(ns.STARTUP_GRACE)
+slash("disable idle"); slash("disable longIdle")
+local sv = function() return ns.addon.db.global.savings end
+-- Printed lines since `mark` that contain `text` (plain).
+local mark = 0
+local function setMark() mark = #printed end
+local function said(text)
+	for i = mark + 1, #printed do if printed[i]:find(text, 1, true) then return printed[i] end end
+end
+local function fly(seconds)
+	taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+	advance(seconds - 0.5) -- applied after the 2 s delay
+	setMark(); land(); advance(2.1)
+end
+setMark(); slash("stats")
+check(said("No graphics profile has been used yet."), "stats before any profile was used")
+
+fly(600)
+check(math.abs(sv().stats["Max saver"].seconds - 600) < 1, "10 min of Max saver recorded")
+local msg = said("Restored your graphics settings")
+check(msg and not msg:find("saved"), "no watts entered: the switch message is unchanged")
+setMark(); slash("stats")
+check(said("Max saver: 10 min") and not said("Wh") and not said("CO2") and not said("~"), "stats show only the time without watts")
+check(said("Enter your PC's power use"), "stats say where to enter the watts")
+check(said("This session: 10 min"), "session total")
+
+-- Watts entered later count for the time already recorded
+set("300", "savings", "power", "normal")
+set("150", "savings", "power", "w_Max saver")
+check(sv().normal == 300 and sv().watts["Max saver"] == 150, "watts stored as numbers")
+setMark(); slash("stats")
+local line = said("Max saver:")
+check(line and line:find("10 min, ~25 Wh saved", 1, true) and not line:find("(", 1, true), "energy for earlier time, no cost or CO2 when not entered")
+check(not said("Enter your PC's power use"), "no hint once watts are entered")
+check(call(node("savings", "power", "normal").validate, {}, "abc") ~= true, "a non-number is rejected")
+check(call(node("savings", "power", "normal").validate, {}, "") == true, "an empty box is allowed")
+set("0,25", "savings", "extras", "price"); set(" £ ", "savings", "extras", "currency")
+check(sv().price == 0.25 and sv().currency == "£", "price with a decimal comma, currency trimmed")
+setMark(); slash("stats")
+line = said("Max saver:")
+check(line and line:find("(~£0.01)", 1, true) and not line:find("CO2"), "cost shown, CO2 left out")
+set("200", "savings", "extras", "co2")
+setMark(); slash("stats")
+check(said("Max saver: 10 min, ~25 Wh saved (~£0.01, ~5 g CO2)"), "cost and CO2 shown")
+set("", "savings", "extras", "price")
+check(sv().price == nil, "emptying the box clears the price")
+set("0.25", "savings", "extras", "price")
+ok, err = pcall(reg.ValidateOptionsTable, reg, tbl(), "JimPowerMizer")
+check(ok, "options table with the Savings tab passes AceConfig validation" .. (ok and "" or (": " .. tostring(err))))
+check(type(call(node("savings", "stats").name)) == "string", "Savings tab stats render")
+
+-- Chat line when a profile ends: only with the switch messages on and watts entered
+fly(1200)
+check(said("Restored your graphics settings") and said("Max saver: 20 min, ~50 Wh saved (~£0.01, ~10 g CO2)"), "switch message says what the profile saved")
+set(false, "general", "notify")
+fly(60)
+check(not said("saved") and not said("Restored"), "nothing in chat with switch messages off")
+set(true, "general", "notify")
+set("Light saver", "situations", "taxi", "profile")
+fly(60)
+msg = said("Restored your graphics settings")
+check(msg and not msg:find("saved"), "a profile without watts: switch message unchanged")
+set("Max saver", "situations", "taxi", "profile")
+-- Switching straight from one profile to another reports the one that ended
+set("100", "savings", "power", "w_Light saver")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5); advance(120)
+setMark(); set("Light saver", "situations", "taxi", "profile")
+check(said("Graphics profile Light saver") and said("Max saver: 2 min"), "profile to profile: the ended one is reported")
+advance(180); setMark(); land(); advance(2.1)
+check(said("Light saver: 3 min, ~10 Wh saved"), "then the second one when it ends")
+set("Max saver", "situations", "taxi", "profile")
+-- Re-applying the same profile (edited) doesn't end its period
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5); advance(60)
+setMark(); set(18, "graphics", "p_Max saver", "maxFPS", "value")
+check(not said("saved"), "editing the active profile doesn't end its period")
+local before = sv().stats["Max saver"].seconds
+advance(60); setMark(); land(); advance(2.1)
+check(math.abs(sv().stats["Max saver"].seconds - before - 120) < 1, "the whole period is counted once")
+
+-- Logout while applied: counted and saved; the next session starts its own session total
+local maxBefore = sv().stats["Max saver"].seconds
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5); advance(300)
+fire("PLAYER_LOGOUT")
+check(math.abs(sv().stats["Max saver"].seconds - maxBefore - 300) < 1, "logout counts the running period")
+SavedDB = JimPowerMizerDB; taxi = false
+ns = session("session 10b: reload")
+advance(ns.STARTUP_GRACE)
+check(math.abs(ns.addon.db.global.savings.stats["Max saver"].seconds - maxBefore - 300) < 1, "stats kept through the reload")
+check(next(ns.addon.db.global.state.baseline) == nil, "left-over settings restored")
+setMark(); slash("stats")
+check(said("This session: 0 s"), "the recovered settings after reload aren't counted")
+
+-- Rename: stats and watts go with the profile; the old name starts again from zero
+local maxSeconds = sv().stats["Max saver"].seconds
+set("Flying saver", "graphics", "p_Max saver", "rename")
+check(sv().stats["Flying saver"] and sv().stats["Flying saver"].seconds == maxSeconds and sv().watts["Flying saver"] == 150, "rename moves stats and watts")
+check(sv().stats["Max saver"] == nil and sv().watts["Max saver"] == nil, "nothing left under the old name")
+set("Max saver", "graphics", "new")
+check(sv().stats["Max saver"] == nil and sv().watts["Max saver"] == nil, "a new profile with the old name starts from zero")
+-- Delete: counted in the totals as "Deleted profiles", never adopted by a new profile of that name
+run("graphics", "p_Flying saver", "delete")
+check(sv().stats["Flying saver"] == nil and sv().watts["Flying saver"] == nil, "delete removes the profile's entry and watts")
+check(math.abs(sv().deleted.seconds - maxSeconds) < 1 and math.abs(sv().deleted.wh - maxSeconds * 150 / 3600) < 0.01, "its time and energy move to the deleted total")
+set("Flying saver", "graphics", "new")
+check(sv().stats["Flying saver"] == nil and sv().watts["Flying saver"] == nil, "a new profile with a deleted one's name starts from zero")
+setMark(); slash("stats")
+check(said("Deleted profiles:") and said("Total:"), "deleted profiles shown in the stats")
+-- Deleting the profile that's applied right now
+set("Light saver", "situations", "taxi", "profile")
+local lightBefore = sv().stats["Light saver"].seconds
+local deletedBefore = sv().deleted.seconds
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5); advance(100)
+run("graphics", "p_Light saver", "delete")
+check(math.abs(sv().deleted.seconds - deletedBefore - lightBefore - 100) < 1, "deleting the applied profile counts its running period")
+check(cvars.maxFPS == "144", "and your settings are back")
+land(); advance(2.1)
+-- Reset needs confirming
+setMark(); slash("stats reset")
+check(said("To go ahead") and sv().deleted.seconds > 0, "reset asks to confirm first")
+slash("stats reset yes")
+check(next(sv().stats) == nil and sv().deleted.seconds == 0 and sv().since == nil, "reset clears the stats")
+check(sv().normal == 300 and sv().price == 0.25, "reset keeps the figures entered")
+noErrors("session 10")
 
 io.write(FAILED and "\nSOME CHECKS FAILED" or "\nALL CHECKS PASSED", " (", FLAVOR, ")\n")
 os.exit(FAILED and 1 or 0)
