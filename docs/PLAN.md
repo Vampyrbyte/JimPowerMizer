@@ -310,7 +310,76 @@ from `main` until the merge.
   interface number added to the TOC
 
 #### Later
-- [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
+- [ ] Classic: see M6
+
+### M6: Classic (0.3.x)
+
+Goal: one package for Forever, Midnight and the Classic clients, first released as `v0.3.0-betaN` from a
+`classic` branch. Meanwhile 0.1.x stays the stable release from `main` and 0.2.0 betas continue from
+`midnight`. Everything ends up on `main` as one version.
+
+**Which clients.** Installed on this machine (2026-11-16): Classic Era 1.15.9 (`_classic_era_`). Other
+Classic clients Blizzard runs at the time (e.g. Mists of Pandaria Classic, Anniversary realms; Season of
+Discovery and Hardcore share Era's client) are checked in Phase 0. Each one we support has to be installed
+to be tested. Proposal: start with Era, add the others one at a time.
+
+**Branches while betas overlap**
+
+| Branch | Folder | Releases | Contains |
+|---|---|---|---|
+| `main` | `~/repos/JimPowerMizer` | 0.1.x stable (Forever) | Forever |
+| `midnight` | `~/repos/JimPowerMizer-midnight` | `v0.2.0-betaN` | `main` + Midnight |
+| `classic` | `~/repos/JimPowerMizer-classic` | `v0.3.0-betaN` | `midnight` + Classic |
+
+- Merges flow one way while betas run: `main` → `midnight` → `classic` (merge, not rebase). Nothing goes
+  back up until a branch is finished.
+- Where a change goes: works on every client → `main` (named as such: it ships in the next 0.1.x);
+  Midnight only → `midnight`; Classic only → `classic`. Then merge it down the chain the same day.
+- Progress notes for M6 are kept on `classic` (as M5's are on `midnight`), to keep `docs/PLAN.md`
+  merges simple.
+- Parallel work: one Claude session per folder. Each game's dev copy is linked to the folder whose
+  code it should run (`scripts/link.sh`).
+- Tag guard: stable tags only from `main` (unchanged); a `v0.3.0` pre-release must include all of `main`
+  and of `midnight` while `midnight` is unmerged.
+
+**Two beta lines at once (decision needed).** Beta players get the newest beta file for their game
+version, so a `v0.2.0-beta2` uploaded after `v0.3.0-beta1` could take Forever and Midnight beta players
+back to a lower version.
+- A (recommended): once 0.3 betas start, they replace 0.2 betas for every client. Midnight fixes merge
+  down into `classic` and ship in the next 0.3 beta. 0.2.0 stable still comes from merging `midnight`
+  into `main` when the Retail feedback is good. One beta line, version numbers only go up.
+- B: both lines continue, 0.2 betas for Forever and Midnight, 0.3 betas for Classic only, until 0.2.0
+  is stable. Needs Classic-only packages from `classic` for a while.
+
+**Steps**
+- [ ] Phase 0 (no game needed):
+  - [ ] Which Classic clients are live, their interface numbers, and whether each reads a `_Classic` TOC
+    (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager accepts any Classic interface in `_Classic`
+  - [ ] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic`; `link.sh` options for
+    `_classic_era_` (and each Classic folder added later)
+  - [ ] CI on `classic`; tag guard as above
+  - [ ] Harness flavor `classic_era` (one per Classic client added); CI runs all flavors
+  - [ ] `JimPowerMizer_Classic.toc` (same file list); Compat chosen by interface. Start by finding how
+    much of `Compat/Mainline.lua` works there (Classic runs a modern client); `Compat/Classic.lua` only
+    for what differs
+- [ ] Phase 1, in game on each Classic client: loads without errors and isn't out of date; `/jpm probe`
+  and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
+  options window and Settings page; addon compartment (may not exist: `/jpm` still opens options)
+- [ ] Phase 2 (one commit each, every client passes):
+  - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
+    for anything Classic has that the others don't
+  - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
+  - [ ] Service windows: interaction types vs the older window events on each client
+  - [ ] Fishing: pole in the main hand, as on Forever (expected)
+  - [ ] Crafting: `isTradeSkill`; Era may use separate Craft window events for some professions
+  - [ ] Secret values: not expected on Classic (already optional in Compat)
+- [ ] Packaging: dry run with `_Mainline` and `_Classic` TOCs; check the game versions on CurseForge
+  and Wago for each Classic client
+- [ ] Betas `v0.3.0-betaN` from `classic` (tagged only when asked). Before each: merge `midnight`, a
+  short Forever and Midnight smoke test, and the Classic tests
+- [ ] Finish: merge `midnight` into `main`, release 0.2.0; merge `main` into `classic`; when Classic
+  feedback is good, merge `classic` into `main` and release 0.3.0. Then one branch again; remove the
+  worktrees. Each Classic patch then needs its interface number added, like Midnight's
 
 ## 8. Risks / open questions
 - ~~**CVar write restrictions on Forever/Midnight.**~~ Verified 2026-11-13: writes work in and out of combat.
@@ -320,4 +389,8 @@ from `main` until the merge.
   a `/console` change made *while* a saver profile is active is overwritten by the snapshot on restore.
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
+- **Three branches at once (M6).** More merging, and each beta needs smoke tests on every client. The
+  one-way merge rule and the tag guard keep releases from missing fixes.
+- **Classic test coverage.** Each Classic client has to be installed and tested; interface numbers change
+  with Classic patches as with Midnight.
 - **Taxi detection edge cases:** dragonriding / skyriding "flight paths" and boat/zeppelin rides aren't `UnitOnTaxi`.
