@@ -22,6 +22,7 @@ Compat\Mainline.lua
 Core\CVarRegistry.lua
 Core\Database.lua
 Core\Screen.lua
+Core\Savings.lua
 Core\Applier.lua
 Core\Engine.lua
 
