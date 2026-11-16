@@ -24,7 +24,10 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 - Interface `120105`; `WOW_PROJECT_ID` = `1`; `WOW_PROJECT_CAMELOT` is nil. Loads with compat Mainline.
 - The CVars in `Core/CVarRegistry.lua` exist under the same names, except `graphicsPBRLiquidDetail` and
   `graphicsLightMode` (Forever only; the registry skips them). None is secure, read-only or locked.
-- Of the name/nameplate CVars for "Hide names", 22 exist and 1 doesn't.
+- "Hide names": Midnight has `nameplateShowFriendlyPlayers` instead of `nameplateShowFriends`. Writing
+  `UnitNameEnemyMinionName` / `UnitNameFriendlyMinionName` makes the client set the matching pet, guardian
+  and totem name CVars too; the Applier sets again what such a write changed.
+- Switch and restore work, including `/console` tweaks and hiding the UI, names and nameplates.
 - The `maxFPSBk` write test passes out of combat and in combat, as on Forever.
 
 TOC naming: the BigWigs packager (v2.7.0) recognizes `_Mainline` and `_Camelot` but not `_Forever`, so the
