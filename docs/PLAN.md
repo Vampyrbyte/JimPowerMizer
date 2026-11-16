@@ -292,7 +292,10 @@ from `main` until the merge.
     channeling Fishing (spell 131476, or any channel with that spell's name), then `fishing.grace` seconds
     (default 10, an option on Midnight only), ended early by moving. Chosen by `Compat:FishesByChannel()`
   - [ ] **In game (Midnight):** fishing casts switch to Light saver and stay there between casts
-  - [ ] Service windows: retail's bank, warband bank, auction house and mail interaction types (`/jpm debug`)
+  - [x] Service windows: no change needed. **In game (2026-11-16, Midnight 12.1.5):** bank `Banker` (8),
+    mail `MailInfo` (17), vendor `Merchant` (5), auction house `Auctioneer` (21); each also fires its older
+    window event, and every one starts and ends the situation. `AccountBanker` (warband bank from a
+    distance) is mapped but not seen yet
   - [ ] Crafting: count the crafting orders window
   - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),
     found with `/jpm watch`; add the ones that save power
