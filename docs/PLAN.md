@@ -301,9 +301,12 @@ from `main` until the merge.
     orders (`ProfessionsCustomerOrder` (60), `CRAFTINGORDERS_SHOW/HIDE_CUSTOMER`) is a service window; the
     orders you fill at a crafting table (`CRAFTINGORDERS_SHOW/HIDE_CRAFTER`) count as the profession window
   - [ ] **In game (Midnight), by someone who can open crafting orders:** `/jpm debug` lines for both windows
-  - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),
-    found with `/jpm watch`; add the ones that save power
-  - [ ] Combat: confirm writes in lockdown (`/jpm probe combat`); the combat deferral covers secure CVars
+  - [ ] Graphics: CVars Midnight has and Forever lacks, found with `/jpm watch`; add the ones that save power.
+    `graphicsComputeEffects` is already in the registry. Still to watch: upscaling/sharpening and anything
+    else in the menu
+  - [ ] Parked (2026-11-16): ray-traced shadows (turned off by Blizzard in 12.1.5) and variable rate shading
+    (the user's client reports no Shader Model 6 card). Revisit when ray tracing is back
+  - [x] Combat: writes work in lockdown (`/jpm probe combat`, 2026-11-16); the combat deferral covers secure CVars
   - [ ] Secret values: no "errored" debug lines in combat or dungeons
   - [ ] Typing and interface clicks keep you active
 - [ ] Packaging: dry-run the packager with both interfaces (game versions on one file for CurseForge and
