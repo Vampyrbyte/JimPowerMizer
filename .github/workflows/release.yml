@@ -6,7 +6,8 @@ on:
       - "v*"
 
 jobs:
-  # Stable tags only from main; alpha/beta tags may come from another branch that includes all of main.
+  # Stable tags only from main; alpha/beta tags may come from another branch that includes all of main
+  # (and, for 0.3, of midnight). See scripts/check-release-tag.sh.
   tag-check:
     runs-on: ubuntu-latest
     steps:
@@ -15,8 +16,8 @@ jobs:
           fetch-depth: 0
       - name: Check the tag may be released
         run: |
-          git fetch -q origin +refs/heads/main:refs/remotes/origin/main
-          scripts/check-release-tag.sh "$GITHUB_REF_NAME" origin/main
+          git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'
+          scripts/check-release-tag.sh "$GITHUB_REF_NAME" origin
 
   # The same lint, locale and mock-API checks as CI: nothing is packaged if one fails.
   checks:
