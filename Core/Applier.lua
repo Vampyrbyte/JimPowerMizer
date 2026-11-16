@@ -24,7 +24,10 @@ local function state()
 	return ns.addon.db.global.state
 end
 
-local writing -- name of the CVar we're setting right now: its CVAR_UPDATE isn't a user change
+-- Name of the CVar we're setting right now. A CVAR_UPDATE during the write isn't a user change:
+-- it's for that CVar, or for one the client sets along with it (the minion names setting also
+-- sets the pet, guardian and totem ones).
+local writing
 
 -- Set one CVar, remembering the value we wrote. Returns true on success.
 local function write(name, value)
@@ -185,6 +188,7 @@ local function applyChanges(changes, label, fresh)
 	end
 
 	local deferred
+	local written = {} -- [name] = its value right after our write
 	for name, value in pairs(changes) do
 		if canWriteNow(name) then
 			if value == false then
@@ -193,11 +197,13 @@ local function applyChanges(changes, label, fresh)
 					if write(name, base) then
 						st.baseline[name] = nil
 						st.owned[name] = nil
+						written[name] = ns.Compat:GetCVar(name)
 					end
 				end
 			else
 				if write(name, value) then
 					ns.addon:Debug("%s: %s = %s", label, name, tostring(value))
+					written[name] = ns.Compat:GetCVar(name)
 				end
 			end
 		else
@@ -210,6 +216,20 @@ local function applyChanges(changes, label, fresh)
 		for k, v in pairs(deferred) do pending[k] = v end
 		pendingProfile = label
 		ns.addon:Debug("Deferred %s changes until combat ends", label)
+	end
+	-- A later write in this batch may have made the client change a CVar written earlier (see
+	-- `writing`). The writes come in no fixed order, so set those again.
+	for name, value in pairs(written) do
+		local current = ns.Compat:GetCVar(name)
+		if current ~= nil and not Equal(current, value) then
+			writing = name
+			local ok = ns.Compat:SetCVar(name, value)
+			writing = nil
+			if ok then
+				if st.owned[name] ~= nil then st.owned[name] = value end
+				ns.addon:Debug("%s: %s was changed by another write (to %s); set to %s again", label, name, tostring(current), tostring(value))
+			end
+		end
 	end
 
 	if not protect then
@@ -361,8 +381,15 @@ function Applier:OnCVarUpdate(_, name, value)
 		end
 		if ownedValue == nil then return end
 	end
-	if ownedName == writing then return end -- our own write, whatever value the client made of it
 	local current = value or ns.Compat:GetCVar(ownedName)
+	if writing then
+		-- Our own write (whatever value the client made of it), or the client setting this CVar
+		-- along with the one we're writing. applyChanges puts the second kind right.
+		if ownedName ~= writing and not Equal(current, ownedValue) then
+			ns.addon:Debug("%s changed to %s along with %s", ownedName, tostring(current), writing)
+		end
+		return
+	end
 	if not Equal(current, ownedValue) then
 		ns.addon:Debug("User changed %s to %s; keeping it", ownedName, tostring(current))
 		owned[ownedName] = nil
