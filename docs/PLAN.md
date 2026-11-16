@@ -24,9 +24,10 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 - Interface `120105`; `WOW_PROJECT_ID` = `1`; `WOW_PROJECT_CAMELOT` is nil. Loads with compat Mainline.
 - The CVars in `Core/CVarRegistry.lua` exist under the same names, except `graphicsPBRLiquidDetail` and
   `graphicsLightMode` (Forever only; the registry skips them). None is secure, read-only or locked.
-- "Hide names": Midnight has `nameplateShowFriendlyPlayers` instead of `nameplateShowFriends`. Writing
-  `UnitNameEnemyMinionName` / `UnitNameFriendlyMinionName` makes the client set the matching pet, guardian
-  and totem name CVars too; the Applier sets again what such a write changed.
+- "Hide names": both clients have `nameplateShowFriendlyPlayers` and no `nameplateShowFriends` (Forever
+  checked 2026-11-16). On both, writing `UnitNameEnemyMinionName` / `UnitNameFriendlyMinionName` makes the
+  client set the matching pet, guardian and totem name CVars too; the Applier sets again what such a write
+  changed (verified in game on both).
 - Switch and restore work, including `/console` tweaks and hiding the UI, names and nameplates.
 - The `maxFPSBk` write test passes out of combat and in combat, as on Forever.
 
@@ -287,9 +288,8 @@ from `main` until the merge.
 **Steps**
 - [x] Phase 0: `link.sh --forever/--retail`; CI on `midnight`; release runs the checks; tag guard
 - [x] Harness flavors (`forever`, `midnight`), CI runs both (on `main`)
-- [ ] Phase 1, in game on Midnight: TOC `## Interface: 16001, 120105`; `/dump select(4, GetBuildInfo()),
-  WOW_PROJECT_ID`; `/jpm debug` load; `/jpm probe` and `/jpm probe combat`; force idle and back (incl.
-  `/console` tweaks); hide UI and names/nameplates. Record results in §1 like Forever's.
+- [x] Phase 1, in game on Midnight (2026-11-16): loads, probe in and out of combat, switch and restore, hide UI
+  and names/nameplates; results in §1. Forever loads the two-interface TOC (`16001, 120105`) as before
 - [ ] Phase 2 (one commit each, both clients pass):
   - [x] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
     channeling Fishing (spell 131476, or any channel with that spell's name), then `fishing.grace` seconds
