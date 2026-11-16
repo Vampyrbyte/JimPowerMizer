@@ -258,6 +258,56 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
   moving and on closing the window; browsing the profession window while moving doesn't switch
 - [x] **v0.1.3 (2026-11-14):** tagged; released by the workflow
 
+### Energy savings (next 0.1.x, from `main`)
+
+Goal: show how much energy each graphics profile has saved, from the time it was active and the power
+figures the user enters. Decided 2026-11-16: no power is measured or estimated by the addon (there is no
+API); account-wide only; cost and CO₂ optional; nothing is shown for figures the user hasn't entered.
+
+**Data** (`db.global.savings`, account-wide, so switching settings profiles or characters keeps it)
+```lua
+savings = {
+  watts    = { normal = nil, ["Max saver"] = nil, ... }, -- PC power at your own settings and per profile
+  price    = nil, currency = nil,  -- price per kWh and a symbol, e.g. 0.25 and "£"
+  co2      = nil,                  -- grams of CO₂ per kWh (from your supplier or country)
+  stats    = { ["Max saver"] = { seconds = 0 }, ... },
+  since    = nil,                  -- time() of the first record or the last reset
+}
+```
+- Only time is recorded. Energy is worked out when shown: `seconds / 3600 × (normal − profile W)` Wh. So
+  watts entered later count for all the time already recorded; a profile at or above the normal watts
+  shows no saving.
+- Session totals are kept in memory only.
+
+**Recording** (in the Applier, where `state.active` changes)
+- [ ] On every change of the applied profile, add the time since it started to the outgoing profile; start
+  the clock for the new one. "Your own settings" isn't counted.
+- [ ] Stop on restore, on disable and on `PLAYER_LOGOUT`; start at login if a profile is still applied
+  (crash recovery). A crash loses the time since the last logout (SavedVariables aren't written).
+- [ ] Renaming a graphics profile moves its stats and watts; deleting one keeps its stats.
+
+**Output** (each part only when its figures are entered; no "n/a" or empty columns)
+- [ ] `/jpm stats`: per profile, time; plus energy if `normal` and that profile's watts are set; plus cost if
+  a price is set; plus CO₂ if a factor is set. Session and lifetime totals. With no watts entered at all,
+  one line saying where to enter them. `/jpm stats reset` (asks to confirm).
+- [ ] Chat line when a profile ends, only if "Chat message when switching" is on **and** that profile's
+  energy can be worked out; added to the existing switch message, e.g. "Restored your graphics settings
+  (combat). Max saver: 22 min, ~45 Wh saved (~£0.01, ~12 g CO₂)". Otherwise the message is unchanged.
+- [ ] Options, a "Savings" tab: watts at your own settings and per graphics profile; price and currency
+  symbol; CO₂ factor; the stats table; reset button. Help text: measure at the wall (a plug-in meter) if
+  possible; GPU software only reads the GPU, so use the same method for every figure; measure with the
+  game in the foreground.
+- [ ] Units: Wh below 1 kWh, else kWh to 2 places; g below 1 kg, else kg; cost to 2 places.
+
+**Tests**
+- [ ] Harness (every flavor): time across switches with `advance()`, logout and restore; energy from
+  watts entered later; output leaves out each missing part; no chat line with notify off or no watts;
+  rename moves stats.
+- [ ] In game on Forever: switch, `/jpm stats`, options tab, chat line.
+
+**Known limits:** savings are only as good as the watts entered; time with the game in the background
+counts the same as in the foreground (the background cap may already have saved some of it).
+
 ### M5: More flavors
 
 #### Midnight (Standard)
