@@ -318,6 +318,11 @@ from `main` until the merge.
   interface number added to the TOC
 
 #### Later
+- [ ] Instances (asked for 2026-11-16, all clients): dungeons, raids and battlegrounds as situations
+  (`IsInInstance()` type `party` / `raid` / `pvp`; decide on arenas, scenarios and delves). Two uses: a
+  lockout (profile "your settings", priority above Idle and Long idle, so nothing switches inside and no
+  setting change can cause instability), or a profile of their own. Decide: one situation with a tick box
+  per kind or three situations, and whether the lockout is on by default
 - [ ] `Compat/Classic.lua` + Classic TOCs; CVarRegistry availability per flavor
 
 ## 8. Risks / open questions
