@@ -1,17 +1,22 @@
--- Minimal WoW API mock that loads the addon (per the Mainline TOC) and checks its behaviour.
--- Usage: scripts/fetch-libs.sh && luajit tests/harness.lua . [forever|midnight]
+-- Minimal WoW API mock that loads the addon (per the TOC its client would read) and checks its behaviour.
+-- Usage: scripts/fetch-libs.sh && luajit tests/harness.lua . [flavor]   (flavors: tests/flavors)
 --
--- The client flavor (default forever) sets what the mock reports (build, interface, project ID).
--- Every check runs for both flavors unless it's about one game's rules: those sit inside
--- `if FLAVOR == "..." then` blocks. CI runs both flavors.
+-- The client flavor (default forever) sets what the mock reports (build, interface, project ID) and
+-- which TOC is loaded. Every check runs for every flavor unless it's about one game's rules: those sit
+-- inside `if FLAVOR == "..." then` blocks. CI runs each flavor listed in tests/flavors.
 local ROOT = arg[1] or "."
 local FLAVOR = arg[2] or "forever"
 local CLIENTS = {
-	forever  = { version = "1.60.1", build = "70938", interface = 16001,  project = 18 }, -- WOW_PROJECT_CAMELOT
-	midnight = { version = "12.1.5", build = "70783", interface = 120105, project = 1 },  -- WOW_PROJECT_MAINLINE
+	forever  = { version = "1.60.1", build = "70938", interface = 16001,  project = 18, toc = "Mainline" }, -- WOW_PROJECT_CAMELOT
+	midnight = { version = "12.1.5", build = "70783", interface = 120105, project = 1,  toc = "Mainline" }, -- WOW_PROJECT_MAINLINE
 }
 local CLIENT = CLIENTS[FLAVOR]
-if not CLIENT then io.write("Unknown flavor '", FLAVOR, "' (use forever or midnight)\n"); os.exit(2) end
+if not CLIENT then
+	local names = {}
+	for name in pairs(CLIENTS) do names[#names + 1] = name end
+	table.sort(names)
+	io.write("Unknown flavor '", FLAVOR, "' (use one of: ", table.concat(names, ", "), ")\n"); os.exit(2)
+end
 io.write("Client flavor: ", FLAVOR, " (interface ", CLIENT.interface, ")\n")
 local now = 0
 local timers = {}
@@ -244,7 +249,7 @@ local function session(label)
 		local was = self.shown; self.shown = true
 		if not was then for _, h in ipairs(self.hooks.OnShow or {}) do h(self) end end end
 	local ns = {}
-	local f = assert(io.open(ROOT .. "/JimPowerMizer_Mainline.toc"))
+	local f = assert(io.open(ROOT .. "/JimPowerMizer_" .. CLIENT.toc .. ".toc"))
 	for line in f:lines() do
 		if line ~= "" and not line:match("^#") then
 			if line:match("%.xml$") then loadXml(line) else loadFile(line, "JimPowerMizer", ns) end
