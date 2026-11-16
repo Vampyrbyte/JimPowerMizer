@@ -96,7 +96,8 @@ ConsoleGetAllCommands = function()
 		{ command = "someSoundThing", commandType = 0, category = 7 },
 	}
 end
-Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, Default = 5, Sound = 7 }, PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67 } }
+Enum = { ConsoleCommandType = { Cvar = 0 }, ConsoleCategory = { Graphics = 1, Default = 5, Sound = 7 }, PlayerInteractionType = { Merchant = 5, Banker = 8, MailInfo = 17, Auctioneer = 21, CharacterBanker = 67,
+	ProfessionsCustomerOrder = FLAVOR == "midnight" and 60 or nil } }
 
 -- CVars
 local cvars = {
@@ -427,6 +428,12 @@ if FLAVOR == "forever" then -- verified in game on Forever only
 	fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 67); advance(0.1)
 	check(cvars.maxFPS == "144", "Forever bank closed")
 end
+if FLAVOR == "midnight" then -- names from Blizzard's API documentation, not seen in game yet
+	fire("CRAFTINGORDERS_SHOW_CUSTOMER"); fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 60); advance(1.1)
+	check(cvars.maxFPS == "30", "placing crafting orders (both sources) -> Light saver")
+	fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 60); advance(0.1)
+	check(cvars.maxFPS == "144", "crafting orders window closed")
+end
 
 slash("enable resting")
 resting = true; fire("PLAYER_UPDATE_RESTING"); advance(5.5)
@@ -514,6 +521,13 @@ castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
 castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(2)
 fire("TRADE_SKILL_CLOSE"); advance(0.1)
 check(cvars.maxFPS == "144", "closing the profession window ends the grace period early")
+fire("CRAFTINGORDERS_SHOW_CRAFTER"); advance(3)
+check(cvars.maxFPS == "144", "crafting orders window alone isn't crafting")
+castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
+castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(2)
+check(cvars.maxFPS == "30", "craft from the crafting orders window: grace period")
+fire("CRAFTINGORDERS_HIDE_CRAFTER"); advance(0.1)
+check(cvars.maxFPS == "144", "closing the crafting orders window ends the grace period early")
 castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
 check(cvars.maxFPS == "30", "craft with the window closed (macro)")
 castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(5)

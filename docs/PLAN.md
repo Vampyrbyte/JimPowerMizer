@@ -297,7 +297,10 @@ from `main` until the merge.
     mail `MailInfo` (17), vendor `Merchant` (5), auction house `Auctioneer` (21); each also fires its older
     window event, and every one starts and ends the situation. `AccountBanker` (warband bank from a
     distance) is mapped but not seen yet
-  - [ ] Crafting: count the crafting orders window
+  - [x] Crafting orders (from Blizzard's API documentation; the user's account can't open them): placing
+    orders (`ProfessionsCustomerOrder` (60), `CRAFTINGORDERS_SHOW/HIDE_CUSTOMER`) is a service window; the
+    orders you fill at a crafting table (`CRAFTINGORDERS_SHOW/HIDE_CRAFTER`) count as the profession window
+  - [ ] **In game (Midnight), by someone who can open crafting orders:** `/jpm debug` lines for both windows
   - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),
     found with `/jpm watch`; add the ones that save power
   - [ ] Combat: confirm writes in lockdown (`/jpm probe combat`); the combat deferral covers secure CVars

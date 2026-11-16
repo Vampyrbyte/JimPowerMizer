@@ -214,6 +214,8 @@ local SERVICE_TYPES = {
 	-- Forever's bank reports as CharacterBanker (67), verified in Ratchet.
 	Auctioneer = "auction", MailInfo = "mail", Banker = "bank", CharacterBanker = "bank", AccountBanker = "bank",
 	GuildBanker = "guildbank", Merchant = "merchant",
+	-- Placing crafting orders (Midnight). From Blizzard's API documentation, not yet seen in game.
+	ProfessionsCustomerOrder = "orders",
 }
 local LEGACY_EVENTS = {
 	BANKFRAME_OPENED = { "bank", true },          BANKFRAME_CLOSED = { "bank", false },
@@ -221,6 +223,7 @@ local LEGACY_EVENTS = {
 	AUCTION_HOUSE_SHOW = { "auction", true },     AUCTION_HOUSE_CLOSED = { "auction", false },
 	MERCHANT_SHOW = { "merchant", true },         MERCHANT_CLOSED = { "merchant", false },
 	GUILDBANKFRAME_OPENED = { "guildbank", true }, GUILDBANKFRAME_CLOSED = { "guildbank", false },
+	CRAFTINGORDERS_SHOW_CUSTOMER = { "orders", true }, CRAFTINGORDERS_HIDE_CUSTOMER = { "orders", false },
 }
 local serviceTypes, typeNames, openWindows = {}, {}, {}
 
@@ -231,6 +234,13 @@ local CAST_EVENTS = {
 	"UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
 	"UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_FAILED",
 }
+-- Two windows count as the profession window: the profession itself, and the crafting orders you
+-- fill at a crafting table (Midnight; events from Blizzard's API documentation, not yet seen in game).
+local PROFESSION_WINDOW_EVENTS = {
+	TRADE_SKILL_SHOW = { "profession", true },              TRADE_SKILL_CLOSE = { "profession", false },
+	CRAFTINGORDERS_SHOW_CRAFTER = { "orders", true },       CRAFTINGORDERS_HIDE_CRAFTER = { "orders", false },
+}
+local professionWindows = {}
 local professionWindowOpen, craftingCast, fishingChannel = false, false, false
 
 function impl.IsCraftingCast()
@@ -289,14 +299,19 @@ local function initProfessions(notify)
 			pcall(frame.RegisterEvent, frame, event)
 		end
 	end
-	pcall(frame.RegisterEvent, frame, "TRADE_SKILL_SHOW")
-	pcall(frame.RegisterEvent, frame, "TRADE_SKILL_CLOSE")
+	for event in pairs(PROFESSION_WINDOW_EVENTS) do
+		pcall(frame.RegisterEvent, frame, event) -- an event may not exist on every client
+	end
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	frame:SetScript("OnEvent", function(_, event, unit)
 		if event == "PLAYER_ENTERING_WORLD" then
+			wipe(professionWindows)
 			professionWindowOpen = false
-		elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_CLOSE" then
-			local open = event == "TRADE_SKILL_SHOW"
+		elseif PROFESSION_WINDOW_EVENTS[event] then
+			local info = PROFESSION_WINDOW_EVENTS[event]
+			professionWindows[info[1]] = info[2] or nil
+			ns.addon:Debug("Window event %s", event)
+			local open = next(professionWindows) ~= nil
 			if open ~= professionWindowOpen then
 				professionWindowOpen = open
 				if open then notify("USER_INPUT", "profession window") else notify("profession window closed") end
