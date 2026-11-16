@@ -276,7 +276,7 @@ from `main` until the merge.
 
 **Steps**
 - [x] Phase 0: `link.sh --forever/--retail`; CI on `midnight`; release runs the checks; tag guard
-- [ ] Harness flavors (`forever`, `midnight`), CI runs both (on `main`)
+- [x] Harness flavors (`forever`, `midnight`), CI runs both (on `main`)
 - [ ] Phase 1, in game on Midnight: TOC `## Interface: 16001, 120105`; `/dump select(4, GetBuildInfo()),
   WOW_PROJECT_ID`; `/jpm debug` load; `/jpm probe` and `/jpm probe combat`; force idle and back (incl.
   `/console` tweaks); hide UI and names/nameplates. Record results in §1 like Forever's.

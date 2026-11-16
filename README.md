@@ -14,7 +14,7 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 ```sh
 scripts/fetch-libs.sh          # fetch LibStub + Ace3 into Libs/ (git-ignored)
 scripts/link.sh [--retail]     # link as AddOns/JimPowerMizerDev in _forever_ (or _retail_)
-luajit tests/harness.lua .     # run the mock-API tests
+luajit tests/harness.lua . [forever|midnight]   # mock-API tests as either client (default forever)
 scripts/gen-locale.py          # regenerate Locales/enUS.lua after adding L["..."] strings
 ```
 
@@ -23,7 +23,7 @@ install (`JimPowerMizer`) with its own settings. Enable one at a time in the gam
 reload. `link.sh` writes the dev TOC (git-ignored) from the release TOC, so run it again after the
 TOC changes.
 
-CI runs luacheck, the locale check and the tests on every push. Pushing a tag like `v0.2.0` builds
+CI runs luacheck, the locale check and the tests (as both clients) on every push. Pushing a tag like `v0.2.0` builds
 a release zip with the libraries via the BigWigs packager and attaches it to a GitHub release.
 
 ## Translating

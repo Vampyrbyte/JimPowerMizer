@@ -1,6 +1,18 @@
--- Minimal WoW API mock that loads the addon (per the Forever TOC) and checks its behaviour.
--- Usage: scripts/fetch-libs.sh && luajit tests/harness.lua .
+-- Minimal WoW API mock that loads the addon (per the Mainline TOC) and checks its behaviour.
+-- Usage: scripts/fetch-libs.sh && luajit tests/harness.lua . [forever|midnight]
+--
+-- The client flavor (default forever) sets what the mock reports (build, interface, project ID).
+-- Every check runs for both flavors unless it's about one game's rules: those sit inside
+-- `if FLAVOR == "..." then` blocks. CI runs both flavors.
 local ROOT = arg[1] or "."
+local FLAVOR = arg[2] or "forever"
+local CLIENTS = {
+	forever  = { version = "1.60.1", build = "70938", interface = 16001,  project = 18 }, -- WOW_PROJECT_CAMELOT
+	midnight = { version = "12.1.5", build = "70783", interface = 120105, project = 1 },  -- WOW_PROJECT_MAINLINE
+}
+local CLIENT = CLIENTS[FLAVOR]
+if not CLIENT then io.write("Unknown flavor '", FLAVOR, "' (use forever or midnight)\n"); os.exit(2) end
+io.write("Client flavor: ", FLAVOR, " (interface ", CLIENT.interface, ")\n")
 local now = 0
 local timers = {}
 local frames = {}
@@ -33,9 +45,9 @@ UnitRace = function() return "Human", "Human" end
 UnitFactionGroup = function() return "Alliance" end
 GetCurrentRegion = function() return 3 end
 GetCurrentRegionName = function() return "EU" end
-GetBuildInfo = function() return "1.60.1", "70338", "Nov 2026", 16001 end
+GetBuildInfo = function() return CLIENT.version, CLIENT.build, "Nov 2026", CLIENT.interface end
 GetTime = function() return now end
-WOW_PROJECT_ID = 18
+WOW_PROJECT_ID = CLIENT.project
 SlashCmdList, hash_SlashCmdList = {}, {}
 C_AddOns = { GetAddOnMetadata = function() return "@project-version@" end }
 
@@ -255,6 +267,8 @@ end
 -- Session 1 --------------------------------------------------------------
 IsLoggedIn = function() return false end
 local ns = session("session 1: normal flight")
+check(ns.client.interface == CLIENT.interface and ns.client.projectID == CLIENT.project, "addon sees the " .. FLAVOR .. " client")
+check(ns.Compat.name == "Mainline", "Mainline compat layer chosen")
 check(cvars.maxFPS == "144", "baseline untouched at login")
 advance(ns.STARTUP_GRACE)
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(1)
@@ -396,10 +410,12 @@ fire("MAIL_SHOW"); fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 17); advance(1.
 check(cvars.maxFPS == "30", "mail open (both sources)")
 fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 17); advance(0.1)
 check(cvars.maxFPS == "144", "mail closed by one source only -> not stuck open")
-fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 67); advance(1.1)
-check(cvars.maxFPS == "30", "Forever bank (CharacterBanker 67) -> Light saver")
-fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 67); advance(0.1)
-check(cvars.maxFPS == "144", "Forever bank closed")
+if FLAVOR == "forever" then -- verified in game on Forever only
+	fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 67); advance(1.1)
+	check(cvars.maxFPS == "30", "Forever bank (CharacterBanker 67) -> Light saver")
+	fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 67); advance(0.1)
+	check(cvars.maxFPS == "144", "Forever bank closed")
+end
 
 slash("enable resting")
 resting = true; fire("PLAYER_UPDATE_RESTING"); advance(5.5)
@@ -415,19 +431,22 @@ dead = true; fire("PLAYER_DEAD"); advance(3.5)
 check(cvars.maxFPS == "30", "dead -> Light saver")
 dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
--- Fishing and crafting
-mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
-check(cvars.maxFPS == "144", "a sword in the main hand isn't fishing")
-mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.5)
-check(cvars.maxFPS == "144", "fishing: waits for enter delay")
-advance(0.6)
-check(cvars.maxFPS == "30", "fishing pole equipped -> Light saver")
-channelInfo = { "Fishing", "Fishing", 136245, 1, 2, false, false, 7731 }
-fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(0.1)
-check(ns.Engine:GetCurrent() == "fishing", "a Fishing cast isn't crafting")
-channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player")
-mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.1)
-check(cvars.maxFPS == "144", "weapon back on -> your settings")
+-- Fishing: on Forever you hold the pole in your main hand (Midnight's rule comes with M5)
+if FLAVOR == "forever" then
+	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
+	check(cvars.maxFPS == "144", "a sword in the main hand isn't fishing")
+	mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.5)
+	check(cvars.maxFPS == "144", "fishing: waits for enter delay")
+	advance(0.6)
+	check(cvars.maxFPS == "30", "fishing pole equipped -> Light saver")
+	channelInfo = { "Fishing", "Fishing", 136245, 1, 2, false, false, 7731 }
+	fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(0.1)
+	check(ns.Engine:GetCurrent() == "fishing", "a Fishing cast isn't crafting")
+	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player")
+	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.1)
+	check(cvars.maxFPS == "144", "weapon back on -> your settings")
+end
+-- Crafting
 
 fire("TRADE_SKILL_SHOW"); advance(3)
 check(cvars.maxFPS == "144", "profession window alone isn't crafting")
@@ -890,5 +909,5 @@ poke(); advance(1)
 slash("idle 600")
 noErrors("session 9")
 
-io.write(FAILED and "\nSOME CHECKS FAILED\n" or "\nALL CHECKS PASSED\n")
+io.write(FAILED and "\nSOME CHECKS FAILED" or "\nALL CHECKS PASSED", " (", FLAVOR, ")\n")
 os.exit(FAILED and 1 or 0)
