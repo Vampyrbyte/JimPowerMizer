@@ -127,6 +127,7 @@ if L then
 	L["Used by: %s"] = true
 	L["nothing"] = true
 	L["Tick |cffffd200Change|r for each setting this profile should change; unticked settings are left alone."] = true
+	L["Fishing, and for a short time after each cast so looting and casting again doesn't switch back and forth. Moving ends it early."] = true
 	L["Enabled"] = true
 	L["Graphics profile"] = true
 	L["\"Your settings\" restores your own graphics settings while this situation is active."] = true
@@ -140,6 +141,8 @@ if L then
 	L["Moving the mouse, panning the camera or turning ends idle. Off: only actions do, such as moving your character, casting, targeting, looting, typing, clicking in a window and combat."] = true
 	L["Long idle after (seconds)"] = true
 	L["Seconds without input before you count as long idle. Mouse and camera movement count as input if Idle's option says so."] = true
+	L["Keep after a cast (seconds)"] = true
+	L["How long to stay in this situation after a Fishing cast ends, in case you cast again. Moving ends it early."] = true
 	L["Keep after crafting (seconds)"] = true
 	L["How long to stay in this situation after a craft ends, in case you start another. Moving or closing the profession window ends it early."] = true
 	L["General"] = true

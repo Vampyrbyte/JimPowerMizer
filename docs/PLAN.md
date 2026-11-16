@@ -288,9 +288,10 @@ from `main` until the merge.
   WOW_PROJECT_ID`; `/jpm debug` load; `/jpm probe` and `/jpm probe combat`; force idle and back (incl.
   `/console` tweaks); hide UI and names/nameplates. Record results in §1 like Forever's.
 - [ ] Phase 2 (one commit each, both clients pass):
-  - [ ] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
-    channeling Fishing, with a short grace between casts, ended early by moving. Chosen in `Compat`.
-    Spell IDs from `/dump UnitChannelInfo("player")` while fishing
+  - [x] Fishing: Forever keeps "pole in the main hand"; Midnight (pole in a profession slot) counts
+    channeling Fishing (spell 131476, or any channel with that spell's name), then `fishing.grace` seconds
+    (default 10, an option on Midnight only), ended early by moving. Chosen by `Compat:FishesByChannel()`
+  - [ ] **In game (Midnight):** fishing casts switch to Light saver and stay there between casts
   - [ ] Service windows: retail's bank, warband bank, auction house and mail interaction types (`/jpm debug`)
   - [ ] Crafting: count the crafting orders window
   - [ ] Graphics: CVars Midnight has and Forever lacks (ray-traced shadows, compute effects, upscaling...),

@@ -21,6 +21,8 @@ local REQUIRED = {
 	"IsCraftingCast", -- () -> boolean (casting or channeling a profession spell, e.g. Smelt Copper)
 	"IsProfessionWindowOpen", -- () -> boolean
 	"IsFishingPoleEquipped", -- () -> boolean (fishing pole in the main hand)
+	"FishesByChannel", -- () -> boolean (this client's fishing rule is the Fishing channel, not a held pole)
+	"IsFishingChannel", -- () -> boolean (channeling Fishing right now)
 	"GetActivitySnapshot", -- () -> moving, casting, cursorX, cursorY, facing (facing may be nil)
 	"GetTypingSnapshot", -- () -> focused edit box (or nil), its text (may be nil): compared between polls
 	"GetCascadeCandidates", -- () -> delayedNames, syncNames, countFromConsole (see Applier)

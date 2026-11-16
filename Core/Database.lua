@@ -71,7 +71,9 @@ local defaults = {
 			-- longIdle.timeout: seconds without input (same rules as idle) before a long absence.
 			longIdle      = { enabled = true,  profile = "Max saver",   priority = 92,  enterDelay = 0, timeout = 900 },
 			taxi          = { enabled = true,  profile = "Max saver",   priority = 91,  enterDelay = 2 },
-			fishing       = { enabled = true,  profile = "Light saver", priority = 55,  enterDelay = 1 },
+			-- fishing.grace: seconds to stay active after a Fishing cast ends (ended early by moving).
+			-- Only used where fishing is the cast, not a held pole (Midnight).
+			fishing       = { enabled = true,  profile = "Light saver", priority = 55,  enterDelay = 1, grace = 10 },
 			-- crafting.grace: seconds to stay active after a craft ends (ended early by moving or
 			-- closing the profession window).
 			crafting      = { enabled = true,  profile = "Light saver", priority = 50,  enterDelay = 0, grace = 10 },

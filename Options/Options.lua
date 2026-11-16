@@ -253,8 +253,12 @@ end
 
 local function situationGroup(key, def, order)
 	local function cfg() return db().situations[key] end
+	local help = SITUATION_HELP[key]
+	if key == "fishing" and ns.Compat:FishesByChannel() then
+		help = L["Fishing, and for a short time after each cast so looting and casting again doesn't switch back and forth. Moving ends it early."]
+	end
 	local args = {
-		help = { type = "description", order = 0, fontSize = "medium", name = (SITUATION_HELP[key] or def.name) .. "\n" },
+		help = { type = "description", order = 0, fontSize = "medium", name = (help or def.name) .. "\n" },
 		enabled = {
 			type = "toggle", name = L["Enabled"], order = 1, width = "full",
 			get = function() return cfg().enabled end,
@@ -300,6 +304,14 @@ local function situationGroup(key, def, order)
 			desc = L["Seconds without input before you count as long idle. Mouse and camera movement count as input if Idle's option says so."],
 			get = function() return cfg().timeout or 900 end,
 			set = function(_, v) cfg().timeout = v; refreshEngine() end,
+		}
+	end
+	if key == "fishing" and ns.Compat:FishesByChannel() then
+		args.grace = {
+			type = "range", name = L["Keep after a cast (seconds)"], order = 5, min = 0, max = 120, step = 1, bigStep = 5,
+			desc = L["How long to stay in this situation after a Fishing cast ends, in case you cast again. Moving ends it early."],
+			get = function() return cfg().grace or 10 end,
+			set = function(_, v) cfg().grace = v; refreshEngine() end,
 		}
 	end
 	if key == "crafting" then

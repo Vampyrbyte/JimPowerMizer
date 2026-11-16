@@ -73,6 +73,7 @@ UnitChannelInfo = function() if channelInfo then return unpack(channelInfo) end 
 local mainHand -- item ID in the main hand
 local ITEMS = { [12225] = { 2, 20 }, [1234] = { 2, 7 } } -- Blump Family Fishing Pole, a sword
 GetInventoryItemID = function(_, slot) if slot == 16 then return mainHand end end
+C_Spell = { GetSpellName = function(id) if id == 131476 then return "Fishing" end end }
 C_Item = { GetItemInfoInstant = function(id) local i = ITEMS[id]
 	if i then return id, "Weapon", "?", "INVTYPE_WEAPON", 0, i[1], i[2] end end }
 GetCursorPosition = function() return cx, cy end
@@ -455,6 +456,40 @@ if FLAVOR == "forever" then
 	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player")
 	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.1)
 	check(cvars.maxFPS == "144", "weapon back on -> your settings")
+	check(not ns.Compat:FishesByChannel(), "Forever: fishing is the held pole, not the cast")
+end
+-- Fishing on Midnight: the Fishing channel (spell 131476, seen in game), then a grace period
+if FLAVOR == "midnight" then
+	local FISHING = { "Fishing", "Fishing", 4620674, 1, 2, false, false, 131476 }
+	mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
+	check(cvars.maxFPS == "144", "Midnight: a pole in the main hand alone isn't fishing")
+	mainHand = nil
+	channelInfo = { "Drain Life", "Drain Life", 1, 1, 2, false, false, 234153 }
+	fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(1.5)
+	check(cvars.maxFPS == "144", "another channel isn't fishing")
+	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player"); advance(0.1)
+	channelInfo = FISHING; fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(0.5)
+	check(cvars.maxFPS == "144", "fishing cast: waits for enter delay")
+	advance(0.6)
+	check(cvars.maxFPS == "30" and ns.Engine:GetCurrent() == "fishing", "fishing cast -> Light saver, not crafting")
+	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player"); advance(5)
+	check(cvars.maxFPS == "30", "between casts: still fishing")
+	channelInfo = FISHING; fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(3)
+	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player"); advance(9)
+	check(cvars.maxFPS == "30", "9 s after the last cast: still fishing")
+	advance(2)
+	check(cvars.maxFPS == "144", "grace over -> your settings")
+	channelInfo = FISHING; fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(1.5)
+	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player"); advance(2)
+	moving = true; fire("PLAYER_STARTED_MOVING"); advance(0.1)
+	check(cvars.maxFPS == "144", "moving ends the grace period")
+	moving = false; fire("PLAYER_STOPPED_MOVING"); advance(0.1)
+	channelInfo = { "Fishing", "Fishing", 1, 1, 2, false, false, 7731 } -- another Fishing spell, same name
+	fire("UNIT_SPELLCAST_CHANNEL_START", "player"); advance(1.5)
+	check(cvars.maxFPS == "30", "a Fishing spell with another ID counts by name")
+	moving = true; fire("PLAYER_STARTED_MOVING"); channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player"); advance(0.1)
+	check(cvars.maxFPS == "144", "cast interrupted by moving: no grace")
+	moving = false; fire("PLAYER_STOPPED_MOVING"); advance(0.1)
 end
 -- Crafting
 
@@ -468,7 +503,7 @@ check(cvars.maxFPS == "30", "still crafting during the grace period")
 castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
 castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(9.5)
 check(cvars.maxFPS == "30", "next craft restarts the grace period")
-advance(1)
+advance(1.6) -- the grace period ends on the next 1 s poll, whenever that falls
 check(cvars.maxFPS == "144", "grace period over -> your settings")
 castInfo = SMELT; fire("UNIT_SPELLCAST_START", "player"); advance(0.1)
 castInfo = nil; fire("UNIT_SPELLCAST_STOP", "player"); advance(2)
@@ -647,7 +682,11 @@ check(node("graphics", "p_Max saver") and node("graphics", "p_Light saver"), "bu
 check(node("situations", "idle", "args") == nil and node("situations", "idle", "timeout") ~= nil, "idle has a timeout setting")
 check(node("situations", "taxi", "timeout") == nil, "only idle has a timeout")
 check(node("situations", "crafting", "grace") ~= nil and get("situations", "crafting", "grace") == 10, "crafting has a grace setting, 10 s by default")
-check(node("situations", "fishing") ~= nil and node("situations", "fishing", "grace") == nil, "fishing listed, no grace setting")
+if FLAVOR == "midnight" then
+	check(node("situations", "fishing", "grace") ~= nil and get("situations", "fishing", "grace") == 10, "Midnight: fishing has a grace setting, 10 s by default")
+else
+	check(node("situations", "fishing") ~= nil and node("situations", "fishing", "grace") == nil, "Forever: fishing listed, no grace setting")
+end
 check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live

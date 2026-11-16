@@ -231,7 +231,7 @@ local CAST_EVENTS = {
 	"UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
 	"UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_FAILED",
 }
-local professionWindowOpen, craftingCast = false, false
+local professionWindowOpen, craftingCast, fishingChannel = false, false, false
 
 function impl.IsCraftingCast()
 	local _, _, _, _, _, castTrade = UnitCastingInfo("player")
@@ -261,6 +261,27 @@ function impl.IsFishingPoleEquipped()
 	return result
 end
 
+-- Fishing on Midnight (and any other Standard client): the pole sits in a profession slot, so what
+-- counts is the Fishing channel itself. Forever (interface 16001) keeps the held-pole rule.
+function impl.FishesByChannel()
+	return (tonumber(ns.client.interface) or 0) >= 100000
+end
+
+-- UnitChannelInfo's 8th value is the spell ID: 131476 for Fishing on Midnight 12.1.5 (channel of
+-- about 22 s, isTradeSkill false). Other Fishing spells are matched by having the same name.
+local FISHING_SPELL = 131476
+local fishingName
+function impl.IsFishingChannel()
+	local name, _, _, _, _, _, _, spellID = UnitChannelInfo("player")
+	name, spellID = clean(name), clean(spellID)
+	if name == nil then return false end
+	if spellID == FISHING_SPELL then return true end
+	if fishingName == nil and C_Spell and C_Spell.GetSpellName then
+		fishingName = clean(C_Spell.GetSpellName(FISHING_SPELL)) -- nil until the client has the spell's data
+	end
+	return fishingName ~= nil and name == fishingName
+end
+
 local function initProfessions(notify)
 	local frame = CreateFrame("Frame")
 	for _, event in ipairs(CAST_EVENTS) do
@@ -285,6 +306,11 @@ local function initProfessions(notify)
 			if now ~= craftingCast then
 				craftingCast = now
 				notify(now and "profession cast started" or "profession cast ended")
+			end
+			local fishing = impl.FishesByChannel() and impl.IsFishingChannel()
+			if fishing ~= fishingChannel then
+				fishingChannel = fishing
+				notify(fishing and "fishing cast started" or "fishing cast ended")
 			end
 		end
 	end)

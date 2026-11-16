@@ -151,6 +151,9 @@ function JPM:ListSituations()
 		elseif key == "crafting" then
 			local left = ns.CraftingGraceLeft and ns.CraftingGraceLeft()
 			extra = (", keep %ds after crafting%s"):format(cfg.grace or 0, left and (" (%ds left)"):format(math.ceil(left)) or "")
+		elseif key == "fishing" and ns.Compat:FishesByChannel() then
+			local left = ns.FishingGraceLeft and ns.FishingGraceLeft()
+			extra = (", keep %ds after a cast%s"):format(cfg.grace or 0, left and (" (%ds left)"):format(math.ceil(left)) or "")
 		end
 		self:Msg("  %s|cffffd200%s|r (%s): %s, %s, priority %d, delay %ss%s%s",
 			key == current and "> " or "", key == "cinematic" and "cutscenes" or key, defs[key].name,
