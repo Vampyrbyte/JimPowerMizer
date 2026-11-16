@@ -14,7 +14,7 @@ See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
 ```sh
 scripts/fetch-libs.sh          # fetch LibStub + Ace3 into Libs/ (git-ignored)
-scripts/link.sh [--retail]     # link as AddOns/JimPowerMizerDev in _forever_ (or _retail_)
+scripts/link.sh [--retail | --classic-era]   # link as AddOns/JimPowerMizerDev in _forever_ (or _retail_, _classic_era_)
 luajit tests/harness.lua . [forever|midnight]   # mock-API tests as either client (default forever)
 scripts/gen-locale.py          # regenerate Locales/enUS.lua after adding L["..."] strings
 ```

@@ -1,0 +1,5 @@
+# Client flavors this branch supports: CI runs the mock-API tests once per line
+# (luajit tests/harness.lua . <flavor>). Each branch lists its own; the flavors are defined in
+# tests/harness.lua (CLIENTS).
+forever
+midnight

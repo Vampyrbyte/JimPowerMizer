@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, midnight]
+    branches: [main, midnight, classic]
   pull_request:
   workflow_call: # the release workflow runs these checks before packaging
 
@@ -18,13 +18,27 @@ jobs:
       - name: Locale file up to date
         run: python3 scripts/gen-locale.py --check
 
-  # One package supports both clients, so every change is tested as each of them.
+  # The client flavors this branch supports (tests/flavors, one per line).
+  flavors:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.read.outputs.list }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: read
+        run: |
+          list=$(grep -v -e '^#' -e '^[[:space:]]*$' tests/flavors | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Flavors: $list"
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+
+  # One package supports several clients, so every change is tested as each of them.
   tests:
+    needs: flavors
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        flavor: [forever, midnight]
+        flavor: ${{ fromJSON(needs.flavors.outputs.list) }}
     name: tests (${{ matrix.flavor }})
     steps:
       - uses: actions/checkout@v5
