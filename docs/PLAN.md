@@ -300,7 +300,7 @@ savings = {
 - [ ] Options, a "Savings" tab: watts at your own settings and per graphics profile; price and currency
   symbol; CO₂ factor; the stats table; reset button. Help text: measure at the wall (a plug-in meter) if
   possible; GPU software only reads the GPU, so use the same method for every figure; measure with the
-  game in the foreground.
+  game in the foreground; the background FPS limit note (see below).
 - [ ] Units: Wh below 1 kWh, else kWh to 2 places; g below 1 kg, else kg; cost to 2 places.
 
 **Tests**
@@ -312,11 +312,10 @@ savings = {
 **Known limits:** savings are only as good as the watts entered; time with the game in the background
 counts the same as in the foreground (the background cap may already have saved some of it).
 
-**Open: detecting the background.** Blizzard's API has no window focus function or event (checked in the
-generated API docs, 2026-11-16). The only signal is the frame rate: in the background the game runs at
-`maxFPSBk`. That tells the two apart only when the background cap is clearly lower than the frame rate
-in the foreground, so not while a profile caps both to the same value (`capBackground`). First an in-game
-check on Forever of what `GetFramerate()` reports while alt-tabbed, with and without a profile applied.
+**Background:** not detected (decided 2026-11-16). There is no window focus API; the frame rate
+can't tell front from back while a profile caps both the same, and the workarounds are too hacky. The
+help text on the Savings tab says so instead: while the game's background FPS limit is in force (e.g.
+alt-tabbed), the savings shown may be wrong, as the addon can't reliably account for it.
 
 ### M5: More flavors
 
