@@ -1,0 +1,40 @@
+## Interface: 11509
+## Title: JimPowerMizer
+## Notes: Switches graphics settings by situation (idle, flight path, ...) to save power.
+## Author: Jim Walters
+## Version: @project-version@
+## X-Curse-Project-ID: 1803739
+## X-Wago-ID: aND9V26o
+## SavedVariables: JimPowerMizerDB
+## IconTexture: Interface\Icons\Spell_Nature_Sleep
+## AddonCompartmentFunc: JimPowerMizer_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: JimPowerMizer_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: JimPowerMizer_OnAddonCompartmentLeave
+## Category: Miscellaneous
+
+embeds.xml
+
+Locales\enUS.lua
+
+Core\Init.lua
+Compat\Compat.lua
+Compat\Mainline.lua
+Core\CVarRegistry.lua
+Core\Database.lua
+Core\Screen.lua
+Core\Applier.lua
+Core\Engine.lua
+
+Situations\Combat.lua
+Situations\Cinematic.lua
+Situations\Idle.lua
+Situations\Taxi.lua
+Situations\Fishing.lua
+Situations\Crafting.lua
+Situations\Dead.lua
+Situations\ServiceWindow.lua
+Situations\Resting.lua
+
+Options\Options.lua
+
+Core\Commands.lua

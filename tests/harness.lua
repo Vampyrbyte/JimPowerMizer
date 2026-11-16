@@ -9,6 +9,9 @@ local FLAVOR = arg[2] or "forever"
 local CLIENTS = {
 	forever  = { version = "1.60.1", build = "70938", interface = 16001,  project = 18, toc = "Mainline" }, -- WOW_PROJECT_CAMELOT
 	midnight = { version = "12.1.5", build = "70783", interface = 120105, project = 1,  toc = "Mainline" }, -- WOW_PROJECT_MAINLINE
+	-- Classic Era 1.15.9 (also Season of Discovery and Hardcore). Build from the installed client;
+	-- interface number to confirm in game.
+	classic_era = { version = "1.15.9", build = "70576", interface = 11509, project = 2, toc = "Classic" }, -- WOW_PROJECT_CLASSIC
 }
 local CLIENT = CLIENTS[FLAVOR]
 if not CLIENT then
@@ -455,8 +458,8 @@ dead = true; fire("PLAYER_DEAD"); advance(3.5)
 check(cvars.maxFPS == "30", "dead -> Light saver")
 dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
--- Fishing: on Forever you hold the pole in your main hand (Midnight's rule comes with M5)
-if FLAVOR == "forever" then
+-- Fishing: on Forever (and, expected, Classic) you hold the pole in your main hand; Midnight's rule is below
+if FLAVOR == "forever" or FLAVOR == "classic_era" then -- Classic: the same rule expected, to confirm in game
 	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
 	check(cvars.maxFPS == "144", "a sword in the main hand isn't fishing")
 	mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.5)
@@ -469,7 +472,7 @@ if FLAVOR == "forever" then
 	channelInfo = nil; fire("UNIT_SPELLCAST_CHANNEL_STOP", "player")
 	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.1)
 	check(cvars.maxFPS == "144", "weapon back on -> your settings")
-	check(not ns.Compat:FishesByChannel(), "Forever: fishing is the held pole, not the cast")
+	check(not ns.Compat:FishesByChannel(), FLAVOR .. ": fishing is the held pole, not the cast")
 end
 -- Fishing on Midnight: the Fishing channel (spell 131476, seen in game), then a grace period
 if FLAVOR == "midnight" then
