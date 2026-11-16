@@ -4,8 +4,9 @@ A World of Warcraft addon that changes graphics settings automatically based on 
 for example dropping the frame-rate cap and render scale while you're AFK or on a flight path, and
 restoring your normal settings the moment you need them (combat, moving again, etc.).
 
-- **Primary target:** WoW **Forever** (interface `16001`)
-- **Planned:** Midnight (Standard) and the Classic flavors, via a per-flavor compatibility layer
+- **Supported:** WoW **Forever** (interface `16001`) and, from 0.2.0 (in beta), **Midnight** (Standard,
+  interface `120105`). One download works in both.
+- **Planned:** the Classic flavors, via a per-flavor compatibility layer
 
 See [docs/PLAN.md](docs/PLAN.md) for the architecture and roadmap.
 
