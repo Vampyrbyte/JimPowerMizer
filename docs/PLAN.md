@@ -339,10 +339,10 @@ Goal: one package for Forever, Midnight and the Classic clients, first released 
 `classic` branch. Meanwhile 0.1.x stays the stable release from `main` and 0.2.0 betas continue from
 `midnight`. Everything ends up on `main` as one version.
 
-**Which clients.** Installed on this machine (2026-11-16): Classic Era 1.15.9 (`_classic_era_`). Other
-Classic clients Blizzard runs at the time (e.g. Mists of Pandaria Classic, Anniversary realms; Season of
-Discovery and Hardcore share Era's client) are checked in Phase 0. Each one we support has to be installed
-to be tested. Proposal: start with Era, add the others one at a time.
+**Which clients.** Every Classic client Blizzard runs (decided 2026-11-16). Known now: Classic Era 1.15.9
+(`_classic_era_`, installed; Season of Discovery and Hardcore realms are played on this same client), TBC
+Anniversary and Mists of Pandaria Classic (the user will install both). Phase 0 confirms the list, each
+client's folder and interface number.
 
 **Branches while betas overlap**
 
@@ -356,8 +356,9 @@ to be tested. Proposal: start with Era, add the others one at a time.
   back up until a branch is finished.
 - Where a change goes: works on every client → `main` (named as such: it ships in the next 0.1.x);
   Midnight only → `midnight`; Classic only → `classic`. Then merge it down the chain the same day.
-- Progress notes for M6 are kept on `classic` (as M5's are on `midnight`), to keep `docs/PLAN.md`
-  merges simple.
+- **Docs live on `main` only** (decided 2026-11-16): `docs/` and `README.md` are edited on `main` and
+  reach the other branches by the usual merge down. They aren't packaged, so this never changes a
+  release. The split branches are meant to be short-lived; after the merge, back to one branch.
 - Parallel work: one Claude session per folder. Each game's dev copy is linked to the folder whose
   code it should run (`scripts/link.sh`).
 - Tag guard: stable tags only from `main` (unchanged); a `v0.3.0` pre-release must include all of `main`
@@ -373,17 +374,19 @@ back to a lower version.
   is stable. Needs Classic-only packages from `classic` for a while.
 
 **Steps**
-- [ ] Phase 0 (no game needed):
-  - [ ] Which Classic clients are live, their interface numbers, and whether each reads a `_Classic` TOC
-    (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager accepts any Classic interface in `_Classic`
+- [ ] Phase 0 (no game needed, except reading interface numbers):
+  - [ ] The live Classic clients, their folders and interface numbers (`/dump select(4, GetBuildInfo())`),
+    and whether each reads a `_Classic` TOC (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager
+    accepts any Classic interface in `_Classic`
   - [ ] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic`; `link.sh` options for
     `_classic_era_` (and each Classic folder added later)
   - [ ] CI on `classic`; tag guard as above
-  - [ ] Harness flavor `classic_era` (one per Classic client added); CI runs all flavors
+  - [ ] Harness flavors `classic_era`, `tbc_anniversary`, `mists_classic`; CI runs all flavors
   - [ ] `JimPowerMizer_Classic.toc` (same file list); Compat chosen by interface. Start by finding how
     much of `Compat/Mainline.lua` works there (Classic runs a modern client); `Compat/Classic.lua` only
     for what differs
-- [ ] Phase 1, in game on each Classic client: loads without errors and isn't out of date; `/jpm probe`
+- [ ] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
+  short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
   options window and Settings page; addon compartment (may not exist: `/jpm` still opens options)
 - [ ] Phase 2 (one commit each, every client passes):
