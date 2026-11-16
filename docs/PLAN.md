@@ -9,7 +9,7 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 | Flavor | Interface | TOC file | API family | Status |
 |---|---|---|---|---|
 | **Forever** | `16001` | `JimPowerMizer_Mainline.toc` | Mainline (Midnight 12.x API) | **Primary target** |
-| Midnight (Standard) | `120105` (12.1.5 installed; confirm in game) | `JimPowerMizer_Mainline.toc` | Mainline | **In progress** on the `midnight` branch (M5), first release 0.2.x |
+| Midnight (Standard) | `120105` (12.1.5) | `JimPowerMizer_Mainline.toc` | Mainline | **In progress** on the `midnight` branch (M5), first release 0.2.x |
 | Mists / Cata / Wrath / TBC / Vanilla | `50504` / … / `11509` | `JimPowerMizer_Classic.toc` or per-flavor | Classic | Future |
 
 **Verified on Forever build 1.60.1 (70938), 2026-11-13 (`/jpm probe`, out of combat):**
@@ -19,6 +19,13 @@ sitting in a city, alt-tabbed, etc.), and restore them when it is.
 - In combat (`/jpm probe combat`, `InCombatLockdown()` true): the same flags, and the `maxFPSBk` write test
   also passes. So CVar writes aren't blocked by combat lockdown. Only `maxFPSBk` was write-tested; the
   combat deferral in the Applier stays as a safety net for any CVar the client marks secure.
+
+**Verified on Midnight build 12.1.5 (70783), 2026-11-16 (`/jpm probe` and `/jpm probe combat`, branch `midnight`):**
+- Interface `120105`; `WOW_PROJECT_ID` = `1`; `WOW_PROJECT_CAMELOT` is nil. Loads with compat Mainline.
+- The CVars in `Core/CVarRegistry.lua` exist under the same names, except `graphicsPBRLiquidDetail` and
+  `graphicsLightMode` (Forever only; the registry skips them). None is secure, read-only or locked.
+- Of the name/nameplate CVars for "Hide names", 22 exist and 1 doesn't.
+- The `maxFPSBk` write test passes out of combat and in combat, as on Forever.
 
 TOC naming: the BigWigs packager (v2.7.0) recognizes `_Mainline` and `_Camelot` but not `_Forever`, so the
 TOC is `JimPowerMizer_Mainline.toc`. Mainline is the client family that includes Forever and Standard.
