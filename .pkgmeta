@@ -1,5 +1,11 @@
 package-as: JimPowerMizer
 
+# Release notes: docs/releases/<tag>.md plus the AI disclosure, written by the release workflow
+# (scripts/release-notes.sh). Not in the package.
+manual-changelog:
+  filename: .release-notes.md
+  markup-type: markdown
+
 externals:
   Libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
   Libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
@@ -20,3 +26,4 @@ ignore:
   - .github
   - .luacheckrc
   - tests
+  - .release-notes.md
