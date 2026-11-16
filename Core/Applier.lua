@@ -323,6 +323,7 @@ function Applier:Apply(profileName, reason, force)
 	end
 
 	st.active = profileName
+	local ended, endedSeconds = ns.Savings:Switch(profileName)
 	-- `changes` covers every CVar we manage (all of them have a baseline), so anything still queued
 	-- from an earlier switch is out of date; what can't be written now is queued again.
 	pending, pendingProfile = nil, nil
@@ -330,11 +331,15 @@ function Applier:Apply(profileName, reason, force)
 	ns.Screen:Apply(profileName and ns.addon.db.profile.graphicsProfiles[profileName])
 
 	if ns.addon.db.profile.notify then
+		local text
 		if profileName then
-			ns.addon:Msg(L["Graphics profile %s (%s)"], "|cffffd200" .. profileName .. "|r", reason or "?")
+			text = L["Graphics profile %s (%s)"]:format("|cffffd200" .. profileName .. "|r", reason or "?")
 		else
-			ns.addon:Msg(L["Restored your graphics settings (%s)"], reason or "?")
+			text = L["Restored your graphics settings (%s)"]:format(reason or "?")
 		end
+		-- What the profile that just ended saved, if its power figures are entered.
+		local saved = ns.Savings:EndedText(ended, endedSeconds)
+		ns.addon:Msg(saved and (text .. ". " .. saved) or text)
 	end
 end
 
@@ -411,6 +416,7 @@ function Applier:OnCombatEnd()
 end
 
 function Applier:OnLogout()
+	ns.Savings:Stop()
 	-- Put the user's values back so they're what gets written to Config.wtf. The baseline is
 	-- deliberately kept: if these writes don't stick (or the game crashes instead of logging out),
 	-- it's restored again on the next login.

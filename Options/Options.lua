@@ -101,6 +101,7 @@ local function renameProfile(old, new)
 	for _, cfg in pairs(p.situations) do
 		if cfg.profile == old then cfg.profile = new end
 	end
+	ns.Savings:ProfileRenamed(old, new)
 	Options:Refresh()
 	refreshEngine()
 	AceConfigDialog:SelectGroup(APP, "graphics", "p_" .. new)
@@ -112,6 +113,7 @@ local function deleteProfile(name)
 	for _, cfg in pairs(p.situations) do
 		if cfg.profile == name then cfg.profile = false end
 	end
+	ns.Savings:ProfileDeleted(name)
 	Options:Refresh()
 	refreshEngine()
 end
@@ -211,6 +213,7 @@ local function profileGroup(name, order)
 		func = function()
 			local new = uniqueName(L["%s copy"]:format(name))
 			db().graphicsProfiles[new] = ns.Database.Copy(db().graphicsProfiles[name])
+			ns.Savings:ProfileCreated(new)
 			Options:Refresh()
 			AceConfigDialog:SelectGroup(APP, "graphics", "p_" .. new)
 		end,
@@ -332,6 +335,90 @@ local function situationGroup(key, def, order)
 end
 
 -- --------------------------------------------------------------------------------------------
+-- Savings
+
+local function savingsData()
+	return ns.addon.db.global.savings
+end
+
+-- A box for a number (watts, price, CO2); empty means "not entered".
+local function numberInput(name, order, desc, getValue, setValue)
+	return {
+		type = "input", name = name, order = order, width = 0.8, desc = desc,
+		get = function()
+			local v = getValue()
+			return v and tostring(v) or ""
+		end,
+		validate = function(_, v)
+			if ns.Savings.ParseNumber(v) == false then return L["Enter a number, or leave the box empty."] end
+			return true
+		end,
+		set = function(_, v)
+			setValue(ns.Savings.ParseNumber(v) or nil)
+			AceConfigRegistry:NotifyChange(APP)
+		end,
+	}
+end
+
+local function savingsGroup(order)
+	local power = {
+		help = {
+			type = "description", order = 0, fontSize = "medium",
+			name = L["Enter how much power your PC uses, in watts, with your own graphics settings and with each profile. The energy saved is the difference times how long the profile was applied. A plug-in power meter at the wall gives the best figures; graphics card software only measures the graphics card, so use the same method for every figure. Measure with the game in the foreground. Leave a box empty to leave that profile out."]
+				.. "\n\n" .. L["While the game's background frame rate limit is in force (e.g. when you alt-tab out), the savings shown may be wrong: the addon can't reliably tell when the game is in the background."] .. "\n",
+		},
+		normal = numberInput(L["Your settings"], 1, L["Watts with your own graphics settings, while playing as usual."],
+			function() return savingsData().normal end,
+			function(v) savingsData().normal = v end),
+		gap = { type = "description", order = 2, name = "" },
+	}
+	local names = {}
+	for name in pairs(db().graphicsProfiles) do names[#names + 1] = name end
+	table.sort(names)
+	for i, name in ipairs(names) do
+		power["w_" .. name] = numberInput(name, 10 + i, L["Watts with this profile applied."],
+			function() return savingsData().watts[name] end,
+			function(v) savingsData().watts[name] = v end)
+	end
+	return {
+		type = "group", name = L["Savings"], order = order,
+		args = {
+			stats = {
+				type = "description", order = 0, fontSize = "medium",
+				name = function() return table.concat(ns.Savings:GetLines(), "\n") .. "\n" end,
+			},
+			reset = {
+				type = "execute", name = L["Reset"], order = 1, width = 0.6,
+				confirm = true, confirmText = L["Clear the time and energy saved for every profile?"],
+				func = function() ns.Savings:Reset(); AceConfigRegistry:NotifyChange(APP) end,
+			},
+			power = { type = "group", inline = true, order = 2, name = L["Power use (watts)"], args = power },
+			extras = {
+				type = "group", inline = true, order = 3, name = L["Cost and CO2 (optional)"],
+				args = {
+					price = numberInput(L["Price per kWh"], 1, L["What you pay for 1 kWh of electricity. Leave empty to not show a cost."],
+						function() return savingsData().price end,
+						function(v) savingsData().price = v end),
+					currency = {
+						type = "input", name = L["Currency symbol"], order = 2, width = 0.5,
+						desc = L["Shown before the cost, e.g. £, $ or €."],
+						get = function() return savingsData().currency or "" end,
+						set = function(_, v)
+							v = strtrim(v or "")
+							savingsData().currency = v ~= "" and v or nil
+							AceConfigRegistry:NotifyChange(APP)
+						end,
+					},
+					co2 = numberInput(L["CO2 per kWh (grams)"], 3, L["Grams of CO2 per kWh of your electricity. Your supplier may publish this, or use your country's average. Leave empty to not show CO2."],
+						function() return savingsData().co2 end,
+						function(v) savingsData().co2 = v end),
+				},
+			},
+		},
+	}
+end
+
+-- --------------------------------------------------------------------------------------------
 
 local function build()
 	local p = db()
@@ -398,12 +485,14 @@ local function build()
 						set = function(_, v)
 							v = strtrim(v)
 							db().graphicsProfiles[v] = captureUserSettings()
+							ns.Savings:ProfileCreated(v)
 							Options:Refresh()
 							AceConfigDialog:SelectGroup(APP, "graphics", "p_" .. v)
 						end,
 					},
 				},
 			},
+			savings = savingsGroup(3.5),
 			settingsProfiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(ns.addon.db),
 		},
 	}

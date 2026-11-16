@@ -34,7 +34,8 @@ the last line (`ns.L = ...`), replace each `true` with the translation, and add 
 after `Locales\enUS.lua`.
 
 In game: `/jpm` opens the options (also in Settings > AddOns and the minimap addon menu); `/jpm help` lists commands;
-`/jpm probe` checks which graphics settings the client exposes.
+`/jpm probe` checks which graphics settings the client exposes; `/jpm stats` shows the time and
+energy each graphics profile has saved (enter your PC's power use on the options' Savings tab).
 
 Libraries (LibStub, Ace3) are not committed. They're pulled in from `.pkgmeta`
 by the [BigWigs packager](https://github.com/BigWigsMods/packager) when building a release.
