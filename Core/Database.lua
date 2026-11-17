@@ -44,6 +44,7 @@ Database.BUILTIN_PROFILES = {
 --  change: a value is only changed if the profile still exists and still has the old built-in
 --          value (`from`; nil = not set), so the user's own edits are never overwritten.
 --  add:    new built-in profiles, copied from BUILTIN_PROFILES unless the name is taken.
+--  removeEverywhere: settings taken out of every graphics profile, the user's own too.
 Database.BUILTIN_UPDATES = {
 	[1] = { change = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } } },
 	[2] = { change = { ["Max saver"] = { graphicsPBRLiquidDetail = { to = 0 }, graphicsLightMode = { to = 0 } } } },
@@ -52,6 +53,9 @@ Database.BUILTIN_UPDATES = {
 		["Max saver"] = { graphicsSunshafts = { to = 0 }, graphicsProjectedTextures = { to = 0 } },
 		["Light saver"] = { graphicsSunshafts = { to = 0 } },
 	} },
+	-- Ray-traced shadows and variable rate shading crashed Classic; "Capture current" put them in
+	-- profiles for a few hours (2026-11-17). Taken out of every profile once.
+	[5] = { removeEverywhere = { "shadowrt", "vrsValar" } },
 }
 
 local defaults = {
@@ -139,6 +143,9 @@ function Database:EnsureProfiles(addon)
 					if profile[key] == change.from then profile[key] = change.to end
 				end
 			end
+		end
+		for _, key in ipairs(update.removeEverywhere or {}) do
+			for _, profile in pairs(p.graphicsProfiles) do profile[key] = nil end
 		end
 		for _, name in ipairs(update.add or {}) do
 			if p.graphicsProfiles[name] == nil then p.graphicsProfiles[name] = copy(self.BUILTIN_PROFILES[name]) end
