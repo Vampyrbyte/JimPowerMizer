@@ -479,9 +479,11 @@ without affecting the other's players).
     work in and out of combat; switch and restore work. Registry CVars missing on Era: `graphicsViewDistance`,
     `graphicsSpellDensity`, `graphicsComputeEffects`, `graphicsLightMode`, `graphicsPBRLiquidDetail`,
     `graphicsDepthEffects` (skipped, so Max saver doesn't lower view distance there yet). Service windows
-    (AH, mail, bank), fishing (held pole) and flight path (found by the poll) work. Still to report: hiding
-    UI/names, options from the AddOns settings, addon compartment
-  - [ ] TBC Anniversary, Mists Classic; SoD and Hardcore short check
+    (AH, mail, bank), fishing (held pole) and flight path (found by the poll) work. Hiding the UI and names
+    works, Alt+Z wins, linked name CVars restore cleanly (on SoD). Still to report: options from the AddOns
+    settings, addon compartment
+  - [x] **Season of Discovery (2026-11-17):** interface 11509 like Era; Cinematic switch and restore work
+  - [ ] TBC Anniversary, Mists Classic; Hardcore short check
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
     for anything Classic has that the others don't. Era has no `graphicsViewDistance`: find what its View Distance slider
