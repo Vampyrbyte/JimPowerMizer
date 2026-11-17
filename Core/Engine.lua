@@ -36,6 +36,22 @@ local function reportError(key, what, err)
 	ns.addon:Debug("Situation %s %s errored: %s", key, what, err)
 end
 
+-- def.IsAvailable (optional): false on clients without the situation (e.g. delves on Forever). Asked
+-- once the Compat layer is ready; such a situation is dropped and never shown.
+local pruned = false
+local function prune()
+	if pruned or not ns.Compat.impl then return end
+	pruned = true
+	local kept = {}
+	for _, key in ipairs(order) do
+		local def = situations[key]
+		local ok, available = true, true
+		if def.IsAvailable then ok, available = pcall(def.IsAvailable) end
+		if ok and available then kept[#kept + 1] = key else situations[key] = nil end
+	end
+	order = kept
+end
+
 function Engine:RegisterSituation(def)
 	assert(def.key and def.Evaluate, "situation needs key and Evaluate")
 	situations[def.key] = def
@@ -123,6 +139,7 @@ function Engine:GetCurrent()
 end
 
 function Engine:GetActiveSituations()
+	prune()
 	local list = {}
 	for _, key in ipairs(order) do
 		if activeSince[key] then list[#list + 1] = key end
@@ -131,6 +148,7 @@ function Engine:GetActiveSituations()
 end
 
 function Engine:GetSituation(key)
+	prune()
 	return situations[key]
 end
 
@@ -145,6 +163,7 @@ end
 
 function Engine:Enable()
 	if enabled then return end
+	prune()
 	enabled = true
 	startupUntil = GetTime() + ns.STARTUP_GRACE
 	for _, key in ipairs(order) do
@@ -198,6 +217,7 @@ function Engine:Refresh(reason)
 end
 
 function Engine:GetSituations()
+	prune()
 	return order, situations
 end
 

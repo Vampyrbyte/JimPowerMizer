@@ -82,6 +82,22 @@ function impl.GetInstanceType()
 	return type(instanceType) == "string" and instanceType ~= "none" and instanceType or nil
 end
 
+-- Delves (Standard clients from 11.0; not Forever or Classic). A delve is a scenario with
+-- difficulty 208 ("Delves"); C_PartyInfo.IsDelveInProgress is a second check. From Blizzard's API
+-- documentation, not yet seen in game: /jpm debug prints the difficulty of each scenario.
+local DELVE_DIFFICULTY = 208
+function impl.HasDelves()
+	return (tonumber(ns.client.interface) or 0) >= 110000
+end
+
+function impl.IsInDelve()
+	if not impl.HasDelves() or impl.GetInstanceType() ~= "scenario" then return false end
+	local difficultyID = GetInstanceInfo and clean((select(3, GetInstanceInfo())))
+	if difficultyID == DELVE_DIFFICULTY then return true, difficultyID end
+	local progress = C_PartyInfo and C_PartyInfo.IsDelveInProgress
+	return progress and flag(progress()) or false, difficultyID
+end
+
 function impl.InCinematic()
 	if InCinematic and InCinematic() then return true end
 	if IsInCinematicScene and IsInCinematicScene() then return true end

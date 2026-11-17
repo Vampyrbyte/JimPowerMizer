@@ -36,6 +36,7 @@ Situations\Dead.lua
 Situations\ServiceWindow.lua
 Situations\Resting.lua
 Situations\Instance.lua
+Situations\Delve.lua
 
 Options\Options.lua
 

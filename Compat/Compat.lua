@@ -16,6 +16,8 @@ local REQUIRED = {
 	"IsAFK",          -- () -> boolean
 	"IsResting",      -- () -> boolean (inn / city)
 	"IsDeadOrGhost",  -- () -> boolean
+	"HasDelves",      -- () -> boolean (this client has delves: Standard 11.0 and later)
+	"IsInDelve",      -- () -> boolean, scenario difficulty ID (or nil outside a scenario)
 	"GetInstanceType", -- () -> string|nil: IsInInstance()'s type ("party", "raid", "pvp", "arena",
 	                   --   "scenario", ...), nil outside an instance
 	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)

@@ -67,6 +67,8 @@ UnitIsAFK = function() return afk end
 IsResting = function() return resting end
 local instanceType -- nil outside an instance, else IsInInstance()'s type ("party", "raid", ...)
 IsInInstance = function() return instanceType ~= nil, instanceType or "none" end
+local instanceDifficulty -- GetInstanceInfo()'s difficultyID (208 = Delves)
+GetInstanceInfo = function() return "Test", instanceType or "none", instanceDifficulty or 0 end
 UnitIsDeadOrGhost = function() return dead end
 IsPlayerMoving = function() return moving end
 -- Secret values: in combat, these return a userdata that errors when compared.
@@ -692,6 +694,21 @@ slash("enable dungeon"); advance(0.1)
 check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "dungeon enabled again: your settings")
 zone(nil); advance(5); poke(); advance(1)
 check(cvars.maxFPS == "144" and ns.Engine:GetCurrent() == nil, "left the instance: nothing active")
+-- Delves: their own situation where the client has them (Midnight); none on Forever or Classic
+slash("idle 30"); poke(); advance(1)
+instanceDifficulty = 208; zone("scenario"); advance(31)
+if FLAVOR == "midnight" then
+	check(ns.Engine:GetCurrent() == "delve" and cvars.maxFPS == "144", "delve: your settings, idle doesn't switch")
+	ns.addon.db.profile.situations.delve.profile = "Light saver"; ns.Engine:Refresh(); advance(0.1)
+	check(cvars.maxFPS == "30", "a delve can have a profile of its own")
+	ns.addon.db.profile.situations.delve.profile = false; ns.Engine:Refresh(); advance(1)
+	instanceDifficulty = 1; zone("scenario"); advance(1)
+	check(ns.Engine:GetCurrent() == "idle", "another scenario isn't a delve")
+else
+	check(ns.Engine:GetSituation("delve") == nil and ns.Engine:GetCurrent() == "idle", "no delve situation on this client")
+end
+instanceDifficulty = nil; zone(nil); advance(5); poke(); advance(1)
+check(ns.Engine:GetCurrent() == nil, "left the scenario: nothing active")
 slash("idle 600")
 noErrors("session 4")
 
@@ -785,6 +802,8 @@ if FLAVOR == "midnight" then
 else
 	check(node("situations", "fishing") ~= nil and node("situations", "fishing", "grace") == nil, "Forever: fishing listed, no grace setting")
 end
+check((node("situations", "delve") ~= nil) == (FLAVOR == "midnight"), "Delve listed only where the client has delves")
+check(node("situations", "dungeon") ~= nil and node("situations", "battleground") ~= nil, "Dungeon and Battleground listed")
 check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live
