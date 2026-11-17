@@ -116,6 +116,7 @@ char/global = {
 | **Dead / ghost** | `UnitIsDeadOrGhost`, `PLAYER_DEAD`, `PLAYER_ALIVE`, `PLAYER_UNGHOST` | Off by default |
 | **Cinematic / movie** | `CINEMATIC_START/STOP`, `PLAY_MOVIE` | Restore full |
 | **Dungeon / Raid / Battleground** (three situations; arenas count as battlegrounds) | `IsInInstance()` type `party` / `raid` / `pvp` or `arena`, `PLAYER_ENTERING_WORLD`, `ZONE_CHANGED_NEW_AREA` | Lockout: your settings, priority 93 (above Idle, Long idle, Flight path), on. Scenarios and delves don't count |
+| **Delve** (Midnight/Standard only) | `IsInInstance()` type `scenario` with `GetInstanceInfo()` difficulty 208, or `C_PartyInfo.IsDelveInProgress()` | Same lockout. Other scenarios don't count |
 
 Engine behaviour:
 - **Enter delay** (debounce) per situation, e.g. idle needs 120 s; taxi 2 s.
@@ -396,7 +397,13 @@ from `main` until the merge.
   a profile of its own instead. Scenarios and delves aren't included (story scenarios should still go
   idle). `Compat:GetInstanceType()`; `/jpm debug` prints the instance type on each change
   - [ ] **In game (Forever):** a dungeon (and a battleground or raid if handy): lockout while idle/AFK,
-    idle again after leaving. Check what type delves and scenarios report
+    idle again after leaving
+  - [x] Delve (2026-11-17, on `midnight`; Forever and Classic have no delves): its own situation, same
+    lockout defaults. Only on clients with delves (`Compat:HasDelves()`, interface 11.0+); situations
+    can say they aren't available (`IsAvailable`), and are then dropped and never shown. A delve is
+    instance type `scenario` with difficulty 208, or `C_PartyInfo.IsDelveInProgress()` (from Blizzard's
+    API documentation); `/jpm debug` prints each scenario's difficulty
+  - [ ] **In game (Midnight):** a delve: "Scenario difficulty 208: a delve", lockout while idle
 - [ ] Classic: see M6
 
 ### M6: Classic (0.3.x)
