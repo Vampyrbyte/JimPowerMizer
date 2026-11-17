@@ -67,6 +67,7 @@ local defaults = {
 			dungeon       = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
 			raid          = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
 			battleground  = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
+			delve         = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 }, -- Standard only
 			-- idle.timeout: seconds without input before counting as idle.
 			-- idle.mouseActivity: mouse/camera movement counts as input (off: only moving your
 			-- character, casting, targeting, looting, NPCs and combat do).

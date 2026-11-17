@@ -85,7 +85,13 @@ local DELAYED_CHECK = 0.5
 local candidates   -- { all = {...}, delayed = {...} }, built once per session
 local initial      -- all candidate values before the first change (this session; the delayed
                    -- ones are also saved in state.initial, to survive a crash)
-local batchSeq = 0 -- latest write batch; only its delayed check finishes a restore
+local batchSeq = 0 -- latest write batch; only its delayed check records and finishes a restore
+-- Switches less than DELAYED_CHECK apart are checked as one, when the last one's check runs, so a
+-- cascade that lands after a later switch is still seen (e.g. a restore 0.2 s after a saver started:
+-- farclip follows View Distance late). windowBefore: candidate values before the first of them;
+-- windowChanged: delayed candidates seen at another value since, by a later switch's snapshot (a
+-- cascade that came and went back, such as 4500 -> 1000 -> 4500, isn't the user's value either).
+local windowBefore, windowChanged
 
 local function isDetailCandidate(name)
 	local lower = name:lower()
@@ -120,16 +126,17 @@ local function snapshot(list)
 	return values
 end
 
--- Remember the original value of every CVar in `list` that changed since `before`. The original
+-- Remember the original value of every CVar in `list` that changed since `before` (or is in
+-- `changed`: seen changing earlier, even if it's back at `before`'s value now). The original
 -- is the value from before the saver period; if that isn't known (e.g. after a crash), the CVar
 -- is left alone rather than "restored" to a lowered value.
-local function record(before, list, label)
+local function record(before, list, label, changed)
 	local st = state()
 	for _, name in ipairs(list) do
 		local was = before[name]
 		if was ~= nil and st.detail[name] == nil then
 			local now = ns.Compat:GetCVar(name)
-			if now ~= nil and not Equal(was, now) then
+			if now ~= nil and (not Equal(was, now) or (changed and changed[name])) then
 				local original = (initial and initial[name]) or st.initial[name]
 				if original ~= nil then
 					st.detail[name] = original
@@ -184,6 +191,13 @@ local function applyChanges(changes, label, fresh)
 			initial = before
 			wipe(st.initial)
 			for _, name in ipairs(candidates.delayed) do st.initial[name] = before[name] end
+		end
+		if windowBefore then
+			for _, name in ipairs(candidates.delayed) do
+				if not Equal(before[name], windowBefore[name]) then windowChanged[name] = true end
+			end
+		else
+			windowBefore, windowChanged = before, {}
 		end
 	end
 
@@ -242,8 +256,11 @@ local function applyChanges(changes, label, fresh)
 	batchSeq = batchSeq + 1
 	local seq = batchSeq
 	ns.addon:ScheduleTimer(function()
-		record(before, candidates.delayed, label .. " (delayed)")
-		if seq == batchSeq and fullyRestored() then
+		if seq ~= batchSeq then return end -- a later batch's check covers this one
+		local since, changed = windowBefore or before, windowChanged
+		windowBefore, windowChanged = nil, nil
+		record(since, candidates.delayed, label .. " (delayed)", changed)
+		if fullyRestored() then
 			local _, blocked = restoreDetails("restore (2nd pass)")
 			-- This pass often runs in combat (the restore was for the fight that just started).
 			-- What couldn't be written is kept for OnCombatEnd.
@@ -292,9 +309,11 @@ function Applier:Apply(profileName, reason, force)
 	if not force and st.active == profileName and not pending and (profileName or not next(st.baseline)) then return end
 	profile = effectiveProfile(profile)
 
-	-- First change away from the user's own settings. Details left from a restore less than 0.5 s
-	-- ago are put back first, so the new period starts from the user's values.
-	local fresh = profile ~= nil and not next(st.baseline)
+	-- First change away from the user's own settings. Less than DELAYED_CHECK after a restore, the
+	-- restore's cascades may not have landed yet, so the live values aren't the user's: the earlier
+	-- period's originals and details are kept instead, and one delayed check covers both switches.
+	-- Details left from an older restore (blocked in combat) are put back first.
+	local fresh = profile ~= nil and not next(st.baseline) and not windowBefore
 	if fresh and next(st.detail) then
 		restoreDetails("restore (before new period)")
 		clearDetails()
