@@ -488,8 +488,15 @@ without affecting the other's players).
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
     for anything Classic has that the others don't. Era (`/jpm watch`, 2026-11-17): no View Distance setting at all (farclip
-    stays at its default 2112), so nothing to lower. Era menu presets not in the registry: `graphicsSunshafts`
-    (0-2), `graphicsProjectedTextures` (0-1), `graphicsTextureResolution` (0-1)
+    stays at its default 2112), so nothing to lower. Era menu presets added to the registry on `main`
+    (2026-11-17, all clients, skipped where missing): `graphicsSunshafts` (0-2), `graphicsProjectedTextures`
+    (0-1), `graphicsTextureResolution` (0-1). Max saver: sun shafts and projected textures off; Light saver:
+    sun shafts off (BUILTIN_UPDATES 4); texture resolution only in the user's own profiles (reloads textures)
+  - [ ] Profiles expose every graphics option the game's menu has, on every client, with the menu's level
+    names (user, 2026-11-17: "expose the full range of options just like in game"). Needs a `/jpm watch` of
+    each Graphics menu (Forever, Midnight, TBC Anniversary, Mists Classic) and the level names (sun shafts,
+    texture resolution, secondary lighting, PBR liquid). Open: whether display-type settings count
+    (anti-aliasing, resample quality, texture filtering, vsync, low latency, field of view)
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
