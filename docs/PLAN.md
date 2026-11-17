@@ -482,8 +482,9 @@ without affecting the other's players).
     (AH, mail, bank), fishing (held pole) and flight path (found by the poll) work. Hiding the UI and names
     works, Alt+Z wins, linked name CVars restore cleanly (on SoD). Still to report: options from the AddOns
     settings, addon compartment
-  - [x] **Season of Discovery (2026-11-17):** interface 11509 like Era; Cinematic switch and restore work
-  - [ ] TBC Anniversary, Mists Classic; Hardcore short check
+  - [x] **Season of Discovery and Hardcore (2026-11-17):** interface 11509 like Era; Cinematic switch and
+    restore work; typing counts as input
+  - [ ] TBC Anniversary, Mists Classic
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
     for anything Classic has that the others don't. Era has no `graphicsViewDistance`: find what its View Distance slider
