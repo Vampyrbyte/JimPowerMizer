@@ -480,15 +480,16 @@ without affecting the other's players).
     `graphicsSpellDensity`, `graphicsComputeEffects`, `graphicsLightMode`, `graphicsPBRLiquidDetail`,
     `graphicsDepthEffects` (skipped, so Max saver doesn't lower view distance there yet). Service windows
     (AH, mail, bank), fishing (held pole) and flight path (found by the poll) work. Hiding the UI and names
-    works, Alt+Z wins, linked name CVars restore cleanly (on SoD). Still to report: options from the AddOns
-    settings, addon compartment
+    works, Alt+Z wins, linked name CVars restore cleanly (on SoD). Options open with `/jpm` and from the game's
+    options. No addon compartment on Era, and no minimap button wanted (user, 2026-11-17)
   - [x] **Season of Discovery and Hardcore (2026-11-17):** interface 11509 like Era; Cinematic switch and
     restore work; typing counts as input
   - [ ] TBC Anniversary, Mists Classic
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
-    for anything Classic has that the others don't. Era has no `graphicsViewDistance`: find what its View Distance slider
-    sets (`/jpm watch`; maybe `farclip` directly) so Max saver can lower it there too
+    for anything Classic has that the others don't. Era (`/jpm watch`, 2026-11-17): no View Distance setting at all (farclip
+    stays at its default 2112), so nothing to lower. Era menu presets not in the registry: `graphicsSunshafts`
+    (0-2), `graphicsProjectedTextures` (0-1), `graphicsTextureResolution` (0-1)
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
