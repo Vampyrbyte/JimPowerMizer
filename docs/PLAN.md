@@ -488,6 +488,10 @@ without affecting the other's players).
   through the Compat layer, which turns secrets into "unknown"; the test harness simulates them.
 - **Preset cascades.** Graphics presets reset the lower-level CVars under them. Handled by the detail snapshot;
   a `/console` change made *while* a saver profile is active is overwritten by the snapshot on restore.
+  Known edge case (found 2026-11-17 in the harness): a new saver period starting within the 0.5 s after
+  a restore can snapshot a cascade the restore itself triggered (e.g. `farclip` at the View Distance
+  preset's value instead of your `/console` value), which is then "restored" later. Rare in play (needs
+  a restore and a new saver switch within half a second); not fixed yet
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
 - **Three branches, two beta lines (M6).** More merging and more release steps. The one-way merge rule
