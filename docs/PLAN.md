@@ -396,8 +396,8 @@ from `main` until the merge.
   Cutscenes and Combat), so nothing switches inside and no settings change can cause a hitch. Each can get
   a profile of its own instead. Scenarios and delves aren't included (story scenarios should still go
   idle). `Compat:GetInstanceType()`; `/jpm debug` prints the instance type on each change
-  - [ ] **In game (Forever):** a dungeon (and a battleground or raid if handy): lockout while idle/AFK,
-    idle again after leaving
+  - [x] **In game (Forever, 2026-11-17):** listed at priority 93; a dungeon keeps your settings while
+    idle. Raid, battleground and arena not tried yet (same code path, different instance type)
   - [x] Delve (2026-11-17, on `midnight`; Forever and Classic have no delves): its own situation, same
     lockout defaults. Only on clients with delves (`Compat:HasDelves()`, interface 11.0+); situations
     can say they aren't available (`IsAvailable`), and are then dropped and never shown. A delve is
@@ -501,7 +501,9 @@ without affecting the other's players).
   Switches less than 0.5 s apart (fixed 2026-11-17): a cascade can land after the next switch (e.g. a
   restore 0.2 s after a saver started, before the saver's delayed check saw `farclip` follow View
   Distance). Such switches are checked as one, against the values from before the first of them, and a
-  saver period starting within 0.5 s of a restore continues the earlier period's originals
+  saver period starting within 0.5 s of a restore continues the earlier period's originals (verified on
+  Forever 2026-11-17: a macro with `/jpm force idle` and `/jpm force off`, clicked repeatedly, kept the
+  `/console farclip` value)
 - **Stutter on switching.** Changing some settings causes a hitch, so changes are batched and only made on situation transitions.
 - **Interaction with Blizzard's own Settings UI.** If the user changes graphics while a saver profile is active, we must not "restore" over their change. Watch `CVAR_UPDATE` and update the baseline when the change wasn't ours.
 - **Three branches, two beta lines (M6).** More merging and more release steps. The one-way merge rule
