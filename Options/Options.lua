@@ -69,7 +69,7 @@ end
 local function captureUserSettings()
 	local values = {}
 	for _, def in ipairs(Registry:All()) do
-		if not def.hidden and Registry:IsUsable(def.name) then
+		if not def.hidden and not def.manualOnly and Registry:IsUsable(def.name) then
 			local v = ns.Applier:GetUserValue(def.name)
 			values[def.name] = tonumber(v) or v
 		end
@@ -160,7 +160,9 @@ local function cvarArgs(profileName)
 				args = {
 					change = {
 						type = "toggle", name = L["Change"], order = 1, width = 0.7,
-						desc = L["Untick to leave this setting as it is when this profile is active."],
+						desc = def.manualOnly
+							and L["Changing this setting has crashed some clients, and Blizzard has it turned off on others. Only tick it if the game's own Graphics menu lets you change it."]
+							or L["Untick to leave this setting as it is when this profile is active."],
 						get = function() return not unset() end,
 						set = function(_, v)
 							if v then

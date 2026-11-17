@@ -87,7 +87,10 @@ local CVARS = {
 		levels = levels(DISABLED, LOW, HIGH) },
 
 	-- The menu's advanced settings that change how hard the GPU works. Values a graphics card doesn't
-	-- support (CMAA, ray-traced shadows, variable rate shading) are refused by the client.
+	-- support (CMAA) are refused by the client.
+	-- manualOnly: never put in a profile by us (not by "Capture current", a new profile or a built-in
+	-- profile); only changed if the user ticks it. Ray-traced shadows and variable rate shading
+	-- crashed Classic (user, 2026-11-17) and are turned off by Blizzard on Midnight and Forever.
 	{ name = "ffxAntiAliasingMode",     kind = "enum", label = G("FXAA_CMAA_LABEL", L["Anti-aliasing"]),
 		levels = levels(NONE, { "ANTIALIASING_FXAA_LOW", L["FXAA Low"] }, { "ANTIALIASING_FXAA_HIGH", L["FXAA High"] },
 			{ "ANTIALIASING_CMAA", L["CMAA"] }, { "ANTIALIASING_CMAA2", L["CMAA 2"] }) },
@@ -96,12 +99,13 @@ local CVARS = {
 			{ "VIDEO_OPTIONS_2XANISOTROPIC", L["2x Anisotropic"] }, { "VIDEO_OPTIONS_4XANISOTROPIC", L["4x Anisotropic"] },
 			{ "VIDEO_OPTIONS_8XANISOTROPIC", L["8x Anisotropic"] }, { "VIDEO_OPTIONS_16XANISOTROPIC", L["16x Anisotropic"] }) },
 	{ name = "shadowrt",                kind = "enum", label = G("RT_SHADOW_QUALITY", L["Ray traced shadows"]),
-		levels = levels(DISABLED, FAIR, MEDIUM, HIGH) },
+		levels = levels(DISABLED, FAIR, MEDIUM, HIGH), manualOnly = true },
 	{ name = "ResampleQuality",         kind = "enum", label = G("RESAMPLE_QUALITY", L["Resample quality"]),
 		levels = levels({ "RESAMPLE_QUALITY_POINT", L["Point"] }, { "RESAMPLE_QUALITY_BILINEAR", L["Bilinear"] },
 			{ "RESAMPLE_QUALITY_BICUBIC", L["Bicubic"] }, { "RESAMPLE_QUALITY_FSR", L["FidelityFX Super Resolution 1.0"] }) },
 	{ name = "vrsValar",                kind = "enum", label = G("VRS_MODE", L["Variable rate shading"]),
-		levels = levels(DISABLED, { "VIDEO_OPTIONS_STANDARD", L["Standard"] }, { "VIDEO_OPTIONS_AGGRESSIVE", L["Aggressive"] }) },
+		levels = levels(DISABLED, { "VIDEO_OPTIONS_STANDARD", L["Standard"] }, { "VIDEO_OPTIONS_AGGRESSIVE", L["Aggressive"] }),
+		manualOnly = true },
 	{ name = "vsync",                   kind = "bool", label = G("VERTICAL_SYNC", L["Vertical sync"]) },
 
 	-- Listed so the probe reports it, but never changed automatically: switching the preset

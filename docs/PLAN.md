@@ -506,6 +506,10 @@ without affecting the other's players).
     density has 3 levels; compute effects start at Low on Forever, Disabled elsewhere. The 0-9 detail
     sliders show 1-10 like the game. Note: Max saver's particle density 0 is "Low" on Forever but
     "Disabled" (no particles, combat cues too) on Midnight and Classic; fine while idle or flying
+  - [x] Ray traced shadows (`shadowrt`) and variable rate shading (`vrsValar`) crashed Classic and are
+    turned off by Blizzard on Midnight and Forever (user, 2026-11-17): `manualOnly` in the registry, so
+    no built-in profile, "Capture current" or new profile includes them; still listed (unticked, with a
+    warning) for anyone whose game menu offers them. Taken out of every saved profile once (BUILTIN_UPDATES 5)
   - [ ] **In game:** profile editor on each client shows the game's names; spot-check a few options
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client

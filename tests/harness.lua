@@ -123,6 +123,7 @@ local cvars = {
 	graphicsGroundClutter = "9", graphicsViewDistance = "9",
 	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
 	graphicsSunshafts = "2", graphicsProjectedTextures = "1", graphicsTextureResolution = "1", -- (Classic Era's menu)
+	shadowrt = "0", vrsValar = "0",
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
@@ -834,6 +835,12 @@ call(vd.set, {}, 4)
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsViewDistance == 3, "view distance 4 on screen is stored as 3")
 call(vd.set, {}, 3)
 check(node("graphics", "p_Max saver", "graphicsParticleDensity", "value").sorting ~= nil, "dropdowns keep the menu's order")
+-- Ray-traced shadows and VRS: listed but never put in a profile by us
+check(node("graphics", "p_Max saver", "shadowrt", "change") ~= nil and get("graphics", "p_Max saver", "shadowrt", "change") == false
+	and get("graphics", "p_Max saver", "vrsValar", "change") == false, "ray traced shadows and VRS listed, not ticked")
+for name, values in pairs(ns.Database.BUILTIN_PROFILES) do
+	check(values.shadowrt == nil and values.vrsValar == nil, "built-in " .. name .. " leaves ray traced shadows and VRS alone")
+end
 check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live
@@ -860,6 +867,8 @@ check(cvars.maxFPS == "15", "re-enabling applies again")
 set("My profile", "graphics", "new")
 check(node("graphics", "p_My profile") ~= nil, "new profile created")
 check(ns.addon.db.profile.graphicsProfiles["My profile"].maxFPS == 144, "new profile captured YOUR maxFPS (144), not the live 15")
+check(ns.addon.db.profile.graphicsProfiles["My profile"].shadowrt == nil and ns.addon.db.profile.graphicsProfiles["My profile"].vrsValar == nil,
+	"a new profile leaves out ray traced shadows and VRS")
 check(call(node("graphics", "new").validate, {}, "My profile") ~= true, "duplicate name rejected")
 -- Rename updates references
 set("My profile", "situations", "taxi", "profile")
@@ -945,6 +954,7 @@ ns.addon.db.profile.situations.combat.enabled = true
 ns.Options:GetTable().args.graphics.args["p_Max saver"].args.capture.func()
 ms = ns.addon.db.profile.graphicsProfiles["Max saver"]
 check(ms.hideUI == true and ms.hideNames == true and ms.maxFPS == 144 and ms.UnitNameNPC == nil, "Capture current keeps screen options, no name CVars")
+check(ms.shadowrt == nil and ms.vrsValar == nil and ms.graphicsShadowQuality ~= nil, "Capture current leaves out ray traced shadows and VRS")
 ms.dim = 0.6; SavedDB = JimPowerMizerDB
 ns = session("session 7b: leftover dim from a development build")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].dim == nil, "old dim setting removed")
@@ -953,7 +963,7 @@ noErrors("session 7")
 -- Session 8: built-in profile updates for existing settings --------------------------------
 SavedDB = { profileKeys = { ["Tester - Realm"] = "Default" }, profiles = { Default = { profilesSeeded = true,
 	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20 }, ["Mine"] = { graphicsParticleDensity = 1 },
-		["Light saver"] = { maxFPS = 30, graphicsSunshafts = 1 } } } } }
+		["Light saver"] = { maxFPS = 30, graphicsSunshafts = 1 }, ["Captured"] = { maxFPS = 144, shadowrt = 0, vrsValar = 1 } } } } }
 ns = session("session 8: built-in updates")
 local gp = ns.addon.db.profile.graphicsProfiles
 check(gp["Max saver"].graphicsParticleDensity == 0 and gp["Max saver"].maxFPS == 20, "old Max saver particle density lowered to Low")
@@ -963,6 +973,8 @@ check(gp["Mine"].graphicsLightMode == nil, "not added to the user's own profiles
 check(gp["Max saver"].graphicsSunshafts == 0 and gp["Max saver"].graphicsProjectedTextures == 0, "sun shafts and projected textures off in old Max saver")
 check(gp["Light saver"].graphicsSunshafts == 1, "a value the user set in Light saver is kept")
 check(gp["Mine"].graphicsSunshafts == nil and gp["Max saver"].graphicsTextureResolution == nil, "not added to own profiles; texture resolution never")
+check(gp["Captured"].shadowrt == nil and gp["Captured"].vrsValar == nil and gp["Captured"].maxFPS == 144,
+	"ray traced shadows and VRS taken out of saved profiles, the rest kept")
 check(gp["Cinematic"] and gp["Cinematic"].hideUI and gp["Cinematic"].hideNames and gp["Cinematic"].maxFPS == 30, "Cinematic profile added to existing settings")
 check(gp["Cinematic"].graphicsShadowQuality == nil and gp["Cinematic"].renderScale == nil, "Cinematic leaves graphics settings alone")
 check(ns.addon.db.profile.builtinVersion == #ns.Database.BUILTIN_UPDATES, "update recorded")
