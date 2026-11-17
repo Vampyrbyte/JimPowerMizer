@@ -126,6 +126,7 @@ local cvars = {
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
 	graphicsGroundClutter = "9", graphicsViewDistance = "9",
 	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
+	graphicsSunshafts = "2", graphicsProjectedTextures = "1", graphicsTextureResolution = "1", -- (Classic Era's menu)
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
@@ -728,6 +729,8 @@ taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.graphicsGroundClutter == "0" and cvars.groundEffectDensity == "0", "saver: clutter 0 cascades density down")
 check(cvars.farclip == "1000", "saver: view distance cascades farclip down (delayed)")
 check(cvars.graphicsLightMode == "0" and cvars.giQuality == "1" and cvars.graphicsPBRLiquidDetail == "0" and cvars.pbrLiquidDetail == "0", "saver: secondary lighting and PBR liquid lowered")
+check(cvars.graphicsSunshafts == "0" and cvars.graphicsProjectedTextures == "0" and cvars.graphicsTextureResolution == "1",
+	"saver: sun shafts and projected textures off, texture resolution left alone")
 cvars.chatStyleThing = "y" -- changed by something else mid-flight
 land()
 C_Timer.After(0.2, function() SetCVarRaw("lastSeenThing", "b") end) -- unrelated change just after landing
@@ -736,6 +739,7 @@ check(cvars.graphicsGroundClutter == "9" and cvars.groundEffectDensity == "256" 
 advance(0.6)
 check(cvars.farclip == "5000", "restore: delayed cascade on farclip undone by 2nd pass")
 check(cvars.graphicsLightMode == "3" and cvars.giQuality == "4" and cvars.RenderFormat == "2" and cvars.pbrLiquidDetail == "2", "restore: lighting and PBR liquid settings back")
+check(cvars.graphicsSunshafts == "2" and cvars.graphicsProjectedTextures == "1", "restore: sun shafts and projected textures back")
 check(cvars.gxWindow == "1", "display settings untouched")
 check(cvars.chatStyleThing == "y" and cvars.lastSeenThing == "b", "unrelated Default-category changes not reverted")
 check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after restore")
@@ -928,13 +932,17 @@ noErrors("session 7")
 
 -- Session 8: built-in profile updates for existing settings --------------------------------
 SavedDB = { profileKeys = { ["Tester - Realm"] = "Default" }, profiles = { Default = { profilesSeeded = true,
-	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20 }, ["Mine"] = { graphicsParticleDensity = 1 } } } } }
+	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20 }, ["Mine"] = { graphicsParticleDensity = 1 },
+		["Light saver"] = { maxFPS = 30, graphicsSunshafts = 1 } } } } }
 ns = session("session 8: built-in updates")
 local gp = ns.addon.db.profile.graphicsProfiles
 check(gp["Max saver"].graphicsParticleDensity == 0 and gp["Max saver"].maxFPS == 20, "old Max saver particle density lowered to Low")
 check(gp["Mine"].graphicsParticleDensity == 1, "user's own profiles untouched")
 check(gp["Max saver"].graphicsLightMode == 0 and gp["Max saver"].graphicsPBRLiquidDetail == 0, "secondary lighting and PBR liquid added to old Max saver")
 check(gp["Mine"].graphicsLightMode == nil, "not added to the user's own profiles")
+check(gp["Max saver"].graphicsSunshafts == 0 and gp["Max saver"].graphicsProjectedTextures == 0, "sun shafts and projected textures off in old Max saver")
+check(gp["Light saver"].graphicsSunshafts == 1, "a value the user set in Light saver is kept")
+check(gp["Mine"].graphicsSunshafts == nil and gp["Max saver"].graphicsTextureResolution == nil, "not added to own profiles; texture resolution never")
 check(gp["Cinematic"] and gp["Cinematic"].hideUI and gp["Cinematic"].hideNames and gp["Cinematic"].maxFPS == 30, "Cinematic profile added to existing settings")
 check(gp["Cinematic"].graphicsShadowQuality == nil and gp["Cinematic"].renderScale == nil, "Cinematic leaves graphics settings alone")
 check(ns.addon.db.profile.builtinVersion == #ns.Database.BUILTIN_UPDATES, "update recorded")

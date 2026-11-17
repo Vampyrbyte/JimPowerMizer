@@ -48,6 +48,12 @@ local CVARS = {
 	{ name = "graphicsSpellDensity",    kind = "enum",   label = L["Spell density"],       min = 0, max = 5, levels = LEVELS.spell },
 	{ name = "graphicsComputeEffects",  kind = "enum",   label = L["Compute effects"],     min = 0, max = 4, levels = LEVELS.offToUltra },
 	{ name = "graphicsDepthEffects",    kind = "enum",   label = L["Depth effects"],       min = 0, max = 3, levels = LEVELS.depth },
+	-- Seen in Classic Era's menu (1.15.9, 2026-11-17), ranges from there; level names still to read
+	-- from the menu. Skipped on clients that don't have them.
+	{ name = "graphicsSunshafts",       kind = "enum",   label = L["Sun shafts"],          min = 0, max = 2 },
+	{ name = "graphicsProjectedTextures", kind = "bool", label = L["Projected textures"] },
+	-- Switching it reloads textures (a short hitch), so the built-in profiles leave it alone.
+	{ name = "graphicsTextureResolution", kind = "enum", label = L["Texture resolution"],  min = 0, max = 1 },
 	-- Listed so the probe reports it, but never changed automatically: switching the preset
 	-- overwrites the user's individual settings.
 	{ name = "graphicsQuality",         kind = "enum",   label = L["Overall preset"], min = 1, max = 10, restart = true },

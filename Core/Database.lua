@@ -21,6 +21,8 @@ Database.BUILTIN_PROFILES = {
 		graphicsEnvironmentDetail = 2,
 		graphicsGroundClutter = 0,
 		graphicsComputeEffects = 0,
+		graphicsSunshafts = 0,
+		graphicsProjectedTextures = 0,
 	},
 	-- Screensaver feel: your own graphics, no UI or names, frame rate capped.
 	["Cinematic"] = {
@@ -34,6 +36,7 @@ Database.BUILTIN_PROFILES = {
 		maxFPS = 30,
 		graphicsShadowQuality = 1,
 		graphicsSSAO = 0,
+		graphicsSunshafts = 0,
 	},
 }
 
@@ -45,6 +48,10 @@ Database.BUILTIN_UPDATES = {
 	[1] = { change = { ["Max saver"] = { graphicsParticleDensity = { from = 1, to = 0 } } } },
 	[2] = { change = { ["Max saver"] = { graphicsPBRLiquidDetail = { to = 0 }, graphicsLightMode = { to = 0 } } } },
 	[3] = { add = { "Cinematic" } },
+	[4] = { change = {
+		["Max saver"] = { graphicsSunshafts = { to = 0 }, graphicsProjectedTextures = { to = 0 } },
+		["Light saver"] = { graphicsSunshafts = { to = 0 } },
+	} },
 }
 
 local defaults = {

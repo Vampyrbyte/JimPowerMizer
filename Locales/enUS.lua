@@ -40,6 +40,9 @@ if L then
 	L["Spell density"] = true
 	L["Compute effects"] = true
 	L["Depth effects"] = true
+	L["Sun shafts"] = true
+	L["Projected textures"] = true
+	L["Texture resolution"] = true
 	L["Overall preset"] = true
 	L["MSAA"] = true
 	L["|cffffd200/jpm|r - open the options window"] = true
