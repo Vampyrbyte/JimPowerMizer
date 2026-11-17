@@ -9,9 +9,12 @@ local FLAVOR = arg[2] or "forever"
 local CLIENTS = {
 	forever  = { version = "1.60.1", build = "70938", interface = 16001,  project = 18, toc = "Mainline" }, -- WOW_PROJECT_CAMELOT
 	midnight = { version = "12.1.5", build = "70783", interface = 120105, project = 1,  toc = "Mainline" }, -- WOW_PROJECT_MAINLINE
-	-- Classic Era 1.15.9 (also Season of Discovery and Hardcore). Build from the installed client;
-	-- interface number to confirm in game.
+	-- Classic clients, builds from the installed clients (.build.info, 2026-11-17); interface numbers
+	-- follow the version (as in other addons' TOCs), to confirm in game.
+	-- Classic Era 1.15.9 (also Season of Discovery and Hardcore).
 	classic_era = { version = "1.15.9", build = "70576", interface = 11509, project = 2, toc = "Classic" }, -- WOW_PROJECT_CLASSIC
+	tbc_anniversary = { version = "2.5.6", build = "70577", interface = 20506, project = 5, toc = "Classic" }, -- WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+	mists_classic = { version = "5.5.4", build = "70631", interface = 50504, project = 19, toc = "Classic" }, -- WOW_PROJECT_MISTS_CLASSIC
 }
 local CLIENT = CLIENTS[FLAVOR]
 if not CLIENT then
@@ -464,7 +467,7 @@ check(cvars.maxFPS == "30", "dead -> Light saver")
 dead = false; fire("PLAYER_ALIVE"); advance(0.1)
 check(cvars.maxFPS == "144" and next(JimPowerMizerDB.global.state.baseline) == nil, "alive -> your settings, baseline clear")
 -- Fishing: on Forever (and, expected, Classic) you hold the pole in your main hand; Midnight's rule is below
-if FLAVOR == "forever" or FLAVOR == "classic_era" then -- Classic: the same rule expected, to confirm in game
+if FLAVOR ~= "midnight" then -- Classic: the same rule expected, to confirm in game
 	mainHand = 1234; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(1.5)
 	check(cvars.maxFPS == "144", "a sword in the main hand isn't fishing")
 	mainHand = 12225; fire("PLAYER_EQUIPMENT_CHANGED", 16); advance(0.5)
