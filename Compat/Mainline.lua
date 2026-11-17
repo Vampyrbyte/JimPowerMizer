@@ -75,6 +75,13 @@ function impl.IsDeadOrGhost()
 	return flag(UnitIsDeadOrGhost("player"))
 end
 
+function impl.GetInstanceType()
+	local inInstance, instanceType = IsInInstance()
+	if not flag(inInstance) then return nil end
+	instanceType = clean(instanceType)
+	return type(instanceType) == "string" and instanceType ~= "none" and instanceType or nil
+end
+
 function impl.InCinematic()
 	if InCinematic and InCinematic() then return true end
 	if IsInCinematicScene and IsInCinematicScene() then return true end

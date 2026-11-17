@@ -104,11 +104,17 @@ if L then
 	L["Fishing"] = true
 	L["Idle"] = true
 	L["Long idle"] = true
+	L["Dungeon"] = true
+	L["Raid"] = true
+	L["Battleground / arena"] = true
 	L["Resting (inn / city)"] = true
 	L["Auction house / mail / bank / vendor"] = true
 	L["Flight path"] = true
 	L["In combat. Use your own settings so fights look and play as normal."] = true
 	L["In-game cutscenes and movies."] = true
+	L["Inside a dungeon. With \"Your settings\" nothing switches during a run, not even when you're idle: its priority is above Idle, Long idle and Flight path. Delves and scenarios don't count."] = true
+	L["Inside a raid. With \"Your settings\" nothing switches during a raid, not even when you're idle: its priority is above Idle, Long idle and Flight path."] = true
+	L["Inside a battleground or arena. With \"Your settings\" nothing switches during a match, not even when you're idle: its priority is above Idle, Long idle and Flight path."] = true
 	L["You're AFK, or haven't done anything for the idle timeout: moved your character, cast, targeted, looted, talked to an NPC, typed, or clicked in or opened a window. Being carried by a ship or zeppelin doesn't count as moving."] = true
 	L["No input for the long idle timeout (same rules as Idle; the AFK flag doesn't shorten it). Give it a different profile than Idle to save more during a long absence."] = true
 	L["On a flight path, and after landing until you do something (the same input as for Idle)."] = true
