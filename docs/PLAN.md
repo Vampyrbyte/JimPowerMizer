@@ -475,9 +475,17 @@ without affecting the other's players).
   short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
   options window and Settings page; addon compartment (may not exist: `/jpm` still opens options)
+  - [x] **Era (2026-11-17):** interface 11509, project 2; reads the `_Classic` TOC; compat Mainline. Writes
+    work in and out of combat; switch and restore work. Registry CVars missing on Era: `graphicsViewDistance`,
+    `graphicsSpellDensity`, `graphicsComputeEffects`, `graphicsLightMode`, `graphicsPBRLiquidDetail`,
+    `graphicsDepthEffects` (skipped, so Max saver doesn't lower view distance there yet). Service windows
+    (AH, mail, bank), fishing (held pole) and flight path (found by the poll) work. Still to report: hiding
+    UI/names, options from the AddOns settings, addon compartment
+  - [ ] TBC Anniversary, Mists Classic; SoD and Hardcore short check
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
-    for anything Classic has that the others don't
+    for anything Classic has that the others don't. Era has no `graphicsViewDistance`: find what its View Distance slider
+    sets (`/jpm watch`; maybe `farclip` directly) so Max saver can lower it there too
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
