@@ -452,21 +452,24 @@ without affecting the other's players).
 - Still merged down the chain (`main` → `midnight` → `classic`), so the final merges stay small.
 
 **Steps**
-- [ ] Phase 0 (no game needed, except reading interface numbers):
-  - [ ] The live Classic clients, their folders and interface numbers (`/dump select(4, GetBuildInfo())`),
-    and whether each reads a `_Classic` TOC (else per-client `_Vanilla` / `_TBC` / `_Mists`). The packager
-    accepts any Classic interface in `_Classic`. Era: `_classic_era_`, build 1.15.9.70576, interface
-    11509 assumed. TBC Anniversary and Mists Classic: waiting for the installs
+- [x] Phase 0 (no game needed, except reading interface numbers; done 2026-11-17):
+  - [x] The live Classic clients and folders (all installed 2026-11-17): Classic Era 1.15.9.70576 in
+    `_classic_era_` (also Season of Discovery and Hardcore), TBC Anniversary 2.5.6.70577 in `_anniversary_`,
+    Mists of Pandaria Classic 5.5.4.70631 in `_classic_` (versions from `.build.info`). Interface numbers
+    11509, 20506, 50504, following the version as other addons' TOCs do (Questie's Mists TOC: 50504).
+    One `_Classic` TOC lists all three. Still to confirm in game (Phase 1): `/dump select(4, GetBuildInfo())`,
+    and that each client reads `_Classic` (else per-client `_Vanilla` / `_TBC` / `_Mists`)
   - [x] Branch `classic` from `midnight`, worktree `~/repos/JimPowerMizer-classic` (2026-11-16);
-    `link.sh --classic-era` (a dev TOC per release TOC); Era's dev copy linked to `classic`
+    `link.sh --classic-era`, `--anniversary`, `--classic` (a dev TOC per release TOC); all three Classic
+    dev copies linked to `classic`
   - [x] CI on `classic`; each branch lists its client flavors in `tests/flavors`; tag guard for 0.3
     (includes `main` and `midnight`; Classic-only while 0.2 isn't stable); game versions from the
-    packaged TOCs only
-  - [ ] Harness flavors: `classic_era` done (the mock still behaves like Mainline until the in-game
-    probe); `tbc_anniversary`, `mists_classic` after the installs
-  - [x] `JimPowerMizer_Classic.toc` (same file list, `## Interface: 11509`). Compat: the existing
-    Mainline code passes the harness as Era and picks the held-pole fishing rule by interface; what
-    Classic really lacks comes from the Phase 1 probe
+    packaged TOCs only (`-g 1.15.9,2.5.6,5.5.4`)
+  - [x] Harness flavors `classic_era`, `tbc_anniversary`, `mists_classic` (the mock still behaves like
+    Mainline until the in-game probe)
+  - [x] `JimPowerMizer_Classic.toc` (same file list, `## Interface: 11509, 20506, 50504`). Compat: the
+    existing Mainline code passes the harness on all three and picks the held-pole fishing rule and no
+    delves by interface; what Classic really lacks comes from the Phase 1 probe
 - [ ] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
   short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
