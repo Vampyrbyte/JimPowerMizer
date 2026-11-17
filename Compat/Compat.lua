@@ -16,6 +16,8 @@ local REQUIRED = {
 	"IsAFK",          -- () -> boolean
 	"IsResting",      -- () -> boolean (inn / city)
 	"IsDeadOrGhost",  -- () -> boolean
+	"GetInstanceType", -- () -> string|nil: IsInInstance()'s type ("party", "raid", "pvp", "arena",
+	                   --   "scenario", ...), nil outside an instance
 	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)
 	"IsServiceWindowOpen", -- () -> boolean (auction house, mail, bank, vendor, ...)
 	"IsCraftingCast", -- () -> boolean (casting or channeling a profession spell, e.g. Smelt Copper)

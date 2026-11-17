@@ -68,6 +68,8 @@ UnitOnTaxi = function() return taxi end
 UnitAffectingCombat = function() return combat end
 UnitIsAFK = function() return afk end
 IsResting = function() return resting end
+local instanceType -- nil outside an instance, else IsInInstance()'s type ("party", "raid", ...)
+IsInInstance = function() return instanceType ~= nil, instanceType or "none" end
 UnitIsDeadOrGhost = function() return dead end
 IsPlayerMoving = function() return moving end
 -- Secret values: in combat, these return a userdata that errors when compared.
@@ -641,6 +643,59 @@ land(); advance(1)
 check(cvars.maxFPS == "144", "landing and walking off ends all")
 ns.addon.db.profile.situations.taxi.profile = "Max saver"
 slash("longidle 900")
+slash("idle 600")
+
+-- Instances: dungeons, raids and battlegrounds lock in your settings (above idle and flight path)
+local function zone(kind)
+	instanceType = kind
+	fire("LOADING_SCREEN_ENABLED"); fire("LOADING_SCREEN_DISABLED"); fire("PLAYER_ENTERING_WORLD", false, false)
+	advance(0.1)
+end
+slash("idle 30"); poke(); advance(31)
+check(ns.Engine:GetCurrent() == "idle" and cvars.maxFPS == "20", "idle in the queue -> Max saver")
+zone("party")
+check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "entering a dungeon while idle -> your settings")
+advance(60)
+check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "idle in a dungeon doesn't switch")
+afk = true; fire("PLAYER_FLAGS_CHANGED", "player"); advance(6)
+check(cvars.maxFPS == "144", "AFK in a dungeon doesn't switch")
+slash("longidle 60"); advance(60)
+check(ns.Engine:GetCurrent() == "dungeon", "long idle in a dungeon doesn't switch")
+slash("longidle 900")
+zone(nil); advance(0.1)
+check(ns.Engine:GetCurrent() == "idle" and cvars.maxFPS == "20", "leaving the dungeon while AFK -> idle again")
+advance(5) -- input in the first 5 s after a loading screen doesn't count (Idle's settle window)
+afk = false; fire("PLAYER_FLAGS_CHANGED", "player"); poke(); advance(0.1)
+check(cvars.maxFPS == "144", "input after leaving -> your settings")
+zone("raid")
+check(ns.Engine:GetCurrent() == "raid", "raid")
+zone("pvp")
+check(ns.Engine:GetCurrent() == "battleground", "battleground")
+zone("arena")
+check(ns.Engine:GetCurrent() == "battleground", "arena counts as a battleground")
+zone("scenario"); advance(31)
+check(ns.Engine:GetCurrent() == "idle", "scenarios (and delves) aren't locked: idle switches")
+poke(); advance(0.1)
+fire("ZONE_CHANGED_NEW_AREA"); advance(0.1)
+zone("party")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "dungeon outranks flight path")
+taxi = false; fire("PLAYER_CONTROL_GAINED"); moving = true; fire("PLAYER_STARTED_MOVING"); advance(0.1)
+moving = false; fire("PLAYER_STOPPED_MOVING")
+combat = true; fire("PLAYER_REGEN_DISABLED"); advance(0.1)
+check(ns.Engine:GetCurrent() == "combat", "combat still outranks the dungeon")
+combat = false; fire("PLAYER_REGEN_ENABLED"); poke(); advance(0.1)
+check(ns.Engine:GetCurrent() == "dungeon", "back to the dungeon lockout after combat")
+ns.addon.db.profile.situations.dungeon.profile = "Light saver"; ns.Engine:Refresh(); advance(0.1)
+check(cvars.maxFPS == "30", "a dungeon can have a profile of its own")
+ns.addon.db.profile.situations.dungeon.profile = false
+slash("disable dungeon"); advance(31)
+check(ns.Engine:GetCurrent() == "idle", "dungeon disabled: idle switches in a dungeon")
+slash("enable dungeon"); advance(0.1)
+check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "dungeon enabled again: your settings")
+advance(1) -- let the restore's 2nd pass run before idle starts again (see PLAN: preset cascades)
+zone(nil); advance(5); poke(); advance(1)
+check(cvars.maxFPS == "144" and ns.Engine:GetCurrent() == nil, "left the instance: nothing active")
 slash("idle 600")
 noErrors("session 4")
 
