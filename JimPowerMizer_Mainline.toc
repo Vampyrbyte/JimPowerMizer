@@ -35,6 +35,7 @@ Situations\Crafting.lua
 Situations\Dead.lua
 Situations\ServiceWindow.lua
 Situations\Resting.lua
+Situations\Instance.lua
 
 Options\Options.lua
 

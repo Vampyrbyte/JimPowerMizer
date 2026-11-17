@@ -63,6 +63,10 @@ local defaults = {
 			-- enterDelay: seconds the situation must stay active before switching.
 			combat        = { enabled = true,  profile = false,         priority = 100, enterDelay = 0 },
 			cinematic     = { enabled = true,  profile = false,         priority = 95,  enterDelay = 0 },
+			-- Instances: a lockout by default (your settings, above Idle, Long idle and Flight path).
+			dungeon       = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
+			raid          = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
+			battleground  = { enabled = true,  profile = false,         priority = 93,  enterDelay = 0 },
 			-- idle.timeout: seconds without input before counting as idle.
 			-- idle.mouseActivity: mouse/camera movement counts as input (off: only moving your
 			-- character, casting, targeting, looting, NPCs and combat do).
