@@ -374,7 +374,7 @@ from `main` until the merge.
     Revisit when ray tracing is back
   - [x] Combat: writes work in lockdown (`/jpm probe combat`, 2026-11-16); the combat deferral covers secure CVars
   - [x] Secret values: no errors in a long open-world fight (2026-11-16, target dummy)
-  - [ ] Secret values in a dungeon: not run yet on Midnight
+  - [x] Secret values in a dungeon: no errors (2026-11-17, a dungeon run on Midnight)
   - [x] Typing and interface clicks keep you active; panning the camera doesn't (2026-11-16)
 - [x] Packaging: the BigWigs packager takes `_Mainline` with `## Interface: 16001, 120105` as one file for
   Forever and Retail ("multi-version", game versions 12.1.5 and 1.60.1); no separate TOCs needed
@@ -385,7 +385,7 @@ from `main` until the merge.
   - [x] **v0.2.0-beta1 (2026-11-16):** from `midnight` at `2878360`. Uploaded to CurseForge and Wago as beta
     for 12.1.5 and 1.60.1; GitHub pre-release. Still to check: each site's Files page
   - [x] **v0.2.0-beta2 (2026-11-16):** from `midnight`, adds energy savings (as in v0.1.5)
-  - [ ] Feedback wanted: crafting orders windows, dungeons (secret values)
+  - [ ] Feedback wanted: crafting orders windows (dungeons checked by the user 2026-11-17)
 - [ ] Merge into `main`, retest Forever, release `v0.2.0`. After that, each Midnight patch needs its
   interface number added to the TOC
 
