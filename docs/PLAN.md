@@ -115,7 +115,7 @@ char/global = {
 | **Vendor/AH/Mail/Bank open** | `AUCTION_HOUSE_SHOW/CLOSED`, `MAIL_SHOW`, `BANKFRAME_OPENED`… | Light saver, off by default |
 | **Dead / ghost** | `UnitIsDeadOrGhost`, `PLAYER_DEAD`, `PLAYER_ALIVE`, `PLAYER_UNGHOST` | Off by default |
 | **Cinematic / movie** | `CINEMATIC_START/STOP`, `PLAY_MOVIE` | Restore full |
-| **Instance / raid** | `IsInInstance()`, `PLAYER_ENTERING_WORLD` | Optional "raid profile" (performance, not power) |
+| **Dungeon / Raid / Battleground** (three situations; arenas count as battlegrounds) | `IsInInstance()` type `party` / `raid` / `pvp` or `arena`, `PLAYER_ENTERING_WORLD`, `ZONE_CHANGED_NEW_AREA` | Lockout: your settings, priority 93 (above Idle, Long idle, Flight path), on. Scenarios and delves don't count |
 
 Engine behaviour:
 - **Enter delay** (debounce) per situation, e.g. idle needs 120 s; taxi 2 s.
@@ -389,11 +389,14 @@ from `main` until the merge.
   interface number added to the TOC
 
 #### Later
-- [ ] Instances (asked for 2026-11-16, all clients): dungeons, raids and battlegrounds as situations
-  (`IsInInstance()` type `party` / `raid` / `pvp`; decide on arenas, scenarios and delves). Two uses: a
-  lockout (profile "your settings", priority above Idle and Long idle, so nothing switches inside and no
-  setting change can cause instability), or a profile of their own. Decide: one situation with a tick box
-  per kind or three situations, and whether the lockout is on by default
+- [x] Instances (asked for 2026-11-16, all clients; built 2026-11-17 on `main`, next 0.1.x): three
+  situations, Dungeon (`party`), Raid (`raid`) and Battleground (`pvp` and `arena`), on by default as a
+  lockout: profile "your settings", priority 93 (above Idle 90, Flight path 91 and Long idle 92; below
+  Cutscenes and Combat), so nothing switches inside and no settings change can cause a hitch. Each can get
+  a profile of its own instead. Scenarios and delves aren't included (story scenarios should still go
+  idle). `Compat:GetInstanceType()`; `/jpm debug` prints the instance type on each change
+  - [ ] **In game (Forever):** a dungeon (and a battleground or raid if handy): lockout while idle/AFK,
+    idle again after leaving. Check what type delves and scenarios report
 - [ ] Classic: see M6
 
 ### M6: Classic (0.3.x)
