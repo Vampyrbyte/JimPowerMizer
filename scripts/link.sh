@@ -9,10 +9,13 @@
 # title and version; each client picks the one for its family. Run it again after a release TOC
 # changes (e.g. a new file), or the dev copy won't load that file.
 #
-# Usage: scripts/link.sh [--forever | --retail | --classic-era | path/to/World of Warcraft/_flavor_]
+# Usage: scripts/link.sh [--forever | --retail | --classic-era | --anniversary | --classic
+#                         | path/to/World of Warcraft/_flavor_]
 #   --forever (default)  <WoW>/_forever_
 #   --retail             <WoW>/_retail_ (Midnight)
 #   --classic-era        <WoW>/_classic_era_ (Classic Era, Season of Discovery, Hardcore)
+#   --anniversary        <WoW>/_anniversary_ (TBC Anniversary)
+#   --classic            <WoW>/_classic_ (Mists of Pandaria Classic)
 # <WoW> is $WOW_DIR, defaulting to the Faugus Battle.net prefix on this machine. A path, or
 # $WOW_FOREVER_DIR for the default, overrides it.
 #
@@ -26,7 +29,9 @@ case "${1:---forever}" in
 	--forever) GAME_DIR="${WOW_FOREVER_DIR:-$WOW_DIR/_forever_}" ;;
 	--retail)  GAME_DIR="$WOW_DIR/_retail_" ;;
 	--classic-era) GAME_DIR="$WOW_DIR/_classic_era_" ;;
-	-*)        echo "Unknown option $1 (use --forever, --retail, --classic-era or a game folder)" >&2; exit 1 ;;
+	--anniversary) GAME_DIR="$WOW_DIR/_anniversary_" ;;
+	--classic) GAME_DIR="$WOW_DIR/_classic_" ;;
+	-*)        echo "Unknown option $1 (use --forever, --retail, --classic-era, --anniversary, --classic or a game folder)" >&2; exit 1 ;;
 	*)         GAME_DIR="$1" ;;
 esac
 ADDONS="$GAME_DIR/Interface/AddOns"
