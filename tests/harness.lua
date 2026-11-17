@@ -690,7 +690,6 @@ slash("disable dungeon"); advance(31)
 check(ns.Engine:GetCurrent() == "idle", "dungeon disabled: idle switches in a dungeon")
 slash("enable dungeon"); advance(0.1)
 check(ns.Engine:GetCurrent() == "dungeon" and cvars.maxFPS == "144", "dungeon enabled again: your settings")
-advance(1) -- let the restore's 2nd pass run before idle starts again (see PLAN: preset cascades)
 zone(nil); advance(5); poke(); advance(1)
 check(cvars.maxFPS == "144" and ns.Engine:GetCurrent() == nil, "left the instance: nothing active")
 slash("idle 600")
@@ -722,6 +721,29 @@ cvars.groundEffectDensity = "200"
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 land(); advance(0.6)
 check(cvars.groundEffectDensity == "200", "new console value captured at next switch")
+-- Switches less than 0.5 s apart, before the earlier switch's delayed check (farclip follows View
+-- Distance 0.1 s late): a restore right after a saver starts, and a saver right after a restore
+for _, gap in ipairs({ 0.05, 0.3 }) do -- before and after the saver's farclip cascade landed
+	slash("force taxi"); advance(gap)
+	slash("force off"); advance(1)
+	check(cvars.farclip == "5000" and cvars.groundEffectDensity == "200",
+		("restore %.2f s after a saver started: console values back"):format(gap))
+	check(next(JimPowerMizerDB.global.state.detail) == nil, ("detail snapshot cleared (restore after %.2f s)"):format(gap))
+end
+for _, gap in ipairs({ 0.05, 0.2 }) do -- before and after the restore's farclip cascade landed
+	slash("force taxi"); advance(1)
+	slash("force off"); advance(gap)
+	slash("force taxi"); advance(1)
+	check(cvars.farclip == "1000", ("saver again %.2f s after a restore"):format(gap))
+	slash("force off"); advance(1)
+	check(cvars.farclip == "5000" and cvars.groundEffectDensity == "200",
+		("restore after a saver %.2f s after a restore: console values back"):format(gap))
+	check(next(JimPowerMizerDB.global.state.detail) == nil, ("detail snapshot cleared (saver after %.2f s)"):format(gap))
+end
+-- Saver, restore and saver again, all within half a second
+slash("force taxi"); advance(0.2); slash("force off"); advance(0.2); slash("force taxi"); advance(1)
+slash("force off"); advance(1)
+check(cvars.farclip == "5000" and cvars.groundEffectDensity == "200", "saver, restore, saver within 0.5 s: console values back")
 -- Crash mid-flight: details recovered on next login
 taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
 check(cvars.groundEffectDensity == "0", "saver active before crash")
