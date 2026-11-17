@@ -75,6 +75,24 @@ function impl.IsDeadOrGhost()
 	return flag(UnitIsDeadOrGhost("player"))
 end
 
+-- Blizzard's Graphics menu comes in three versions (Blizzard_SettingsDefinitions_Shared/Graphics.lua
+-- and GraphicsOverrides.lua): Forever's, Standard's (Midnight), and the Classic clients' (Classic
+-- shares Standard's main file but has its own overrides). By interface number: Standard 10.0+,
+-- Forever 1.60+ (16000-19999, above Classic Era's 115xx and below TBC's 2xxxx), else Classic.
+function impl.GraphicsMenu()
+	local interface = tonumber(ns.client.interface) or 0
+	if interface >= 100000 then return "standard" end
+	if interface >= 16000 and interface < 20000 then return "forever" end
+	return "classic"
+end
+
+function impl.HasSecondaryLighting()
+	local fn = C_VideoOptions and C_VideoOptions.IsSecondaryLightingSupported
+	if not fn then return false end
+	local ok, result = pcall(fn)
+	return ok and result and true or false
+end
+
 function impl.GetInstanceType()
 	local inInstance, instanceType = IsInInstance()
 	if not flag(inInstance) then return nil end

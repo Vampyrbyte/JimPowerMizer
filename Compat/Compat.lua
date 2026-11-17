@@ -18,6 +18,10 @@ local REQUIRED = {
 	"IsDeadOrGhost",  -- () -> boolean
 	"HasDelves",      -- () -> boolean (this client has delves: Standard 11.0 and later)
 	"IsInDelve",      -- () -> boolean, scenario difficulty ID (or nil outside a scenario)
+	"GraphicsMenu",   -- () -> "forever" | "standard" | "classic": which version of Blizzard's Graphics
+	                  --   menu this client has (level names and ranges differ)
+	"HasSecondaryLighting", -- () -> boolean (C_VideoOptions.IsSecondaryLightingSupported; the menu
+	                  --   uses it to pick particle density's levels)
 	"GetInstanceType", -- () -> string|nil: IsInInstance()'s type ("party", "raid", "pvp", "arena",
 	                   --   "scenario", ...), nil outside an instance
 	"InCinematic",    -- () -> boolean (in-game cinematic or pre-rendered movie)

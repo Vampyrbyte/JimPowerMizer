@@ -71,6 +71,8 @@ UnitOnTaxi = function() return taxi end
 UnitAffectingCombat = function() return combat end
 UnitIsAFK = function() return afk end
 IsResting = function() return resting end
+-- Secondary lighting is Forever's (seen with /jpm probe); the Graphics menu picks particle density's levels by it.
+C_VideoOptions = { IsSecondaryLightingSupported = function() return FLAVOR == "forever" end }
 local instanceType -- nil outside an instance, else IsInInstance()'s type ("party", "raid", ...)
 IsInInstance = function() return instanceType ~= nil, instanceType or "none" end
 local instanceDifficulty -- GetInstanceInfo()'s difficultyID (208 = Delves)
@@ -814,6 +816,30 @@ else
 end
 check((node("situations", "delve") ~= nil) == (FLAVOR == "midnight"), "Delve listed only where the client has delves")
 check(node("situations", "dungeon") ~= nil and node("situations", "battleground") ~= nil, "Dungeon and Battleground listed")
+-- Profile editor: the Graphics menu's own levels on each client (Blizzard's Graphics.lua per client)
+local R = ns.CVarRegistry
+local particle, texture = R:LevelValues("graphicsParticleDensity"), R:LevelValues("graphicsTextureResolution")
+if FLAVOR == "forever" then
+	check(particle[0] == "Low" and particle[4] == "Ultra" and particle[5] == nil, "Forever: particle density Low..Ultra (0-4)")
+	check(R:LevelValues("graphicsComputeEffects")[0] == "Low", "Forever: compute effects start at Low")
+else
+	check(particle[0] == "Disabled" and particle[5] == "Ultra", "particle density Disabled..Ultra (0-5)")
+	check(R:LevelValues("graphicsComputeEffects")[0] == "Disabled", "compute effects start at Disabled")
+end
+if FLAVOR == "forever" or FLAVOR == "midnight" then
+	check(texture[1] == "Fair" and texture[2] == "High", "texture resolution Low / Fair / High")
+else
+	check(texture[1] == "High" and texture[2] == nil, "Classic: texture resolution Low / High")
+end
+check(R:LevelValues("graphicsShadowQuality")[2] == "Medium", "shadow quality level 2 is Medium, as in the game")
+check(R:LevelValues("graphicsSpellDensity")[2] == "Full" and R:LevelValues("graphicsSpellDensity")[3] == nil, "spell density: 3 levels")
+check(R:LevelSorting("graphicsParticleDensity")[1] == 0, "levels sorted in menu order")
+local vd = node("graphics", "p_Max saver", "graphicsViewDistance", "value")
+check(vd and vd.min == 1 and vd.max == 10 and call(vd.get, {}) == 3, "view distance shown 1-10 like the game (Max saver's 2 shows as 3)")
+call(vd.set, {}, 4)
+check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsViewDistance == 3, "view distance 4 on screen is stored as 3")
+call(vd.set, {}, 3)
+check(node("graphics", "p_Max saver", "graphicsParticleDensity", "value").sorting ~= nil, "dropdowns keep the menu's order")
 check(node("situations", "idle", "mouseActivity") ~= nil and get("situations", "idle", "mouseActivity") == false, "idle mouse option shown, off by default")
 
 -- Edit the active profile -> applied live
