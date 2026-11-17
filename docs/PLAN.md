@@ -403,6 +403,7 @@ from `main` until the merge.
     can say they aren't available (`IsAvailable`), and are then dropped and never shown. A delve is
     instance type `scenario` with difficulty 208, or `C_PartyInfo.IsDelveInProgress()` (from Blizzard's
     API documentation); `/jpm debug` prints each scenario's difficulty
+  - [x] **In game (Midnight, 2026-11-17):** listed with Delve at priority 93; a dungeon keeps your settings
   - [ ] **In game (Midnight):** a delve: "Scenario difficulty 208: a delve", lockout while idle
 - [ ] Classic: see M6
 
