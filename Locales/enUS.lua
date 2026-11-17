@@ -155,6 +155,7 @@ if L then
 	L["Value"] = true
 	L["On"] = true
 	L["Change"] = true
+	L["Changing this setting has crashed some clients, and Blizzard has it turned off on others. Only tick it if the game's own Graphics menu lets you change it."] = true
 	L["Untick to leave this setting as it is when this profile is active."] = true
 	L["Screen"] = true
 	L["Hide the user interface"] = true
