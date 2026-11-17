@@ -27,7 +27,7 @@ house. Less power, less heat, less fan noise, and your normal settings come back
 | **Idle / AFK** | *Max saver* after 3 minutes without input, or 5 seconds after `/afk` |
 | **Long idle** | *Max saver* after 15 minutes without input; give it its own profile (e.g. *Cinematic*, or *Light saver* for short idle) |
 | **Flight path** | *Max saver*, until you do something after landing |
-| **Dungeon / Raid / Battleground** | Your own settings: nothing switches inside an instance, not even when you're idle (arenas count as battlegrounds) |
+| **Dungeon / Raid / Battleground** (and **Delve** on Midnight) | Your own settings: nothing switches inside an instance, not even when you're idle (arenas count as battlegrounds) |
 | **Fishing** | *Light saver* while a fishing pole is in your main hand |
 | **Crafting** | *Light saver* while you craft, and for 10 seconds after (moving or closing the profession window ends it sooner) |
 | Dead / ghost | Off by default |
