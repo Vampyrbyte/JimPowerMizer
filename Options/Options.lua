@@ -134,7 +134,7 @@ local function cvarArgs(profileName)
 			if levels then
 				value = {
 					type = "select", name = L["Value"], order = 2, width = 1.5, disabled = unset,
-					values = levels,
+					values = levels, sorting = Registry:LevelSorting(name),
 					get = function() return tonumber(profile()[name]) end,
 					set = function(_, v) profile()[name] = v; profileEdited(profileName) end,
 				}
@@ -145,12 +145,13 @@ local function cvarArgs(profileName)
 					set = function(_, v) profile()[name] = v and 1 or 0; profileEdited(profileName) end,
 				}
 			else
+				local offset = def.offset or 0 -- shown as in the game's menu (e.g. 1-10 for 0-9)
 				value = {
 					type = "range", name = L["Value"], order = 2, width = 1.5, disabled = unset,
-					min = def.min or 0, max = def.max or 10, step = def.step or 1, bigStep = def.bigStep,
+					min = (def.min or 0) + offset, max = (def.max or 10) + offset, step = def.step or 1, bigStep = def.bigStep,
 					isPercent = def.percent,
-					get = function() return tonumber(profile()[name]) or def.min or 0 end,
-					set = function(_, v) profile()[name] = v; profileEdited(profileName) end,
+					get = function() return (tonumber(profile()[name]) or def.min or 0) + offset end,
+					set = function(_, v) profile()[name] = v - offset; profileEdited(profileName) end,
 				}
 			end
 			args[name] = {
