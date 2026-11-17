@@ -246,7 +246,7 @@ Ace3 is maintained for Mainline. Confirm it loads cleanly on Forever under the M
   Max saver. Names found in game with the new `/jpm watch`. Existing settings get built-in changes through
   `Database.BUILTIN_UPDATES` (only values still at the old built-in value)
 - [x] **In game (2026-11-14):** Max saver lowers both; landing restores them and `giQuality`/`RenderFormat`/`pbrLiquidDetail`
-- [ ] Level names for Secondary Lighting / PBR liquid dropdowns (currently plain numbers; need the menu's labels)
+- [x] Level names for Secondary Lighting / PBR liquid dropdowns: from Blizzard's menu code (2026-11-17, see M6 Phase 2)
 - [x] **v0.1.2 (2026-11-14):** tagged; released by the workflow
 
 ### v0.1.3 (from play)
@@ -492,11 +492,21 @@ without affecting the other's players).
     (2026-11-17, all clients, skipped where missing): `graphicsSunshafts` (0-2), `graphicsProjectedTextures`
     (0-1), `graphicsTextureResolution` (0-1). Max saver: sun shafts and projected textures off; Light saver:
     sun shafts off (BUILTIN_UPDATES 4); texture resolution only in the user's own profiles (reloads textures)
-  - [ ] Profiles expose every graphics option the game's menu has, on every client, with the menu's level
-    names (user, 2026-11-17: "expose the full range of options just like in game"). Needs a `/jpm watch` of
-    each Graphics menu (Forever, Midnight, TBC Anniversary, Mists Classic) and the level names (sun shafts,
-    texture resolution, secondary lighting, PBR liquid). Open: whether display-type settings count
-    (anti-aliasing, resample quality, texture filtering, vsync, low latency, field of view)
+  - [x] Profiles expose every graphics option the game's menu has, on every client, with the menu's level
+    names (user, 2026-11-17: "expose the full range of options just like in game"). Built on `main` from
+    Blizzard's menu code per client (GitHub mirror `Gethe/wow-ui-source`, branches `forever`, `live`,
+    `classic_era`, `classic_anniversary`, `classic`: `Blizzard_SettingsDefinitions_Shared/Graphics.lua` and
+    `Blizzard_Settings_Shared/<flavor>/GraphicsOverrides.lua`) instead of `/jpm watch` on each client.
+    Three menu versions (`Compat:GraphicsMenu()`: forever, standard, classic); particle density's levels
+    follow `C_VideoOptions.IsSecondaryLightingSupported()` like the game's. Added: outline mode,
+    anti-aliasing (`ffxAntiAliasingMode`), texture filtering, resample quality, ray traced shadows
+    (`shadowrt`), variable rate shading (`vrsValar`), vsync. Left out (user's choice or restart needed):
+    field of view, low latency, MSAA, triple buffering, physics level, HD textures (Classic download),
+    contrast/gamma/bloom, resample sharpness, target FPS. Fixed names: shadow quality 2 is Medium; spell
+    density has 3 levels; compute effects start at Low on Forever, Disabled elsewhere. The 0-9 detail
+    sliders show 1-10 like the game. Note: Max saver's particle density 0 is "Low" on Forever but
+    "Disabled" (no particles, combat cues too) on Midnight and Classic; fine while idle or flying
+  - [ ] **In game:** profile editor on each client shows the game's names; spot-check a few options
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
