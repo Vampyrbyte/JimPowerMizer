@@ -563,8 +563,8 @@ The 0.2.0 betas showed correctly for Retail and Forever on CurseForge and Wago (
   include all of `main`
 - [x] Every dev copy relinked to `main` (`_forever_`, `_retail_`, `_classic_era_`, `_anniversary_`,
   `_classic_`)
-- [ ] Remove the `midnight` and `classic` worktrees and delete both branches (local and on GitHub), on
-  the user's go; then drop them from CI's push branches
+- [x] `midnight` and `classic` worktrees removed and both branches deleted, local and on GitHub
+  (2026-11-21, after v1.0.0); CI runs on `main` only. One branch again
 
 **Step 2: docs** (done 2026-11-21)
 - [x] README: every client supported; developer commands up to date

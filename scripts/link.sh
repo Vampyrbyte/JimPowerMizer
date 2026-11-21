@@ -19,7 +19,7 @@
 # <WoW> is $WOW_DIR, defaulting to the Faugus Battle.net prefix on this machine. A path, or
 # $WOW_FOREVER_DIR for the default, overrides it.
 #
-# Running this from another worktree (e.g. the midnight branch) points that game's dev copy at
+# Running this from another worktree (e.g. a feature branch) points that game's dev copy at
 # that worktree; run it from the main checkout to point it back.
 set -euo pipefail
 

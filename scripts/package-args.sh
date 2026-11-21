@@ -2,7 +2,7 @@
 # Extra packager arguments for the release workflow, printed on one line (nothing when none are needed).
 #
 # The packager labels an upload with the game versions of every TOC in the repository, even one that
-# .pkgmeta leaves out of the package. When a TOC is left out (the classic branch leaves out the Mainline
+# .pkgmeta leaves out of the package. When a TOC is left out (the classic branch once left out the Mainline
 # TOC until 0.2.0 is stable, docs/PLAN.md M6), this prints "-g <versions>" with the versions of the
 # TOCs that are packaged, so the upload is labelled only for the clients it supports.
 # Usage: scripts/package-args.sh [repo root]   (default: this script's repo)
