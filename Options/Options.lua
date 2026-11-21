@@ -93,6 +93,18 @@ local function uniqueName(base)
 	return name
 end
 
+-- Do two graphics profiles hold the same settings? (Values are numbers, strings or booleans.)
+local function sameSettings(a, b)
+	a, b = a or {}, b or {}
+	for key, value in pairs(a) do
+		if not Registry.Equal(value, b[key]) then return false end
+	end
+	for key in pairs(b) do
+		if a[key] == nil then return false end
+	end
+	return true
+end
+
 local function profileEdited(name)
 	ns.Applier:ReapplyIfActive(name)
 end
@@ -236,6 +248,21 @@ local function profileGroup(name, order)
 			Options:Refresh()
 		end,
 	}
+	-- Built-in profiles (by name) can be put back to the addon's own values, this profile only.
+	local builtin = ns.Database.BUILTIN_PROFILES[name]
+	if builtin then
+		args.reset = {
+			type = "execute", name = L["Reset to defaults"], order = 3.5, width = 1.0,
+			desc = L["Put this profile back to the addon's own settings for it. Your other profiles, situations and options don't change."],
+			confirm = true, confirmText = L["Reset '%s' to its default settings? Your changes to this profile will be lost."]:format(name),
+			disabled = function() return sameSettings(db().graphicsProfiles[name], builtin) end,
+			func = function()
+				db().graphicsProfiles[name] = ns.Database.Copy(builtin)
+				profileEdited(name)
+				Options:Refresh()
+			end,
+		}
+	end
 	args.delete = {
 		type = "execute", name = L["Delete"], order = 4, width = 0.6,
 		confirm = true, confirmText = L["Delete graphics profile '%s'? Situations using it will use your settings instead."]:format(name),
