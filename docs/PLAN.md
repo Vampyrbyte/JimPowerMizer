@@ -520,7 +520,7 @@ without affecting the other's players).
     only showed image-based AA). MSAA applies live in the game's menu (no restart flag), so no longer `restart`
   - [x] Max saver also sets depth effects, outline mode, both anti-aliasing settings and alpha test off, bilinear
     texture filtering and resampling (BUILTIN_UPDATES 6)
-  - [ ] **In game:** anti-aliasing options match the game; multisample switches cleanly (hitch?)
+  - [x] **In game:** anti-aliasing options match the game; multisample switches cleanly (2026-11-21)
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
