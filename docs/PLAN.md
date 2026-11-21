@@ -585,8 +585,10 @@ The 0.2.0 betas showed correctly for Retail and Forever on CurseForge and Wago (
   on Era or TBC Anniversary (separate Craft window; add its events if the debug lines show it's needed)
 
 **Step 4: v1.0.0** (tagged from `main` only when asked)
-- [ ] No open fails in `notes/TESTING.md`; tag `v1.0.0`; on CurseForge and Wago check the Files page lists
-  all five game versions and each Classic client is offered the file; paste the store description
+- [x] **v1.0.0 released (2026-11-21)** from `main` at `247f400`: uploaded to CurseForge and Wago as a
+  release for 12.1.5, 5.5.4, 2.5.6, 1.60.1 and 1.15.9 (one zip, both TOCs); GitHub release
+  https://github.com/Vampyrbyte/JimPowerMizer/releases/tag/v1.0.0
+- [ ] User: check each site's Files page offers the file to every client; paste `docs/STORE_DESCRIPTION.md`
 - [ ] After: each client patch needs its interface number added to the TOC (one line, a new release).
   Next one: Midnight 12.1.7 (`120107`, on the PTR since 2026-11-20) once it's live
 
