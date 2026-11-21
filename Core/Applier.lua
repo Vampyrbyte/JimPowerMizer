@@ -32,6 +32,8 @@ local writing
 -- Set one CVar, remembering the value we wrote. Returns true on success.
 local function write(name, value)
 	local st = state()
+	local def = Registry:Get(name)
+	if def and def.writeNumber then value = Registry.Number(value) or value end -- as the game's menu writes it
 	value = tostring(value)
 	local previous = ns.Compat:GetCVar(name)
 	if Equal(previous, value) then

@@ -79,6 +79,11 @@ C_VideoOptions = {
 	IsOutlineModeSupported = function() return true end,
 	IsSpellVisualDensitySystemSupported = function() return true end,
 }
+-- Multisample levels (quality, samples, coverage per level) and image-based support (fxaa, cmaa, cmaa2):
+-- this card has MSAA and CMAA but not CMAA 2.
+local msaaSupported = true
+MultiSampleAntiAliasingSupported = function() if msaaSupported then return "2", 2, 0, "4", 4, 0, "8", 8, 0 end end
+AntiAliasingSupported = function() return true, true, false end
 local instanceType -- nil outside an instance, else IsInInstance()'s type ("party", "raid", ...)
 IsInInstance = function() return instanceType ~= nil, instanceType or "none" end
 local instanceDifficulty -- GetInstanceInfo()'s difficultyID (208 = Delves)
@@ -136,6 +141,8 @@ local cvars = {
 	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
 	graphicsSunshafts = "2", graphicsProjectedTextures = "1", graphicsTextureResolution = "1", -- (Classic Era's menu)
 	shadowrt = "0", vrsValar = "0", graphicsOutlineMode = "2", graphicsDepthEffects = "3", graphicsComputeEffects = "4",
+	-- Anti-aliasing: the client reports MSAA as samples,coverage.
+	ffxAntiAliasingMode = "2", MSAAQuality = "4,0", msaaAlphaTest = "1", textureFilteringMode = "5", ResampleQuality = "3",
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
@@ -740,6 +747,9 @@ check(cvars.farclip == "1000", "saver: view distance cascades farclip down (dela
 check(cvars.graphicsLightMode == "0" and cvars.giQuality == "1" and cvars.graphicsPBRLiquidDetail == "0" and cvars.pbrLiquidDetail == "0", "saver: secondary lighting and PBR liquid lowered")
 check(cvars.graphicsSunshafts == "0" and cvars.graphicsProjectedTextures == "0" and cvars.graphicsTextureResolution == "1",
 	"saver: sun shafts and projected textures off, texture resolution left alone")
+check(cvars.ffxAntiAliasingMode == "0" and cvars.MSAAQuality == "0" and cvars.msaaAlphaTest == "0" and cvars.graphicsDepthEffects == "0"
+	and cvars.graphicsOutlineMode == "0" and cvars.textureFilteringMode == "0" and cvars.ResampleQuality == "1",
+	"saver: anti-aliasing off, depth effects and outlines off, bilinear filtering and resampling")
 cvars.chatStyleThing = "y" -- changed by something else mid-flight
 land()
 C_Timer.After(0.2, function() SetCVarRaw("lastSeenThing", "b") end) -- unrelated change just after landing
@@ -749,6 +759,8 @@ advance(0.6)
 check(cvars.farclip == "5000", "restore: delayed cascade on farclip undone by 2nd pass")
 check(cvars.graphicsLightMode == "3" and cvars.giQuality == "4" and cvars.RenderFormat == "2" and cvars.pbrLiquidDetail == "2", "restore: lighting and PBR liquid settings back")
 check(cvars.graphicsSunshafts == "2" and cvars.graphicsProjectedTextures == "1", "restore: sun shafts and projected textures back")
+check(cvars.MSAAQuality == "4" and cvars.ffxAntiAliasingMode == "2" and cvars.msaaAlphaTest == "1" and cvars.textureFilteringMode == "5"
+	and cvars.ResampleQuality == "3", "restore: anti-aliasing (MSAA written as a number, like the game), filtering, resampling back")
 check(cvars.gxWindow == "1", "display settings untouched")
 check(cvars.chatStyleThing == "y" and cvars.lastSeenThing == "b", "unrelated Default-category changes not reverted")
 check(next(JimPowerMizerDB.global.state.detail) == nil, "detail snapshot cleared after restore")
@@ -868,6 +880,15 @@ else
 end
 check(node("graphics", "p_Max saver", "graphicsSunshafts") == nil or node("graphics", "p_Max saver", "graphicsSunshafts").order
 	< node("graphics", "p_Max saver", "graphicsTextureResolution").order, "sun shafts sit where the menu has them (before texture resolution)")
+-- Anti-aliasing: multisample and its alpha test where the card has MSAA; CMAA levels the card supports
+local aa, msaa = R:LevelValues("ffxAntiAliasingMode"), R:LevelValues("MSAAQuality")
+check(aa[3] == "CMAA" and aa[4] == nil, "image-based AA: CMAA offered, CMAA 2 not (card doesn't support it)")
+check(msaa[0] == "None" and msaa[2] and msaa[4] and msaa[8] and msaa[1] == nil, "multisample levels from the card: None, 2x, 4x, 8x")
+check(listed("MSAAQuality") and listed("msaaAlphaTest"), "multisample and alpha test listed")
+check(call(node("graphics", "p_Max saver", "MSAAQuality", "value").get, {}) == 0, "Max saver: multisample None")
+msaaSupported = false; ns.Options:Refresh()
+check(not listed("MSAAQuality") and not listed("msaaAlphaTest"), "no multisample options without MSAA, as in the game")
+msaaSupported = true; ns.Options:Refresh()
 -- Ray-traced shadows and VRS: listed but never put in a profile by us
 check(node("graphics", "p_Max saver", "shadowrt", "change") ~= nil and get("graphics", "p_Max saver", "shadowrt", "change") == false
 	and get("graphics", "p_Max saver", "vrsValar", "change") == false, "ray traced shadows and VRS listed, not ticked")
@@ -995,7 +1016,7 @@ noErrors("session 7")
 
 -- Session 8: built-in profile updates for existing settings --------------------------------
 SavedDB = { profileKeys = { ["Tester - Realm"] = "Default" }, profiles = { Default = { profilesSeeded = true,
-	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20 }, ["Mine"] = { graphicsParticleDensity = 1 },
+	graphicsProfiles = { ["Max saver"] = { graphicsParticleDensity = 1, maxFPS = 20, textureFilteringMode = 3 }, ["Mine"] = { graphicsParticleDensity = 1 },
 		["Light saver"] = { maxFPS = 30, graphicsSunshafts = 1 }, ["Captured"] = { maxFPS = 144, shadowrt = 0, vrsValar = 1 } } } } }
 ns = session("session 8: built-in updates")
 local gp = ns.addon.db.profile.graphicsProfiles
@@ -1006,6 +1027,10 @@ check(gp["Mine"].graphicsLightMode == nil, "not added to the user's own profiles
 check(gp["Max saver"].graphicsSunshafts == 0 and gp["Max saver"].graphicsProjectedTextures == 0, "sun shafts and projected textures off in old Max saver")
 check(gp["Light saver"].graphicsSunshafts == 1, "a value the user set in Light saver is kept")
 check(gp["Mine"].graphicsSunshafts == nil and gp["Max saver"].graphicsTextureResolution == nil, "not added to own profiles; texture resolution never")
+check(gp["Max saver"].MSAAQuality == 0 and gp["Max saver"].ffxAntiAliasingMode == 0 and gp["Max saver"].ResampleQuality == 1
+	and gp["Max saver"].graphicsOutlineMode == 0, "anti-aliasing, resampling and outlines added to old Max saver")
+check(gp["Mine"].MSAAQuality == nil and gp["Light saver"].MSAAQuality == nil, "not added to other profiles")
+check(gp["Max saver"].textureFilteringMode == 3, "texture filtering the user set in Max saver is kept")
 check(gp["Captured"].shadowrt == nil and gp["Captured"].vrsValar == nil and gp["Captured"].maxFPS == 144,
 	"ray traced shadows and VRS taken out of saved profiles, the rest kept")
 check(gp["Cinematic"] and gp["Cinematic"].hideUI and gp["Cinematic"].hideNames and gp["Cinematic"].maxFPS == 30, "Cinematic profile added to existing settings")
