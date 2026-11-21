@@ -72,7 +72,13 @@ UnitAffectingCombat = function() return combat end
 UnitIsAFK = function() return afk end
 IsResting = function() return resting end
 -- Secondary lighting is Forever's (seen with /jpm probe); the Graphics menu picks particle density's levels by it.
-C_VideoOptions = { IsSecondaryLightingSupported = function() return FLAVOR == "forever" end }
+-- The menu's other support checks (Blizzard's Graphics.lua): true where the client has the feature.
+C_VideoOptions = {
+	IsSecondaryLightingSupported = function() return FLAVOR == "forever" end,
+	IsPBRWaterSupported = function() return FLAVOR == "forever" end,
+	IsOutlineModeSupported = function() return true end,
+	IsSpellVisualDensitySystemSupported = function() return true end,
+}
 local instanceType -- nil outside an instance, else IsInInstance()'s type ("party", "raid", ...)
 IsInInstance = function() return instanceType ~= nil, instanceType or "none" end
 local instanceDifficulty -- GetInstanceInfo()'s difficultyID (208 = Delves)
@@ -129,7 +135,7 @@ local cvars = {
 	graphicsGroundClutter = "9", graphicsViewDistance = "9",
 	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
 	graphicsSunshafts = "2", graphicsProjectedTextures = "1", graphicsTextureResolution = "1", -- (Classic Era's menu)
-	shadowrt = "0", vrsValar = "0",
+	shadowrt = "0", vrsValar = "0", graphicsOutlineMode = "2", graphicsDepthEffects = "3", graphicsComputeEffects = "4",
 	-- Lower-level settings: user's /console tweaks, different from what the presets would set.
 	groundEffectDensity = "256", groundEffectDist = "300", farclip = "5000", gxWindow = "1",
 	lastSeenThing = "a", chatStyleThing = "x", -- unrelated Default-category CVars
@@ -841,6 +847,27 @@ call(vd.set, {}, 4)
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].graphicsViewDistance == 3, "view distance 4 on screen is stored as 3")
 call(vd.set, {}, 3)
 check(node("graphics", "p_Max saver", "graphicsParticleDensity", "value").sorting ~= nil, "dropdowns keep the menu's order")
+-- Only what this client's Graphics menu shows, even where the CVar exists (the mock has every one)
+local function listed(name) return node("graphics", "p_Max saver", name) ~= nil end
+if FLAVOR == "forever" then
+	check(listed("graphicsPBRLiquidDetail") and listed("graphicsLightMode") and listed("graphicsOutlineMode") and not listed("graphicsSunshafts"),
+		"Forever: PBR liquid, secondary lighting and outline mode listed, no sun shafts")
+	check(node("graphics", "p_Max saver", "graphicsLiquidDetail").name == "Liquid detail", "liquid detail label (LEGACY_LIQUID_DETAIL in game)")
+	C_VideoOptions.IsOutlineModeSupported = function() return false end
+	ns.Options:Refresh()
+	check(not listed("graphicsOutlineMode"), "Forever: outline mode hidden where the game hides it")
+	C_VideoOptions.IsOutlineModeSupported = function() return true end
+	ns.Options:Refresh()
+elseif FLAVOR == "midnight" then
+	check(not listed("graphicsPBRLiquidDetail") and not listed("graphicsLightMode") and not listed("graphicsSunshafts")
+		and listed("graphicsOutlineMode") and listed("graphicsDepthEffects"), "Midnight: the standard menu's options")
+else
+	check(listed("graphicsSunshafts") and not listed("graphicsDepthEffects") and not listed("graphicsComputeEffects")
+		and not listed("graphicsOutlineMode") and not listed("graphicsViewDistance") and not listed("graphicsLightMode"),
+		"Classic: sun shafts, no depth/compute effects, outline mode, view distance or secondary lighting")
+end
+check(node("graphics", "p_Max saver", "graphicsSunshafts") == nil or node("graphics", "p_Max saver", "graphicsSunshafts").order
+	< node("graphics", "p_Max saver", "graphicsTextureResolution").order, "sun shafts sit where the menu has them (before texture resolution)")
 -- Ray-traced shadows and VRS: listed but never put in a profile by us
 check(node("graphics", "p_Max saver", "shadowrt", "change") ~= nil and get("graphics", "p_Max saver", "shadowrt", "change") == false
 	and get("graphics", "p_Max saver", "vrsValar", "change") == false, "ray traced shadows and VRS listed, not ticked")

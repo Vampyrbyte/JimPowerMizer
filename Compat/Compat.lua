@@ -20,6 +20,7 @@ local REQUIRED = {
 	"IsInDelve",      -- () -> boolean, scenario difficulty ID (or nil outside a scenario)
 	"GraphicsMenu",   -- () -> "forever" | "standard" | "classic": which version of Blizzard's Graphics
 	                  --   menu this client has (level names and ranges differ)
+	"VideoOptionSupported", -- (C_VideoOptions function name) -> boolean; false if the client lacks it
 	"HasSecondaryLighting", -- () -> boolean (C_VideoOptions.IsSecondaryLightingSupported; the menu
 	                  --   uses it to pick particle density's levels)
 	"GetInstanceType", -- () -> string|nil: IsInInstance()'s type ("party", "raid", "pvp", "arena",

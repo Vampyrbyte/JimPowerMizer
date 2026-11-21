@@ -69,7 +69,7 @@ end
 local function captureUserSettings()
 	local values = {}
 	for _, def in ipairs(Registry:All()) do
-		if not def.hidden and not def.manualOnly and Registry:IsUsable(def.name) then
+		if not def.hidden and not def.manualOnly and Registry:InMenu(def.name) and Registry:IsUsable(def.name) then
 			local v = ns.Applier:GetUserValue(def.name)
 			values[def.name] = tonumber(v) or v
 		end
@@ -127,7 +127,7 @@ local function cvarArgs(profileName)
 	local function profile() return db().graphicsProfiles[profileName] or {} end
 	local args = {}
 	for i, def in ipairs(Registry:All()) do
-		if not def.restart and not def.hidden and ns.Compat:GetCVarInfo(def.name) then
+		if not def.restart and not def.hidden and Registry:InMenu(def.name) and ns.Compat:GetCVarInfo(def.name) then
 			local name = def.name
 			local function unset() return profile()[name] == nil end
 			local value
@@ -156,7 +156,7 @@ local function cvarArgs(profileName)
 				}
 			end
 			args[name] = {
-				type = "group", inline = true, order = 10 + i, name = def.label,
+				type = "group", inline = true, order = 10 + i, name = Registry:Label(def.name),
 				args = {
 					change = {
 						type = "toggle", name = L["Change"], order = 1, width = 0.7,

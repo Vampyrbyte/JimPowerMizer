@@ -86,11 +86,15 @@ function impl.GraphicsMenu()
 	return "classic"
 end
 
-function impl.HasSecondaryLighting()
-	local fn = C_VideoOptions and C_VideoOptions.IsSecondaryLightingSupported
-	if not fn then return false end
+function impl.VideoOptionSupported(fnName)
+	local fn = C_VideoOptions and C_VideoOptions[fnName]
+	if type(fn) ~= "function" then return false end
 	local ok, result = pcall(fn)
 	return ok and result and true or false
+end
+
+function impl.HasSecondaryLighting()
+	return impl.VideoOptionSupported("IsSecondaryLightingSupported")
 end
 
 function impl.GetInstanceType()
