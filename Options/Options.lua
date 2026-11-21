@@ -581,15 +581,20 @@ local function build()
 	for i, name in ipairs(names) do
 		tbl.args.graphics.args["p_" .. name] = profileGroup(name, 10 + i)
 	end
-	-- Deleted built-in profiles can be brought back (only while no profile has that name).
-	for i, name in ipairs(ns.Database.BUILTIN_ORDER) do
-		if not p.graphicsProfiles[name] then
-			tbl.args.graphics.args["restore" .. i] = {
-				type = "execute", name = L["Restore %s"]:format(name), order = 2 + i / 10, width = 1.2,
-				desc = L["Bring back this built-in profile with its default settings. Situations that used it when it was deleted use it again."],
-				func = function() restoreBuiltin(name) end,
-			}
-		end
+	-- Deleted built-in profiles can be brought back (only while no profile has that name): one
+	-- dropdown listing them, shown only when there is one to restore. Picking one restores it.
+	local deleted, sorting = {}, {}
+	for _, name in ipairs(ns.Database.BUILTIN_ORDER) do
+		if not p.graphicsProfiles[name] then deleted[name] = name; sorting[#sorting + 1] = name end
+	end
+	if #sorting > 0 then
+		tbl.args.graphics.args.restore = {
+			type = "select", name = L["Restore a built-in profile"], order = 2, width = 1.5,
+			desc = L["Bring back a deleted built-in profile with its default settings. Situations that used it when it was deleted use it again."],
+			values = deleted, sorting = sorting,
+			get = function() return nil end,
+			set = function(_, name) restoreBuiltin(name) end,
+		}
 	end
 	return tbl
 end

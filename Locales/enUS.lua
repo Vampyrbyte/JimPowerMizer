@@ -230,8 +230,8 @@ if L then
 	L["New profile"] = true
 	L["Creates a profile from your current graphics settings, ready to turn down."] = true
 	L["Settings profiles"] = true
-	L["Restore %s"] = true
-	L["Bring back this built-in profile with its default settings. Situations that used it when it was deleted use it again."] = true
+	L["Restore a built-in profile"] = true
+	L["Bring back a deleted built-in profile with its default settings. Situations that used it when it was deleted use it again."] = true
 end
 
 ns.L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
