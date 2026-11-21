@@ -71,7 +71,7 @@ local function captureUserSettings()
 	for _, def in ipairs(Registry:All()) do
 		if not def.hidden and not def.manualOnly and Registry:InMenu(def.name) and Registry:IsUsable(def.name) then
 			local v = ns.Applier:GetUserValue(def.name)
-			values[def.name] = tonumber(v) or v
+			values[def.name] = Registry.Number(v) or v
 		end
 	end
 	return values
@@ -136,7 +136,7 @@ local function cvarArgs(profileName)
 				value = {
 					type = "select", name = L["Value"], order = 2, width = 1.5, disabled = unset,
 					values = levels, sorting = Registry:LevelSorting(name),
-					get = function() return tonumber(profile()[name]) end,
+					get = function() return Registry.Number(profile()[name]) end,
 					set = function(_, v) profile()[name] = v; profileEdited(profileName) end,
 				}
 			elseif def.kind == "bool" then
@@ -167,7 +167,7 @@ local function cvarArgs(profileName)
 						set = function(_, v)
 							if v then
 								local current = ns.Applier:GetUserValue(name)
-								profile()[name] = tonumber(current) or current
+								profile()[name] = Registry.Number(current) or current
 							else
 								profile()[name] = nil
 							end

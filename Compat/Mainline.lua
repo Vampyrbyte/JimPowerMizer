@@ -93,6 +93,33 @@ function impl.VideoOptionSupported(fnName)
 	return ok and result and true or false
 end
 
+-- MultiSampleAntiAliasingSupported() returns quality, sampleCount, coverageCount per level (nothing
+-- without MSAA); the game's menu offers the quality's first number.
+local function msaaList(ok, ...)
+	if not ok or not (...) then return nil end
+	local list = {}
+	for i = 1, select("#", ...), 3 do
+		local quality, samples, coverage = select(i, ...)
+		local value = tonumber(quality) or tonumber(tostring(quality):match("^%s*(%d+)"))
+		if value and value > 0 then
+			list[#list + 1] = { value = value, samples = tonumber(samples) or value, coverage = tonumber(coverage) or 0 }
+		end
+	end
+	return #list > 0 and list or nil
+end
+
+function impl.MSAALevels()
+	if type(MultiSampleAntiAliasingSupported) ~= "function" then return nil end
+	return msaaList(pcall(MultiSampleAntiAliasingSupported))
+end
+
+function impl.AntiAliasingSupport()
+	if type(AntiAliasingSupported) ~= "function" then return true, true, true end
+	local ok, fxaa, cmaa, cmaa2 = pcall(AntiAliasingSupported)
+	if not ok then return true, true, true end
+	return fxaa and true or false, cmaa and true or false, cmaa2 and true or false
+end
+
 function impl.HasSecondaryLighting()
 	return impl.VideoOptionSupported("IsSecondaryLightingSupported")
 end

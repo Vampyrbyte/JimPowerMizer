@@ -23,6 +23,13 @@ Database.BUILTIN_PROFILES = {
 		graphicsComputeEffects = 0,
 		graphicsSunshafts = 0,
 		graphicsProjectedTextures = 0,
+		graphicsDepthEffects = 0,
+		graphicsOutlineMode = 0,
+		ffxAntiAliasingMode = 0,
+		MSAAQuality = 0,
+		msaaAlphaTest = 0,
+		textureFilteringMode = 0, -- Bilinear
+		ResampleQuality = 1,      -- Bilinear: about as cheap as Point, without the blocky look at half render scale
 	},
 	-- Screensaver feel: your own graphics, no UI or names, frame rate capped.
 	["Cinematic"] = {
@@ -56,6 +63,11 @@ Database.BUILTIN_UPDATES = {
 	-- Ray-traced shadows and variable rate shading crashed Classic; "Capture current" put them in
 	-- profiles for a few hours (2026-11-17). Taken out of every profile once.
 	[5] = { removeEverywhere = { "shadowrt", "vrsValar" } },
+	-- The rest of the Graphics menu (2026-11-21), at its cheapest, in Max saver.
+	[6] = { change = { ["Max saver"] = {
+		graphicsDepthEffects = { to = 0 }, graphicsOutlineMode = { to = 0 }, ffxAntiAliasingMode = { to = 0 },
+		MSAAQuality = { to = 0 }, msaaAlphaTest = { to = 0 }, textureFilteringMode = { to = 0 }, ResampleQuality = { to = 1 },
+	} } },
 }
 
 local defaults = {
