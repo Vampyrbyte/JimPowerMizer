@@ -514,7 +514,13 @@ without affecting the other's players).
     values and names matched; it now also hides what the client's menu hides (`inMenu` in the registry,
     `Compat:VideoOptionSupported`), puts sun shafts after SSAO and uses the game's names for legacy liquid
     detail, the FPS sliders and render scale
-  - [ ] **In game:** a new option applies and restores (texture filtering); ray-traced shadows / VRS retest on Classic
+  - [x] **In game:** a new option applies and restores (texture filtering); ray-traced shadows / VRS retest on Classic (2026-11-21)
+  - [x] Multisample (`MSAAQuality`, levels from `MultiSampleAntiAliasingSupported()`, written as a number) and
+    `msaaAlphaTest` where the card has MSAA; CMAA levels per `AntiAliasingSupported()` (user, 2026-11-21: Classic Era
+    only showed image-based AA). MSAA applies live in the game's menu (no restart flag), so no longer `restart`
+  - [x] Max saver also sets depth effects, outline mode, both anti-aliasing settings and alpha test off, bilinear
+    texture filtering and resampling (BUILTIN_UPDATES 6)
+  - [ ] **In game:** anti-aliasing options match the game; multisample switches cleanly (hitch?)
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
