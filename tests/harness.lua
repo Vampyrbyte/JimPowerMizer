@@ -1027,6 +1027,31 @@ check(gps["Light saver"].maxFPS == 45 and gps["Mine"].maxFPS == 50 and ns.addon.
 check(call(node("graphics", "p_Max saver", "reset").disabled, {}) == true, "reset greyed out again afterwards")
 land(); advance(1)
 check(cvars.maxFPS == "144", "landing restores your settings after a reset")
+-- Restore a deleted built-in profile
+local sit = ns.addon.db.profile.situations
+check(node("graphics", "restore1") == nil and node("graphics", "restore2") == nil, "no restore buttons while the built-ins exist")
+check(node("graphics", "p_Max saver", "delete").confirmText:find("restore it later") ~= nil
+	and node("graphics", "p_Mine", "delete").confirmText:find("restore it later") == nil, "deleting a built-in says it can be restored")
+call(node("graphics", "p_Max saver", "delete").func, {})
+check(gps["Max saver"] == nil and sit.idle.profile == false and sit.taxi.profile == false and sit.longIdle.profile == false,
+	"deleted Max saver: its situations use your settings")
+sit.taxi.profile = "Light saver" -- chosen by the user after the delete
+local restore = node("graphics", "restore1")
+check(restore ~= nil and restore.name == "Restore Max saver" and node("graphics", "restore2") == nil, "restore button for the deleted Max saver only")
+call(restore.func, {})
+same = true
+for k, v in pairs(ns.Database.BUILTIN_PROFILES["Max saver"]) do if gps["Max saver"] == nil or gps["Max saver"][k] ~= v then same = false end end
+check(same, "Max saver back with its default settings")
+check(sit.idle.profile == "Max saver" and sit.longIdle.profile == "Max saver", "situations that used it use it again")
+check(sit.taxi.profile == "Light saver", "a situation given another profile since keeps it")
+check(node("graphics", "restore1") == nil and next(ns.addon.db.profile.deletedBuiltins) == nil, "restore button gone, nothing left to restore")
+local restoredLine = false
+for _, line in ipairs(printed) do if line:find("Restored graphics profile Max saver. Used again by: Idle, Long idle") then restoredLine = true end end
+check(restoredLine, "chat says which situations use it again")
+call(node("graphics", "p_Cinematic", "delete").func, {})
+call(node("graphics", "restore3").func, {})
+check(gps["Cinematic"] and gps["Cinematic"].hideUI == true, "an unused built-in (Cinematic) restores too")
+sit.taxi.profile = "Max saver"
 noErrors("session 7")
 
 -- Session 8: built-in profile updates for existing settings --------------------------------
