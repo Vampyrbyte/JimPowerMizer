@@ -525,10 +525,15 @@ without affecting the other's players).
   - [x] Max saver also sets depth effects, outline mode, both anti-aliasing settings and alpha test off, bilinear
     texture filtering and resampling (BUILTIN_UPDATES 6)
   - [x] **In game:** anti-aliasing options match the game; multisample switches cleanly (2026-11-21)
-  - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
-  - [ ] Service windows: interaction types vs the older window events on each client
-  - [ ] Fishing: pole in the main hand, as on Forever (expected)
-  - [ ] Crafting: `isTradeSkill`; Era may use separate Craft window events for some professions
+  - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead. **In game
+    (2026-11-21):** real idle and input rules pass on Era, TBC Anniversary and Mists; flight path on Era and Mists;
+    resting on Era. Not yet tried: combat ending a saver, dead, cutscenes (Classic), flight path on TBC
+  - [x] Service windows: pass on Era (auction house, mail, bank 11-17; vendor 11-21), TBC Anniversary and Mists
+    (2026-11-21)
+  - [x] Fishing: pole in the main hand works on Era and Mists; Mists can't fish without a pole, so the rule
+    holds (2026-11-21; TBC not tried)
+  - [ ] Crafting: `isTradeSkill`; Era may use separate Craft window events for some professions (not tried on
+    any Classic client yet)
   - [ ] Secret values: not expected on Classic (already optional in Compat)
 - [ ] Packaging: dry run on `classic` with the `.pkgmeta` ignore line: only the `_Classic` TOC packaged, game
   versions only Classic ones; check CurseForge and Wago list each Classic client. Later, a dry run with
