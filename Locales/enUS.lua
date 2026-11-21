@@ -28,6 +28,7 @@ if L then
 	L["PBR liquid detail"] = true
 	L["Particle density"] = true
 	L["SSAO"] = true
+	L["Sun shafts"] = true
 	L["Depth effects"] = true
 	L["Compute effects"] = true
 	L["Outline mode"] = true
@@ -41,7 +42,6 @@ if L then
 	L["View distance"] = true
 	L["Environment detail"] = true
 	L["Ground clutter"] = true
-	L["Sun shafts"] = true
 	L["Anti-aliasing"] = true
 	L["FXAA Low"] = true
 	L["FXAA High"] = true

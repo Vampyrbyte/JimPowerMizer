@@ -29,28 +29,38 @@ local function levels(...)
 	return list
 end
 local function menu() return ns.Compat:GraphicsMenu() end
+local function supported(fn) return ns.Compat:VideoOptionSupported(fn) end
+local function notClassic() return menu() ~= "classic" end
+local function foreverWith(fn) return function() return menu() == "forever" and supported(fn) end end
 
 -- kind: "bool" | "number" | "enum". An enum with `levels` (a list, or a function returning one for
 -- menus that differ between clients) gets a dropdown, otherwise a slider. offset: added to the value
 -- for display (the game shows the 0-9 detail sliders as 1-10).
 -- restart = true: needs RestartGx()/client restart; never changed automatically.
+-- inMenu: function, false when this client's Graphics menu doesn't show the option even if the CVar
+-- exists (the conditions in Blizzard's Graphics.lua / GraphicsOverrides.lua). label may be a function.
 local CVARS = {
 	{ name = "useMaxFPS",               kind = "bool",   label = L["Limit foreground FPS"] },
-	{ name = "maxFPS",                  kind = "number", label = L["Max foreground FPS"], min = 8, max = 300, bigStep = 5 },
+	{ name = "maxFPS",                  kind = "number", label = G("MAXFPS", L["Max foreground FPS"]), min = 8, max = 300, bigStep = 5 },
 	{ name = "useMaxFPSBk",             kind = "bool",   label = L["Limit background FPS"] },
-	{ name = "maxFPSBk",                kind = "number", label = L["Max background FPS"], min = 8, max = 300, bigStep = 5 },
+	{ name = "maxFPSBk",                kind = "number", label = G("MAXFPSBK", L["Max background FPS"]), min = 8, max = 300, bigStep = 5 },
 	{ name = "Brightness",              kind = "number", label = G("OPTIONS_BRIGHTNESS", L["Brightness"]), min = 0, max = 100, bigStep = 5 },
-	{ name = "renderScale",             kind = "number", label = L["Render scale"], min = 0.33, max = 2.0, step = 0.01, bigStep = 0.05, percent = true },
+	{ name = "renderScale",             kind = "number", label = G("RENDER_SCALE", L["Render scale"]), min = 0.33, max = 2.0, step = 0.01, bigStep = 0.05, percent = true },
 
 	-- The Graphics menu's quality settings, in its order. Each client shows the ones it has.
 	{ name = "graphicsShadowQuality",   kind = "enum", label = G("SHADOW_QUALITY", L["Shadow quality"]),
 		levels = levels(LOW, FAIR, MEDIUM, HIGH, ULTRA, ULTRA_HIGH) },
-	{ name = "graphicsLiquidDetail",    kind = "enum", label = G("LIQUID_DETAIL", L["Liquid detail"]),
+	-- Forever calls it "legacy" liquid detail where PBR liquid is offered beside it.
+	{ name = "graphicsLiquidDetail",    kind = "enum",
+		label = function()
+			if menu() == "forever" and supported("IsPBRWaterSupported") then return G("LEGACY_LIQUID_DETAIL", L["Liquid detail"]) end
+			return G("LIQUID_DETAIL", L["Liquid detail"])
+		end,
 		levels = levels(LOW, FAIR, MEDIUM, HIGH) },
 	-- Light mode also sets giQuality and RenderFormat, PBR liquid sets pbrLiquidDetail (kept safe
 	-- as lower-level settings). Forever only.
 	{ name = "graphicsPBRLiquidDetail", kind = "enum", label = G("PBR_LIQUID_DETAIL", L["PBR liquid detail"]),
-		levels = levels(LOW, HIGH, ULTRA) },
+		levels = levels(LOW, HIGH, ULTRA), inMenu = foreverWith("IsPBRWaterSupported") },
 	-- Where secondary lighting isn't supported (all but Forever), 0 turns particles off, combat cues too.
 	{ name = "graphicsParticleDensity", kind = "enum", label = G("PARTICLE_DENSITY", L["Particle density"]),
 		levels = function()
@@ -59,15 +69,22 @@ local CVARS = {
 		end },
 	{ name = "graphicsSSAO",            kind = "enum", label = G("SSAO_LABEL", L["SSAO"]),
 		levels = levels(DISABLED, LOW, MEDIUM, HIGH, ULTRA) },
+	-- Classic's menu puts sun shafts in depth effects' place.
+	{ name = "graphicsSunshafts",       kind = "enum", label = G("SUNSHAFTS", L["Sun shafts"]),
+		levels = levels(DISABLED, LOW, HIGH), inMenu = function() return menu() == "classic" end },
 	{ name = "graphicsDepthEffects",    kind = "enum", label = G("DEPTH_EFFECTS", L["Depth effects"]),
-		levels = levels(DISABLED, LOW, MEDIUM, HIGH) },
+		levels = levels(DISABLED, LOW, MEDIUM, HIGH), inMenu = notClassic },
 	{ name = "graphicsComputeEffects",  kind = "enum", label = G("COMPUTE_EFFECTS", L["Compute effects"]),
 		levels = function()
 			if menu() == "forever" then return levels(LOW, FAIR, MEDIUM, HIGH, ULTRA) end
 			return levels(DISABLED, LOW, MEDIUM, HIGH, ULTRA)
-		end },
+		end, inMenu = notClassic },
 	{ name = "graphicsOutlineMode",     kind = "enum", label = G("OUTLINE_MODE", L["Outline mode"]),
-		levels = { { 0, DISABLED[1], DISABLED[2] }, { 1, MEDIUM[1], MEDIUM[2] }, { 2, HIGH[1], HIGH[2] } } },
+		levels = { { 0, DISABLED[1], DISABLED[2] }, { 1, MEDIUM[1], MEDIUM[2] }, { 2, HIGH[1], HIGH[2] } },
+		inMenu = function()
+			if menu() == "forever" then return supported("IsOutlineModeSupported") end
+			return menu() == "standard"
+		end },
 	-- Switching it reloads textures (a short hitch), so the built-in profiles leave it alone.
 	{ name = "graphicsTextureResolution", kind = "enum", label = G("TEXTURE_DETAIL", L["Texture resolution"]),
 		levels = function()
@@ -76,15 +93,15 @@ local CVARS = {
 		end },
 	{ name = "graphicsSpellDensity",    kind = "enum", label = G("SPELL_DENSITY", L["Spell density"]),
 		levels = levels({ "VIDEO_OPTIONS_SFX_DENSITY_MIN", L["Minimal"] }, { "VIDEO_OPTIONS_SFX_DENSITY_REDUCED", L["Reduced"] },
-			{ "VIDEO_OPTIONS_SFX_DENSITY_FULL", L["Full"] }) },
+			{ "VIDEO_OPTIONS_SFX_DENSITY_FULL", L["Full"] }),
+		inMenu = function() return supported("IsSpellVisualDensitySystemSupported") end },
 	{ name = "graphicsProjectedTextures", kind = "bool", label = G("PROJECTED_TEXTURES", L["Projected textures"]) },
 	{ name = "graphicsLightMode",       kind = "enum", label = G("LIGHTING_MODE", L["Secondary lighting"]),
-		levels = levels(FAIR, MEDIUM, HIGH, ULTRA) },
-	{ name = "graphicsViewDistance",    kind = "enum", label = G("FARCLIP", L["View distance"]), min = 0, max = 9, offset = 1 },
+		levels = levels(FAIR, MEDIUM, HIGH, ULTRA), inMenu = foreverWith("IsSecondaryLightingSupported") },
+	{ name = "graphicsViewDistance",    kind = "enum", label = G("FARCLIP", L["View distance"]), min = 0, max = 9, offset = 1,
+		inMenu = notClassic },
 	{ name = "graphicsEnvironmentDetail", kind = "enum", label = G("ENVIRONMENT_DETAIL", L["Environment detail"]), min = 0, max = 9, offset = 1 },
 	{ name = "graphicsGroundClutter",   kind = "enum", label = G("GROUND_CLUTTER", L["Ground clutter"]), min = 0, max = 9, offset = 1 },
-	{ name = "graphicsSunshafts",       kind = "enum", label = G("SUNSHAFTS", L["Sun shafts"]), -- Classic only
-		levels = levels(DISABLED, LOW, HIGH) },
 
 	-- The menu's advanced settings that change how hard the GPU works. Values a graphics card doesn't
 	-- support (CMAA) are refused by the client.
@@ -166,6 +183,22 @@ function Registry:LevelSorting(name)
 	local sorting = {}
 	for i, entry in ipairs(list) do sorting[i] = entry[1] end
 	return sorting
+end
+
+-- The option's name on this client.
+function Registry:Label(name)
+	local def = self:Get(name)
+	if not def then return name end
+	if type(def.label) == "function" then return def.label() end
+	return def.label
+end
+
+-- Does this client's Graphics menu show the option? (The profile editor and "Capture current" offer
+-- only what the game's menu does.)
+function Registry:InMenu(name)
+	local def = self:Get(name)
+	if not def then return false end
+	return not def.inMenu or def.inMenu() and true or false
 end
 
 function Registry:Get(name)
