@@ -386,7 +386,7 @@ from `main` until the merge.
     for 12.1.5 and 1.60.1; GitHub pre-release. Still to check: each site's Files page
   - [x] **v0.2.0-beta2 (2026-11-16):** from `midnight`, adds energy savings (as in v0.1.5)
   - [ ] Feedback wanted: crafting orders windows (dungeons checked by the user 2026-11-17)
-- [ ] ~~Merge into `main`, retest Forever, release `v0.2.0`~~ Replaced by M7 (one release for every client)
+- [ ] ~~Merge into `main`, retest Forever, release `v0.2.0`~~ Replaced by M7 (one release, v1.0.0, for every client)
 
 #### Later
 - [x] Instances (asked for 2026-11-16, all clients; built 2026-11-17 on `main`, next 0.1.x): three
@@ -537,69 +537,58 @@ without affecting the other's players).
 - [ ] Packaging: dry run on `classic` with the `.pkgmeta` ignore line: only the `_Classic` TOC packaged, game
   versions only Classic ones; check CurseForge and Wago list each Classic client. Later, a dry run with
   both TOCs (after 0.2.0)
-- [ ] (Replaced by M7: no 0.3 line; Classic ships in v0.2.0-beta3 from `main`.) Betas `v0.3.0-betaN` from `classic` (tagged only when asked), Classic clients only. Before each:
+- [ ] (Replaced by M7: no 0.3 line; Classic ships in v1.0.0 from `main`.) Betas `v0.3.0-betaN` from `classic` (tagged only when asked), Classic clients only. Before each:
   merge `midnight`, run the Classic tests. Forever/Midnight smoke tests only once 0.3 packages include them
 - [ ] (Replaced by M7.) Finish: merge `midnight` into `main`, release 0.2.0; merge `main` into `classic` and drop the
   `.pkgmeta` ignore line (0.3 betas now go to every client, with Forever and Midnight smoke tests); when
   Classic feedback is good, merge `classic` into `main` and release 0.3.0. Then one branch again; remove the
   worktrees. Each Classic patch then needs its interface number added, like Midnight's
 
-### M7: One release for every client (v0.2.0)
+### M7: One release for every client (v1.0.0)
 
 Decided 2026-11-21: instead of v0.2.0 for Forever and Midnight followed by a separate 0.3 line for
-Classic, **one release, v0.2.0, for all five clients**: Forever 1.60.1, Midnight 12.1.5, Classic Era
-1.15.9 (also Season of Discovery and Hardcore), TBC Anniversary 2.5.6 and Mists of Pandaria Classic
-5.5.4. Everything merges into `main` first, betas come from `main`, and the split branches end.
-Replaces the open release steps of M5 and M6.
+Classic, **one stable release, v1.0.0, for all five clients**: Forever 1.60.1, Midnight 12.1.5, Classic
+Era 1.15.9 (also Season of Discovery and Hardcore), TBC Anniversary 2.5.6 and Mists of Pandaria Classic
+5.5.4, so everyone gets every change at once. No public beta3: the user tests on their own clients
+first. Everything is on `main`; the split branches end. Replaces the open release steps of M5 and M6.
+The 0.2.0 betas showed correctly for Retail and Forever on CurseForge and Wago (user, 2026-11-21).
 
-**What it means for players.** Forever players on stable v0.1.5 get the work since (instance lockout,
-the full Graphics menu in profiles, anti-aliasing, the fuller Max saver, reset and restore of built-in
-profiles) with v0.2.0, not before. No v0.1.6: once `main` holds every client, a stable tag from it goes
-to all five. Beta players (v0.2.0-beta2) get it in beta3.
+**Step 1: one branch** (done 2026-11-21)
+- [x] `main` fast-forwarded to `classic` (which held `midnight`); the harness and CI run all five
+  client flavors on `main`
+- [x] `.pkgmeta`: the `JimPowerMizer_Mainline.toc` ignore line dropped, so the package holds both TOCs;
+  `scripts/package-args.sh` prints nothing and the packager labels the upload with every TOC's game
+  versions (1.60.1, 12.1.5, 1.15.9, 2.5.6, 5.5.4)
+- [x] Tag guard (`scripts/check-release-tag.sh`): 0.3 rules dropped; stable tags from `main`, betas must
+  include all of `main`
+- [x] Every dev copy relinked to `main` (`_forever_`, `_retail_`, `_classic_era_`, `_anniversary_`,
+  `_classic_`)
+- [ ] Remove the `midnight` and `classic` worktrees and delete both branches (local and on GitHub), on
+  the user's go; then drop them from CI's push branches
 
-**Step 1: one branch** (Claude, on the user's go)
-- [ ] Merge `midnight` into `main`, then `classic` into `main` (it already holds `midnight`). The harness
-  and CI run all five client flavors on `main`
-- [ ] `.pkgmeta`: drop the `JimPowerMizer_Mainline.toc` ignore line that `classic` brings, so the package
-  holds both TOCs; `scripts/package-args.sh` then prints nothing and the packager labels the upload with
-  every TOC's game versions (1.60.1, 12.1.5, 1.15.9, 2.5.6, 5.5.4)
-- [ ] Tag guard (`scripts/check-release-tag.sh`): drop the 0.3 rules (no `midnight` upstream, no
-  Classic-only check); stable from `main`, betas must include all of `main`, as before M5
-- [ ] Relink every dev copy to `main` (`scripts/link.sh` for `_forever_`, `_retail_`, `_classic_era_`,
-  `_anniversary_`, `_classic_`); a full game restart on each client afterwards (TOC files change)
-- [ ] Remove the `midnight` and `classic` worktrees and delete both branches (local and on GitHub)
-  once `main` passes CI
+**Step 2: docs** (done 2026-11-21)
+- [x] README: every client supported; developer commands up to date
+- [x] Store description: the five clients; every Graphics menu setting; reset and restore of built-in
+  profiles; Midnight fishing; the minimap menu only on Forever and Midnight. To paste into CurseForge and
+  Wago when releasing (user)
+- [x] Release notes `docs/releases/v1.0.0.md` (everything since v0.1.5, for every client)
 
-**Step 2: docs** (Claude, on `main`)
-- [ ] README: every client supported; developer commands (`link.sh` flags, harness flavors) up to date
-- [ ] Store description: the five clients; reset and restore of built-in profiles; anti-aliasing and the
-  fuller Max saver; Delve on Midnight only
-- [ ] Release notes `docs/releases/v0.2.0-beta3.md` (what's new since beta2, Classic support) and later
-  `v0.2.0.md` (everything since v0.1.5, for Forever players too)
-
-**Step 3: smoke test on every client before beta3** (user; steps in `notes/TESTING.md`)
-- [ ] Each of the five clients, on the merged `main`: loads without errors and isn't out of date; `/jpm
-  force idle` and `/jpm force off` with `/jpm debug` on: Max saver applied and your settings back, no
-  "User changed" lines
+**Step 3: tests on every client** (user; steps in `notes/TESTING.md` and the checklist page)
+- [ ] Each client, on `main`: full restart (new dev TOC), loads without errors and isn't out of date;
+  `/jpm force idle` and `/jpm force off` with `/jpm debug` on: Max saver applied and your settings back,
+  no "User changed" lines
 - [ ] Midnight: Max saver turns off depth effects and outline mode and puts them back; the profile
   editor's anti-aliasing and Multisample options
-- [ ] Forever: a flight path and the fishing pole (the plan's beta smoke test)
+- [ ] Forever: a flight path and the fishing pole
 - [ ] Once, on any client: the "Restore a built-in profile" choice (F5)
+- [ ] Worth doing before 1.0.0 if possible: crafting on a Classic client (not tried yet), and Enchanting
+  on Era or TBC Anniversary (separate Craft window; add its events if the debug lines show it's needed)
 
-**Step 4: v0.2.0-beta3** (tagged from `main` only when asked)
-- [ ] Release; on CurseForge and Wago check the Files page: type Beta, all five game versions listed,
-  each Classic client offered the file
-
-**Step 5: during the beta**
-- [ ] Classic gaps: crafting on any Classic client (not tried yet), and Enchanting on Era or TBC
-  Anniversary, which opens a separate Craft window the addon doesn't watch yet (add its events if the
-  debug lines show it's needed); combat ending a saver; dead/ghost
-- [ ] Midnight 12.1.7 (on the PTR since 2026-11-20): add `120107` to the TOC once it's live
-- [ ] Feedback from beta players; more betas (beta4, ...) as needed, each after the smoke test
-
-**Step 6: v0.2.0** (tagged from `main` only when asked)
-- [ ] No open fails in `notes/TESTING.md`; release notes; tag. Then each client patch needs its
-  interface number added to the TOC (one line, a new release)
+**Step 4: v1.0.0** (tagged from `main` only when asked)
+- [ ] No open fails in `notes/TESTING.md`; tag `v1.0.0`; on CurseForge and Wago check the Files page lists
+  all five game versions and each Classic client is offered the file; paste the store description
+- [ ] After: each client patch needs its interface number added to the TOC (one line, a new release).
+  Next one: Midnight 12.1.7 (`120107`, on the PTR since 2026-11-20) once it's live
 
 **Released without an in-game check** (same code paths as tested ones, or not reachable for the user):
 raid, battleground and arena lockouts (the dungeon one works); the delve lockout (detection from

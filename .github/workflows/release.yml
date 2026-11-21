@@ -6,8 +6,8 @@ on:
       - "v*"
 
 jobs:
-  # Stable tags only from main; alpha/beta tags may come from another branch that includes all of main
-  # (and, for 0.3, of midnight). See scripts/check-release-tag.sh.
+  # Stable tags only from main; alpha/beta tags may come from another branch that includes all of main.
+  # See scripts/check-release-tag.sh.
   tag-check:
     runs-on: ubuntu-latest
     steps:
