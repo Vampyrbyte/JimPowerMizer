@@ -123,12 +123,42 @@ local function renameProfile(old, new)
 	AceConfigDialog:SelectGroup(APP, "graphics", "p_" .. new)
 end
 
+-- Bring back a deleted built-in profile with its default settings. Situations that used it when it
+-- was deleted use it again, unless they've been given another profile since.
+local function restoreBuiltin(name)
+	local p = db()
+	p.graphicsProfiles[name] = ns.Database.Copy(ns.Database.BUILTIN_PROFILES[name])
+	local _, defs = ns.Engine:GetSituations()
+	local relinked = {}
+	for _, key in ipairs(p.deletedBuiltins[name] or {}) do
+		local cfg = p.situations[key]
+		if cfg and cfg.profile == false then
+			cfg.profile = name
+			relinked[#relinked + 1] = defs[key] and defs[key].name or key
+		end
+	end
+	p.deletedBuiltins[name] = nil
+	ns.Savings:ProfileCreated(name)
+	table.sort(relinked)
+	if #relinked > 0 then
+		ns.addon:Msg(L["Restored graphics profile %s. Used again by: %s."], name, table.concat(relinked, ", "))
+	else
+		ns.addon:Msg(L["Restored graphics profile %s."], name)
+	end
+	Options:Refresh()
+	refreshEngine()
+	AceConfigDialog:SelectGroup(APP, "graphics", "p_" .. name)
+end
+
 local function deleteProfile(name)
 	local p = db()
 	p.graphicsProfiles[name] = nil
-	for _, cfg in pairs(p.situations) do
-		if cfg.profile == name then cfg.profile = false end
+	local users = {}
+	for key, cfg in pairs(p.situations) do
+		if cfg.profile == name then cfg.profile = false; users[#users + 1] = key end
 	end
+	-- A built-in profile can be restored later; remember which situations used it.
+	if ns.Database.BUILTIN_PROFILES[name] then p.deletedBuiltins[name] = users end
 	ns.Savings:ProfileDeleted(name)
 	Options:Refresh()
 	refreshEngine()
@@ -266,7 +296,9 @@ local function profileGroup(name, order)
 	end
 	args.delete = {
 		type = "execute", name = L["Delete"], order = 4, width = 0.6,
-		confirm = true, confirmText = L["Delete graphics profile '%s'? Situations using it will use your settings instead."]:format(name),
+		confirm = true, confirmText = builtin
+			and L["Delete graphics profile '%s'? Situations using it will use your settings instead. You can restore it later from Graphics profiles."]:format(name)
+			or L["Delete graphics profile '%s'? Situations using it will use your settings instead."]:format(name),
 		func = function() deleteProfile(name) end,
 	}
 	args.usedBy = {
@@ -548,6 +580,16 @@ local function build()
 	table.sort(names)
 	for i, name in ipairs(names) do
 		tbl.args.graphics.args["p_" .. name] = profileGroup(name, 10 + i)
+	end
+	-- Deleted built-in profiles can be brought back (only while no profile has that name).
+	for i, name in ipairs(ns.Database.BUILTIN_ORDER) do
+		if not p.graphicsProfiles[name] then
+			tbl.args.graphics.args["restore" .. i] = {
+				type = "execute", name = L["Restore %s"]:format(name), order = 2 + i / 10, width = 1.2,
+				desc = L["Bring back this built-in profile with its default settings. Situations that used it when it was deleted use it again."],
+				func = function() restoreBuiltin(name) end,
+			}
+		end
 	end
 	return tbl
 end

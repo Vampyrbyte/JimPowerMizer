@@ -47,6 +47,9 @@ Database.BUILTIN_PROFILES = {
 	},
 }
 
+-- The built-in profiles in the order the options list them (for "Restore" buttons).
+Database.BUILTIN_ORDER = { "Max saver", "Light saver", "Cinematic" }
+
 -- Changes to the built-in profiles after release, applied once to existing settings.
 --  change: a value is only changed if the profile still exists and still has the old built-in
 --          value (`from`; nil = not set), so the user's own edits are never overwritten.
@@ -80,6 +83,7 @@ local defaults = {
 		graphicsProfiles = {},       -- seeded from BUILTIN_PROFILES once (see EnsureProfiles)
 		profilesSeeded = false,
 		builtinVersion = 0,          -- last BUILTIN_UPDATES entry applied
+		deletedBuiltins = {},        -- built-in profile name -> situation keys that used it when it was deleted
 		situations = {
 			-- profile: graphics profile name, or false for "your own settings".
 			-- priority: higher wins when several situations are active at once.

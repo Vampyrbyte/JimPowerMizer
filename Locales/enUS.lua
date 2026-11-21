@@ -153,6 +153,8 @@ if L then
 	L["Enter a name."] = true
 	L["That name is reserved."] = true
 	L["A profile with that name already exists."] = true
+	L["Restored graphics profile %s. Used again by: %s."] = true
+	L["Restored graphics profile %s."] = true
 	L["Value"] = true
 	L["On"] = true
 	L["Change"] = true
@@ -173,6 +175,7 @@ if L then
 	L["Put this profile back to the addon's own settings for it. Your other profiles, situations and options don't change."] = true
 	L["Reset '%s' to its default settings? Your changes to this profile will be lost."] = true
 	L["Delete"] = true
+	L["Delete graphics profile '%s'? Situations using it will use your settings instead. You can restore it later from Graphics profiles."] = true
 	L["Delete graphics profile '%s'? Situations using it will use your settings instead."] = true
 	L["Used by: %s"] = true
 	L["nothing"] = true
@@ -227,6 +230,8 @@ if L then
 	L["New profile"] = true
 	L["Creates a profile from your current graphics settings, ready to turn down."] = true
 	L["Settings profiles"] = true
+	L["Restore %s"] = true
+	L["Bring back this built-in profile with its default settings. Situations that used it when it was deleted use it again."] = true
 end
 
 ns.L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
