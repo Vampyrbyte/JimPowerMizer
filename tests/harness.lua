@@ -122,7 +122,7 @@ local cvars = {
 	Brightness = "50", useMaxFPS = "0", maxFPS = "144", useMaxFPSBk = "1", maxFPSBk = "30", renderScale = "1",
 	graphicsShadowQuality = "4", graphicsSSAO = "3", graphicsParticleDensity = "4",
 	graphicsLiquidDetail = "2", graphicsSpellDensity = "5", graphicsQuality = "7",
-	graphicsGroundClutter = "9", graphicsViewDistance = "9",
+	graphicsGroundClutter = "9", graphicsViewDistance = "9", graphicsEnvironmentDetail = "9",
 	graphicsLightMode = "3", giQuality = "4", RenderFormat = "2", graphicsPBRLiquidDetail = "2", pbrLiquidDetail = "2",
 	graphicsSunshafts = "2", graphicsProjectedTextures = "1", graphicsTextureResolution = "1", -- (Classic Era's menu)
 	shadowrt = "0", vrsValar = "0", graphicsOutlineMode = "2", graphicsDepthEffects = "3", graphicsComputeEffects = "4",
