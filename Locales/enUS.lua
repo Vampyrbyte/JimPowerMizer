@@ -42,11 +42,14 @@ if L then
 	L["View distance"] = true
 	L["Environment detail"] = true
 	L["Ground clutter"] = true
+	L["Vertical sync"] = true
 	L["Anti-aliasing"] = true
 	L["FXAA Low"] = true
 	L["FXAA High"] = true
 	L["CMAA"] = true
 	L["CMAA 2"] = true
+	L["Multisample"] = true
+	L["Multisample alpha test"] = true
 	L["Texture filtering"] = true
 	L["Bilinear"] = true
 	L["Trilinear"] = true
@@ -62,9 +65,7 @@ if L then
 	L["Variable rate shading"] = true
 	L["Standard"] = true
 	L["Aggressive"] = true
-	L["Vertical sync"] = true
 	L["Overall preset"] = true
-	L["MSAA"] = true
 	L["|cffffd200/jpm|r - open the options window"] = true
 	L["|cffffd200/jpm status|r - show the current state"] = true
 	L["|cffffd200/jpm on|r / |cffffd200off|r - enable or disable automatic switching"] = true

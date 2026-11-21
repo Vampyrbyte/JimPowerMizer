@@ -10,7 +10,7 @@ globals = { "JimPowerMizer", "JimPowerMizer_OnAddonCompartmentClick", "JimPowerM
 read_globals = {
 	"LibStub", "C_AddOns", "C_CVar", "GetBuildInfo", "GetTime", "UnitOnTaxi", "InCombatLockdown",
 	"WOW_PROJECT_ID", "wipe", "UnitAffectingCombat", "UnitIsAFK", "IsResting", "IsInInstance", "C_VideoOptions", "UnitIsDeadOrGhost",
-	"InCinematic", "IsInCinematicScene", "IsPlayerMoving", "GetUnitSpeed", "UnitCastingInfo",
+	"InCinematic", "IsInCinematicScene", "MultiSampleAntiAliasingSupported", "AntiAliasingSupported", "IsPlayerMoving", "GetUnitSpeed", "UnitCastingInfo",
 	"UnitChannelInfo", "GetCursorPosition", "GetPlayerFacing", "Enum", "CreateFrame", "GameTooltip", "strtrim", "C_Console", "ConsoleGetAllCommands", "issecretvalue", "C_Timer",
 	"GetInventoryItemID", "C_Item", "GetItemInfoInstant", "GetCurrentKeyBoardFocus", "GetMouseFoci", "GetMouseFocus", "time", "date",
 }

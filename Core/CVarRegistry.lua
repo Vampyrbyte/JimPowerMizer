@@ -10,7 +10,7 @@ ns.CVarRegistry = Registry
 -- (Interface/AddOns/Blizzard_SettingsDefinitions_Shared/Graphics.lua and GraphicsOverrides.lua, read
 -- for every client on 2026-11-17), with English fallbacks.
 local function G(globalName, fallback)
-	local v = rawget(_G, globalName)
+	local v = globalName and rawget(_G, globalName)
 	return type(v) == "string" and v ~= "" and v or fallback
 end
 
@@ -39,6 +39,7 @@ local function foreverWith(fn) return function() return menu() == "forever" and 
 -- restart = true: needs RestartGx()/client restart; never changed automatically.
 -- inMenu: function, false when this client's Graphics menu doesn't show the option even if the CVar
 -- exists (the conditions in Blizzard's Graphics.lua / GraphicsOverrides.lua). label may be a function.
+-- writeNumber: always written as a plain number (also when restoring a value read as "4,0").
 local CVARS = {
 	{ name = "useMaxFPS",               kind = "bool",   label = L["Limit foreground FPS"] },
 	{ name = "maxFPS",                  kind = "number", label = G("MAXFPS", L["Max foreground FPS"]), min = 8, max = 300, bigStep = 5 },
@@ -103,14 +104,37 @@ local CVARS = {
 	{ name = "graphicsEnvironmentDetail", kind = "enum", label = G("ENVIRONMENT_DETAIL", L["Environment detail"]), min = 0, max = 9, offset = 1 },
 	{ name = "graphicsGroundClutter",   kind = "enum", label = G("GROUND_CLUTTER", L["Ground clutter"]), min = 0, max = 9, offset = 1 },
 
-	-- The menu's advanced settings that change how hard the GPU works. Values a graphics card doesn't
-	-- support (CMAA) are refused by the client.
+	-- The menu's other settings that change how hard the GPU works, in its order (display settings,
+	-- anti-aliasing, then the advanced ones).
 	-- manualOnly: never put in a profile by us (not by "Capture current", a new profile or a built-in
 	-- profile); only changed if the user ticks it. Ray-traced shadows and variable rate shading
 	-- crashed Classic (user, 2026-11-17) and are turned off by Blizzard on Midnight and Forever.
+	{ name = "vsync",                   kind = "bool", label = G("VERTICAL_SYNC", L["Vertical sync"]) },
+	-- Anti-aliasing: the menu's "Anti-aliasing" choice (none / image based / multisample / both) only
+	-- sets these two, so they are offered directly. CMAA levels only where the card supports them.
 	{ name = "ffxAntiAliasingMode",     kind = "enum", label = G("FXAA_CMAA_LABEL", L["Anti-aliasing"]),
-		levels = levels(NONE, { "ANTIALIASING_FXAA_LOW", L["FXAA Low"] }, { "ANTIALIASING_FXAA_HIGH", L["FXAA High"] },
-			{ "ANTIALIASING_CMAA", L["CMAA"] }, { "ANTIALIASING_CMAA2", L["CMAA 2"] }) },
+		levels = function()
+			local _, cmaa, cmaa2 = ns.Compat:AntiAliasingSupport()
+			local list = levels(NONE, { "ANTIALIASING_FXAA_LOW", L["FXAA Low"] }, { "ANTIALIASING_FXAA_HIGH", L["FXAA High"] })
+			if cmaa then list[#list + 1] = { 3, "ANTIALIASING_CMAA", L["CMAA"] } end
+			if cmaa2 then list[#list + 1] = { 4, "ANTIALIASING_CMAA2", L["CMAA 2"] } end
+			return list
+		end },
+	-- Multisample: the levels this graphics card offers, named like the game's menu. The client may
+	-- report the value as "samples,coverage" (Registry.Number reads the first part, as the menu does).
+	{ name = "MSAAQuality",             kind = "enum", label = G("MSAA_LABEL", L["Multisample"]),
+		levels = function()
+			local list = { { 0, NONE[1], NONE[2] } }
+			local format = G("ADVANCED_ANTIALIASING_MSAA_FORMAT", "%dx")
+			for _, level in ipairs(ns.Compat:MSAALevels() or {}) do
+				local ok, label = pcall(string.format, format, level.samples, level.coverage)
+				list[#list + 1] = { level.value, nil, ok and label or (level.samples .. "x") }
+			end
+			return list
+		end,
+		inMenu = function() return ns.Compat:MSAALevels() ~= nil end, writeNumber = true },
+	{ name = "msaaAlphaTest",           kind = "bool", label = G("MULTISAMPLE_ALPHA_TEST", L["Multisample alpha test"]),
+		inMenu = function() return ns.Compat:MSAALevels() ~= nil end },
 	{ name = "textureFilteringMode",    kind = "enum", label = G("ANISOTROPIC", L["Texture filtering"]),
 		levels = levels({ "VIDEO_OPTIONS_BILINEAR", L["Bilinear"] }, { "VIDEO_OPTIONS_TRILINEAR", L["Trilinear"] },
 			{ "VIDEO_OPTIONS_2XANISOTROPIC", L["2x Anisotropic"] }, { "VIDEO_OPTIONS_4XANISOTROPIC", L["4x Anisotropic"] },
@@ -123,12 +147,10 @@ local CVARS = {
 	{ name = "vrsValar",                kind = "enum", label = G("VRS_MODE", L["Variable rate shading"]),
 		levels = levels(DISABLED, { "VIDEO_OPTIONS_STANDARD", L["Standard"] }, { "VIDEO_OPTIONS_AGGRESSIVE", L["Aggressive"] }),
 		manualOnly = true },
-	{ name = "vsync",                   kind = "bool", label = G("VERTICAL_SYNC", L["Vertical sync"]) },
 
 	-- Listed so the probe reports it, but never changed automatically: switching the preset
 	-- overwrites the user's individual settings.
 	{ name = "graphicsQuality",         kind = "enum",   label = L["Overall preset"], min = 1, max = 10, restart = true },
-	{ name = "MSAAQuality",             kind = "enum",   label = L["MSAA"],           restart = true },
 }
 
 -- Names above characters and nameplates. Not shown in the profile editor: a profile's "Hide names"
@@ -217,11 +239,19 @@ function Registry:IsUsable(name)
 	return info ~= nil and not info.isReadOnly and not info.isLocked
 end
 
--- Compare two CVar values, treating "20" and "20.000" as equal.
+-- A CVar value as a number: "20.000" is 20, and "4,0" (MSAAQuality's samples,coverage) is 4, as the
+-- game's menu reads it. nil if it isn't a number.
+function Registry.Number(v)
+	local n = tonumber(v)
+	if n or type(v) ~= "string" then return n end
+	return tonumber(v:match("^%s*(%-?%d+%.?%d*)%s*,"))
+end
+
+-- Compare two CVar values, treating "20" and "20.000" (or "4" and "4,0") as equal.
 function Registry.Equal(a, b)
 	if a == b then return true end
 	if a == nil or b == nil then return false end
-	local na, nb = tonumber(a), tonumber(b)
+	local na, nb = Registry.Number(a), Registry.Number(b)
 	if na and nb then return math.abs(na - nb) < 1e-4 end
 	return tostring(a) == tostring(b)
 end

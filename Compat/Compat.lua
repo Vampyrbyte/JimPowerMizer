@@ -19,6 +19,8 @@ local REQUIRED = {
 	"GraphicsMenu",   -- () -> "forever" | "standard" | "classic": which version of Blizzard's Graphics
 	                  --   menu this client has (level names and ranges differ)
 	"VideoOptionSupported", -- (C_VideoOptions function name) -> boolean; false if the client lacks it
+	"MSAALevels",     -- () -> { { value, samples, coverage }, ... } this card offers, or nil without MSAA
+	"AntiAliasingSupport", -- () -> fxaa, cmaa, cmaa2 (booleans; all true if the client can't tell)
 	"HasSecondaryLighting", -- () -> boolean (C_VideoOptions.IsSecondaryLightingSupported; the menu
 	                  --   uses it to pick particle density's levels)
 	"GetInstanceType", -- () -> string|nil: IsInInstance()'s type ("party", "raid", "pvp", "arena",
