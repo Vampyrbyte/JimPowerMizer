@@ -471,7 +471,7 @@ without affecting the other's players).
   - [x] `JimPowerMizer_Classic.toc` (same file list, `## Interface: 11509, 20506, 50504`). Compat: the
     existing Mainline code passes the harness on all three and picks the held-pole fishing rule and no
     delves by interface; what Classic really lacks comes from the Phase 1 probe
-- [ ] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
+- [x] Phase 1, in game on each Classic client (Era, TBC Anniversary, Mists Classic; SoD and Hardcore get a
   short load-and-switch check on Era's client): loads without errors and isn't out of date; `/jpm probe`
   and `/jpm probe combat`; switch and restore incl. `/console` tweaks; hide UI and names/nameplates;
   options window and Settings page; addon compartment (may not exist: `/jpm` still opens options)
@@ -488,7 +488,7 @@ without affecting the other's players).
     confirmed, so the `_Classic` TOC is right; compat Mainline, no errors. Same registry CVars as Era, and the
     newer menu settings (AA, MSAA as a plain number, filtering, resample, vsync) exist. Writes work in and out
     of combat; Max saver switch and restore clean. Mists' farclip default is 5108 (no View distance setting)
-  - [ ] TBC Anniversary, Mists Classic: hide UI and names/nameplates (Cinematic), options window
+  - [x] Hide UI and names/nameplates (Cinematic): works on Mists Classic (2026-11-21); TBC Anniversary skipped (user)
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
     for anything Classic has that the others don't. Era (`/jpm watch`, 2026-11-17): no View Distance setting at all (farclip
