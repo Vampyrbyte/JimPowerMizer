@@ -169,6 +169,9 @@ if L then
 	L["Capture current"] = true
 	L["Set every setting in this profile to your current graphics settings (your own values, not ones this addon has lowered)."] = true
 	L["Replace all settings in '%s' with your current graphics settings?"] = true
+	L["Reset to defaults"] = true
+	L["Put this profile back to the addon's own settings for it. Your other profiles, situations and options don't change."] = true
+	L["Reset '%s' to its default settings? Your changes to this profile will be lost."] = true
 	L["Delete"] = true
 	L["Delete graphics profile '%s'? Situations using it will use your settings instead."] = true
 	L["Used by: %s"] = true

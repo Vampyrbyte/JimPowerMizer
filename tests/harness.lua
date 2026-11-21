@@ -1006,6 +1006,27 @@ check(ms.shadowrt == nil and ms.vrsValar == nil and ms.graphicsShadowQuality ~= 
 ms.dim = 0.6; SavedDB = JimPowerMizerDB
 ns = session("session 7b: leftover dim from a development build")
 check(ns.addon.db.profile.graphicsProfiles["Max saver"].dim == nil, "old dim setting removed")
+-- Reset a built-in profile to its defaults (this profile only)
+local gps = ns.addon.db.profile.graphicsProfiles
+local reset = node("graphics", "p_Max saver", "reset")
+check(reset ~= nil and reset.confirm and not call(reset.disabled, {}), "reset offered on the changed Max saver, with a confirmation")
+check(node("graphics", "p_Cinematic", "reset") ~= nil and node("graphics", "p_Light saver", "reset") ~= nil, "reset offered on all three built-in profiles")
+check(call(node("graphics", "p_Light saver", "reset").disabled, {}) == true, "reset greyed out where the profile already has its defaults")
+gps["Mine"] = { maxFPS = 50 }; gps["Light saver"].maxFPS = 45; ns.Options:Refresh()
+check(node("graphics", "p_Mine", "reset") == nil, "no reset on the user's own profiles")
+taxi = true; fire("PLAYER_CONTROL_LOST"); advance(2.5)
+check(ns.Applier:GetActive() == "Max saver" and cvars.maxFPS == "144" and not UIParent:IsShown(), "captured Max saver active (FPS 144, UI hidden)")
+call(node("graphics", "p_Max saver", "reset").func, {}); advance(0.6)
+local same = true
+for k, v in pairs(ns.Database.BUILTIN_PROFILES["Max saver"]) do if gps["Max saver"][k] ~= v then same = false end end
+for k in pairs(gps["Max saver"]) do if ns.Database.BUILTIN_PROFILES["Max saver"][k] == nil then same = false end end
+check(same and gps["Max saver"] ~= ns.Database.BUILTIN_PROFILES["Max saver"], "Max saver back to its defaults (a copy, not the built-in table)")
+check(cvars.maxFPS == "20" and UIParent:IsShown(), "reset applied at once to the active profile (FPS 20, UI shown again)")
+check(gps["Light saver"].maxFPS == 45 and gps["Mine"].maxFPS == 50 and ns.addon.db.profile.situations.idle.profile == "Max saver",
+	"other profiles and situations untouched")
+check(call(node("graphics", "p_Max saver", "reset").disabled, {}) == true, "reset greyed out again afterwards")
+land(); advance(1)
+check(cvars.maxFPS == "144", "landing restores your settings after a reset")
 noErrors("session 7")
 
 -- Session 8: built-in profile updates for existing settings --------------------------------
