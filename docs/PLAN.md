@@ -510,7 +510,11 @@ without affecting the other's players).
     turned off by Blizzard on Midnight and Forever (user, 2026-11-17): `manualOnly` in the registry, so
     no built-in profile, "Capture current" or new profile includes them; still listed (unticked, with a
     warning) for anyone whose game menu offers them. Taken out of every saved profile once (BUILTIN_UPDATES 5)
-  - [ ] **In game:** profile editor on each client shows the game's names; spot-check a few options
+  - [x] Profile editor checked against Blizzard's menu code for all five clients (2026-11-21, instead of in game):
+    values and names matched; it now also hides what the client's menu hides (`inMenu` in the registry,
+    `Compat:VideoOptionSupported`), puts sun shafts after SSAO and uses the game's names for legacy liquid
+    detail, the FPS sliders and render scale
+  - [ ] **In game:** a new option applies and restores (texture filtering); ray-traced shadows / VRS retest on Classic
   - [ ] Situations: Taxi, Idle input (typing, interface clicks), Combat, Cutscenes, Resting, Dead
   - [ ] Service windows: interaction types vs the older window events on each client
   - [ ] Fishing: pole in the main hand, as on Forever (expected)
