@@ -574,14 +574,14 @@ The 0.2.0 betas showed correctly for Retail and Forever on CurseForge and Wago (
 - [x] Release notes `docs/releases/v1.0.0.md` (everything since v0.1.5, for every client)
 
 **Step 3: tests on every client** (user; steps in `notes/TESTING.md` and the checklist page)
-- [ ] Each client, on `main`: full restart (new dev TOC), loads without errors and isn't out of date;
+- [x] Each client, on `main` (all five passed 2026-11-21): full restart (new dev TOC), loads without errors and isn't out of date;
   `/jpm force idle` and `/jpm force off` with `/jpm debug` on: Max saver applied and your settings back,
   no "User changed" lines
-- [ ] Midnight: Max saver turns off depth effects and outline mode and puts them back; the profile
+- [x] Midnight: Max saver turns off depth effects and outline mode and puts them back; the profile
   editor's anti-aliasing and Multisample options
-- [ ] Forever: a flight path and the fishing pole
-- [ ] Once, on any client: the "Restore a built-in profile" choice (F5)
-- [ ] Worth doing before 1.0.0 if possible: crafting on a Classic client (not tried yet), and Enchanting
+- [x] Forever: a flight path and the fishing pole
+- [x] Once, on any client: the "Restore a built-in profile" choice (F5)
+- [ ] Not done (user, 2026-11-21; listed under known limits in the release notes): crafting on a Classic client (not tried yet), and Enchanting
   on Era or TBC Anniversary (separate Craft window; add its events if the debug lines show it's needed)
 
 **Step 4: v1.0.0** (tagged from `main` only when asked)
