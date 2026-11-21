@@ -484,7 +484,11 @@ without affecting the other's players).
     options. No addon compartment on Era, and no minimap button wanted (user, 2026-11-17)
   - [x] **Season of Discovery and Hardcore (2026-11-17):** interface 11509 like Era; Cinematic switch and
     restore work; typing counts as input
-  - [ ] TBC Anniversary, Mists Classic
+  - [x] **TBC Anniversary and Mists Classic (2026-11-21):** interfaces 20506 (project 5) and 50504 (project 19)
+    confirmed, so the `_Classic` TOC is right; compat Mainline, no errors. Same registry CVars as Era, and the
+    newer menu settings (AA, MSAA as a plain number, filtering, resample, vsync) exist. Writes work in and out
+    of combat; Max saver switch and restore clean. Mists' farclip default is 5108 (no View distance setting)
+  - [ ] TBC Anniversary, Mists Classic: hide UI and names/nameplates (Cinematic), options window
 - [ ] Phase 2 (one commit each, every client passes):
   - [ ] Graphics: which registry CVars exist (Classic's menu is smaller), preset cascades, `/jpm watch`
     for anything Classic has that the others don't. Era (`/jpm watch`, 2026-11-17): no View Distance setting at all (farclip
